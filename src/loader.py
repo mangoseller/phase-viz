@@ -32,8 +32,14 @@ def load_model_from_checkpoint(path: str, device="cpu") -> torch.nn.Module:
         raise RuntimeError("Model class not loaded. Call load_model_class first.")
     model = _model_class()
     state_dict = torch.load(path, map_location=device)
-    model.load_state_dict(state_dict)
+    print(state_dict.keys())
+    if "metrics" in state_dict.keys():
+        del state_dict["metrics"]
+    print(state_dict.keys())
+    model.load_state_dict(state_dict["model_state"])
+    
     model.to(device)
+    model.eval()
     return model
 
 def contains_checkpoints(dir: str) -> list[str]:

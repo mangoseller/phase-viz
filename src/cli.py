@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.path.dirname(__file__))
 import sys
 from loader import load_model_class, contains_checkpoints
-from state import load_state
+from state import load_state, save_state
 from metrics import compute_l2_from_checkpoint, plot_metric_over_checkpoints
 app = t.Typer(no_args_is_help=False)
 
@@ -23,8 +23,6 @@ def welcome():
     t.echo(f"{help_hint}")
     t.secho("=" * 60, fg="white")
     t.echo()
-
-from state import save_state
 
 @app.command()
 def load_dir(
@@ -84,5 +82,3 @@ if __name__ == "__main__":
         welcome()
     else:
         app()
-
-# testing path is "C:\Users\samue\OneDrive\Documents\checkpoints"
