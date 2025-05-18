@@ -11,8 +11,8 @@ from state import load_state, save_state
 from metrics import (
     l2_norm_of_model,
     compute_metric_over_checkpoints,
-    plot_metric_over_checkpoints,
 )
+from generate_plot import plot_metric_interactive
 
 app = t.Typer(no_args_is_help=False)
 
@@ -128,7 +128,7 @@ def plot_metric():
                 _err(f"'{raw}' is not a built-in metric and is not a file.")
 
     values = compute_metric_over_checkpoints(metric_fn, checkpoints)
-    plot_metric_over_checkpoints(
+    plot_metric_interactive(
         checkpoint_names=[os.path.basename(p) for p in checkpoints],
         values=values,
         metric_name=metric_name,

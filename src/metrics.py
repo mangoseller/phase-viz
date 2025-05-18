@@ -24,16 +24,24 @@ def compute_metric_over_checkpoints( # TODO: import C++ code
     return values
 
 
-def plot_metric_over_checkpoints( # TODO: make this better
-    checkpoint_names: Sequence[str], values: Sequence[float], metric_name: str
-) -> None:
-    """Simple line-plot helper (unchanged except arg order)."""
-    plt.figure(figsize=(10, 5))
-    plt.plot(checkpoint_names, values, marker="o", linestyle="-")
-    plt.xticks(rotation=45, ha="right")
-    plt.xlabel("Checkpoint")
-    plt.ylabel(metric_name)
-    plt.title(f"{metric_name} over Checkpoints")
-    plt.tight_layout()
-    plt.grid(True)
-    plt.show()
+# def plot_metric_over_checkpoints( # TODO: make this better
+#     checkpoint_names: Sequence[str], values: Sequence[float], metric_name: str
+# ) -> None:
+#     """Simple line-plot helper (unchanged except arg order)."""
+#     plt.figure(figsize=(10, 5))
+#     plt.plot(checkpoint_names, values, marker="o", linestyle="-")
+#     plt.xticks(rotation=45, ha="right")
+#     plt.xlabel("Checkpoint")
+#     plt.ylabel(metric_name)
+#     plt.title(f"{metric_name} over Checkpoints")
+#     plt.tight_layout()
+#     plt.grid(True)
+#     plt.show()
+
+__all__ = ["plot_metric_interactive"]
+
+
+
+
+
+
