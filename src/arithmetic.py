@@ -1,6 +1,6 @@
-import torch.nn as nn
-import torch
-import torch.nn.functional as F
+import torch.nn as nn # type: ignore
+import torch # type: ignore
+import torch.nn.functional as F # type: ignore
 
 class ArithmeticNet(nn.Module):
     def __init__(self, hidden_size=128):

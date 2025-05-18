@@ -1,4 +1,5 @@
 import torch
+# DEMO FUNC
 def participation_ratio_of_model(model: torch.nn.Module) -> float:
     """Compute the participation ratio of all *trainable* parameters."""
     # flatten parameters into one long vector

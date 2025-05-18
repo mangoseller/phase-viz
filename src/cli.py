@@ -1,13 +1,11 @@
-import typer as t
+import typer as t # type: ignore
 import typing
 import os
 import sys
 import importlib.util
 import inspect
-import sys
 from pathlib import Path
 sys.path.append(os.path.dirname(__file__))
-import sys
 from loader import load_model_class, contains_checkpoints
 from state import load_state, save_state
 from metrics import (
@@ -15,6 +13,7 @@ from metrics import (
     compute_metric_over_checkpoints,
     plot_metric_over_checkpoints,
 )
+
 app = t.Typer(no_args_is_help=False)
 
 def welcome():
@@ -33,7 +32,7 @@ def welcome():
     t.echo()
 
 @app.command()
-def load_dir(
+def load_dir( #TODO: test with differing architecture
     dir: str = t.Option(..., help="Directory containing model checkpoints"),
     model: str = t.Option(..., help="Path to Python file defining the model class"),
     class_name: str = t.Option(..., help="Name of the model class inside the file")
@@ -61,15 +60,10 @@ def load_dir(
     t.secho(f"Loaded {len(checkpoints)} checkpoint(s) successfully.", fg=t.colors.GREEN, bold=True)
 
 
-
-
-
-
 @app.command()
 def plot_metric():
-    # ---------- load stored run-state ---------------------------------------
     try:
-        state = load_state()
+        state = load_state() # load json state file if it exists
     except RuntimeError as e:
         t.secho(str(e), fg=t.colors.RED, bold=True)
         raise t.Exit(code=1)
@@ -77,7 +71,6 @@ def plot_metric():
     load_model_class(state["model_path"], state["class_name"])
     checkpoints = state["checkpoints"]
 
-    # ---------- which metric?  ---------------------------------------------
     raw = t.prompt(
         "Enter metric name (e.g. 'l2') or the path to a custom .py file"
     ).strip()
@@ -86,23 +79,22 @@ def plot_metric():
     metric_name = None
 
     if os.path.isfile(raw):
-        # -- user supplied a .py file ---------------------------------------
         path = Path(raw).resolve()
         if path.suffix != ".py":
             _err(f"Custom metric must be a .py file (got {path})")
 
-        spec = importlib.util.spec_from_file_location("custom_metric", str(path))
+        spec = importlib.util.spec_from_file_location("custom_metric", str(path)) # get module
         if spec is None or spec.loader is None:
             _err(f"Could not import module from {path}")
 
-        mod = importlib.util.module_from_spec(spec)
+        mod = importlib.util.module_from_spec(spec) # type: ignore
         sys.modules["custom_metric"] = mod
         try:
-            spec.loader.exec_module(mod)
+            spec.loader.exec_module(mod) # import module
         except Exception as e:
             _err(f"Failed importing {path}: {e}")
 
-        # discover exactly ONE function ending with '_of_model'
+        # get functions that end with _of_model from module, e.g. compute_LLC_of_model()
         cands = [
             fn
             for fn in mod.__dict__.values()
@@ -110,24 +102,24 @@ def plot_metric():
             and fn.__module__ == mod.__name__
             and fn.__name__.endswith("_of_model")
         ]
-        if len(cands) != 1:
+        if len(cands) != 1: # only one function per file - TODO: compute them in sequence, allow for big files of funcs
             _err(
                 "File must define exactly one top-level function whose name "
                 "ends with '_of_model'."
             )
 
         metric_fn = cands[0]
-        # quick sanity: exactly one positional parameter
+        # metric func must have 1 parameter
         if len(inspect.signature(metric_fn).parameters) != 1:
             _err(
                 f"{metric_fn.__qualname__} must take exactly one argument "
                 "(the model)."
             )
 
-        metric_name = metric_fn.__name__.replace("_of_model", "").replace("_", " ").title()
+        metric_name = metric_fn.__name__.replace("_of_model", "").replace("_", " ").title() # get a title
 
     else:
-        # -- built-in short-codes -------------------------------------------
+        # compute inbuilt-funcs
         match raw.lower():
             case "l2":
                 metric_fn = l2_norm_of_model
@@ -135,7 +127,6 @@ def plot_metric():
             case _:
                 _err(f"'{raw}' is not a built-in metric and is not a file.")
 
-    # ---------- compute & plot ---------------------------------------------
     values = compute_metric_over_checkpoints(metric_fn, checkpoints)
     plot_metric_over_checkpoints(
         checkpoint_names=[os.path.basename(p) for p in checkpoints],
@@ -144,10 +135,10 @@ def plot_metric():
     )
 
 
-# small helper
-def _err(msg: str) -> "NoReturn":  # noqa: F821
+def _err(msg: str) -> None:  
     t.secho(msg, fg=t.colors.RED, bold=True)
     raise t.Exit(code=1)
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

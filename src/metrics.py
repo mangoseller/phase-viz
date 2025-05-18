@@ -1,14 +1,9 @@
-# metrics.py
 import os
 from typing import Callable, Sequence, List
 import torch
 import matplotlib.pyplot as plt
-
 from loader import load_model_from_checkpoint
 
-# ────────────────────────────────
-#  “built-in” metric(s)
-# ────────────────────────────────
 def l2_norm_of_model(model: torch.nn.Module) -> float:
     """Compute the L2 norm of all *trainable* parameters in a model."""
     return torch.sqrt(
@@ -16,10 +11,7 @@ def l2_norm_of_model(model: torch.nn.Module) -> float:
     ).item()
 
 
-# ────────────────────────────────
-#  Generic driver
-# ────────────────────────────────
-def compute_metric_over_checkpoints(
+def compute_metric_over_checkpoints( # TODO: import C++ code
     metric_fn: Callable[[torch.nn.Module], float],
     checkpoints: Sequence[str],
     device: str = "cpu",
@@ -32,7 +24,7 @@ def compute_metric_over_checkpoints(
     return values
 
 
-def plot_metric_over_checkpoints(
+def plot_metric_over_checkpoints( # TODO: make this better
     checkpoint_names: Sequence[str], values: Sequence[float], metric_name: str
 ) -> None:
     """Simple line-plot helper (unchanged except arg order)."""
