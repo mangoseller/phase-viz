@@ -1,32 +1,47 @@
+# metrics.py
+import os
+from typing import Callable, Sequence, List
 import torch
-from loader import load_model_from_checkpoint
 import matplotlib.pyplot as plt
 
+from loader import load_model_from_checkpoint
+
+# ────────────────────────────────
+#  “built-in” metric(s)
+# ────────────────────────────────
 def l2_norm_of_model(model: torch.nn.Module) -> float:
-    """Compute the L2 norm of all parameters in the model."""
-    return torch.sqrt(sum(p.data.norm(2).pow(2) for p in model.parameters() if p.requires_grad)).item()
+    """Compute the L2 norm of all *trainable* parameters in a model."""
+    return torch.sqrt(
+        sum(p.data.norm(2).pow(2) for p in model.parameters() if p.requires_grad)
+    ).item()
 
 
-def compute_l2_from_checkpoint(path: str, device="cpu") -> float:
-    """Compute L2 norm of parameters from checkpoint."""
-    model = load_model_from_checkpoint(path, device)
-    return l2_norm_of_model(model)
+# ────────────────────────────────
+#  Generic driver
+# ────────────────────────────────
+def compute_metric_over_checkpoints(
+    metric_fn: Callable[[torch.nn.Module], float],
+    checkpoints: Sequence[str],
+    device: str = "cpu",
+) -> List[float]:
+    """Load each checkpoint, apply *metric_fn(model)*, return the list."""
+    values: List[float] = []
+    for path in checkpoints:
+        model = load_model_from_checkpoint(path, device)
+        values.append(metric_fn(model))
+    return values
 
-def plot_metric_over_checkpoints(checkpoint_names: list[str], values: list[float], metric_name="L2 Norm"):
-    """
-    Plots a line chart of a metric (e.g. L2 norm) over checkpoint steps.
 
-    Args:
-        checkpoint_names: List of checkpoint filenames (used as x-axis labels)
-        values: List of metric values (same length as checkpoint_names)
-        metric_name: Label for the Y-axis and plot title
-    """
+def plot_metric_over_checkpoints(
+    checkpoint_names: Sequence[str], values: Sequence[float], metric_name: str
+) -> None:
+    """Simple line-plot helper (unchanged except arg order)."""
     plt.figure(figsize=(10, 5))
-    plt.plot(checkpoint_names, values, marker='o', linestyle='-')
-    plt.xticks(rotation=45, ha='right')
+    plt.plot(checkpoint_names, values, marker="o", linestyle="-")
+    plt.xticks(rotation=45, ha="right")
     plt.xlabel("Checkpoint")
     plt.ylabel(metric_name)
-    plt.title(f"{metric_name} Over Checkpoints")
+    plt.title(f"{metric_name} over Checkpoints")
     plt.tight_layout()
     plt.grid(True)
     plt.show()
