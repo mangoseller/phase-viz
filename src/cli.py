@@ -11,6 +11,7 @@ from state import load_state, save_state
 from metrics import (
     l2_norm_of_model,
     compute_metric_over_checkpoints,
+    import_metric_functions
 )
 from generate_plot import plot_metric_interactive
 
@@ -70,69 +71,76 @@ def plot_metric():
     
     load_model_class(state["model_path"], state["class_name"])
     checkpoints = state["checkpoints"]
-
-    raw = t.prompt(
-        "Enter metric name (e.g. 'l2') or the path to a custom .py file"
-    ).strip()
-
-    metric_fn = None
-    metric_name = None
-
-    if os.path.isfile(raw):
-        path = Path(raw).resolve()
-        if path.suffix != ".py":
-            _err(f"Custom metric must be a .py file (got {path})")
-
-        spec = importlib.util.spec_from_file_location("custom_metric", str(path)) # get module
-        if spec is None or spec.loader is None:
-            _err(f"Could not import module from {path}")
-
-        mod = importlib.util.module_from_spec(spec) # type: ignore
-        sys.modules["custom_metric"] = mod
-        try:
-            spec.loader.exec_module(mod) # import module
-        except Exception as e:
-            _err(f"Failed importing {path}: {e}")
-
-        # get functions that end with _of_model from module, e.g. compute_LLC_of_model()
-        cands = [
-            fn
-            for fn in mod.__dict__.values()
-            if inspect.isfunction(fn)
-            and fn.__module__ == mod.__name__
-            and fn.__name__.endswith("_of_model")
-        ]
-        if len(cands) != 1: # only one function per file - TODO: compute them in sequence, allow for big files of funcs
-            _err(
-                "File must define exactly one top-level function whose name "
-                "ends with '_of_model'."
-            )
-
-        metric_fn = cands[0]
-        # metric func must have 1 parameter
-        if len(inspect.signature(metric_fn).parameters) != 1:
-            _err(
-                f"{metric_fn.__qualname__} must take exactly one argument "
-                "(the model)."
-            )
-
-        metric_name = metric_fn.__name__.replace("_of_model", "").replace("_", " ").title() # get a title
-
-    else:
-        # compute inbuilt-funcs
-        match raw.lower():
-            case "l2":
-                metric_fn = l2_norm_of_model
-                metric_name = "L2 Norm"
-            case _:
-                _err(f"'{raw}' is not a built-in metric and is not a file.")
-
-    values = compute_metric_over_checkpoints(metric_fn, checkpoints)
+    
+    # Dict to store metrics: {metric_name: [values]}
+    metrics_data = {}
+    
+    # Loop to collect multiple metrics
+    while True:
+        raw = t.prompt(
+            "Enter metric name (e.g. 'l2'), path to a custom .py file, or 'done' to finish selecting metrics"
+        ).strip()
+        
+        if raw.lower() == 'done':
+            if not metrics_data:
+                t.secho("No metrics selected. Please select at least one metric.", fg=t.colors.RED)
+                continue
+            break
+            
+        if os.path.isfile(raw):
+            path = Path(raw).resolve()
+            if path.suffix != ".py":
+                _err(f"Custom metric must be a .py file (got {path})")
+                
+            # Import all metric functions from the file
+            try:
+                metric_functions = import_metric_functions(str(path))
+                if not metric_functions:
+                    _err(f"No valid metric functions found in {path}")
+                
+                # Compute each metric from the file
+                for metric_name, metric_fn in metric_functions.items():
+                    if metric_name in metrics_data:
+                        t.secho(f"Metric '{metric_name}' already added. Skipping.", fg=t.colors.YELLOW)
+                        continue
+                    
+                    t.secho(f"Computing {metric_name}...", fg=t.colors.BLUE)
+                    values = compute_metric_over_checkpoints(metric_fn, checkpoints)
+                    metrics_data[metric_name] = values
+                    t.secho(f"Added metric: {metric_name}", fg=t.colors.GREEN)
+            except Exception as e:
+                _err(f"Failed importing metric functions from {path}: {e}")
+        else:
+            # Look for built-in metrics
+            match raw.lower():
+                case "l2":
+                    if "L2 Norm" in metrics_data:
+                        t.secho("Metric 'L2 Norm' already added. Skipping.", fg=t.colors.YELLOW)
+                        continue
+                    
+                    t.secho("Computing L2 Norm...", fg=t.colors.BLUE)
+                    values = compute_metric_over_checkpoints(l2_norm_of_model, checkpoints)
+                    metrics_data["L2 Norm"] = values
+                    t.secho("Added metric: L2 Norm", fg=t.colors.GREEN)
+                case _:
+                    t.secho("Could not locate metric/file.", fg=t.colors.RED)
+                    continue
+    
+    # Save all metrics data for later use
+    state["metrics_data"] = metrics_data
+    save_state(state)
+    
+    # Plot all metrics using the enhanced plot function
+    checkpoint_names = [os.path.basename(p) for p in checkpoints]
+    
+    t.secho(f"Plotting {len(metrics_data)} metrics...", fg=t.colors.BLUE)
     plot_metric_interactive(
-        checkpoint_names=[os.path.basename(p) for p in checkpoints],
-        values=values,
-        metric_name=metric_name,
+        checkpoint_names=checkpoint_names,
+        metrics_data=metrics_data
     )
+    
+    t.secho(f"Plot generated with {len(metrics_data)} metrics.", fg=t.colors.GREEN)
+    t.secho("Use the dropdown menu to toggle between metrics or show all at once.", fg=t.colors.CYAN)
 
 
 def _err(msg: str) -> None:  
@@ -145,3 +153,4 @@ if __name__ == "__main__":
         welcome()
     else:
         app()
+
