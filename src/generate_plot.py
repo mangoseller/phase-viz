@@ -11,6 +11,95 @@ import http.server
 import socketserver
 import webbrowser
 import random
+import os
+import sys
+import webbrowser
+from contextlib import contextmanager
+
+
+import os
+import sys
+from contextlib import contextmanager
+
+# Set this at module level
+os.environ['GTK_DEBUG'] = '0'
+os.environ['NO_AT_BRIDGE'] = '1'
+
+@contextmanager
+def suppress_stdout_stderr():
+    """
+    Context manager to suppress stdout and stderr.
+    """
+    original_stdout = sys.stdout
+    original_stderr = sys.stderr
+    
+    class NullIO:
+        def write(self, *args, **kwargs):
+            pass
+        def flush(self, *args, **kwargs):
+            pass
+    
+    try:
+        sys.stdout = NullIO()
+        sys.stderr = NullIO()
+        yield
+    finally:
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
+
+
+def silent_open_browser(url):
+    """Open a browser window silently without any console output."""
+    with suppress_stdout_stderr():
+        import webbrowser
+        webbrowser.open(url)
+
+
+def start_cleanup_server(output_html, timestamp, port_suffix):
+    """Start a tiny HTTP server that deletes *output_html* when the
+    browser tab sends a beacon.  Returns (port, cleanup_event)."""
+    cleanup_event = threading.Event()
+
+    class CleanupHandler(http.server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            if self.path == '/cleanup':
+                self.send_response(200)
+                self.end_headers()
+                try:
+                    data = json.loads(self.rfile.read(
+                        int(self.headers['Content-Length'])).decode())
+                    if data.get('token') == timestamp:
+                        try:
+                            os.remove(output_html)
+                        except:
+                            pass  # Silently handle cleanup errors
+                        cleanup_event.set()
+                        threading.Thread(target=self.server.shutdown,
+                                        daemon=True).start()
+                except:
+                    pass  # Silently handle cleanup errors
+
+        def log_message(self, *_):
+            pass  # silence default logging
+
+    # Find an available port
+    base = 8000
+    port = base + (hash(port_suffix) % 1000)
+    for _ in range(20):
+        try:
+            server = socketserver.TCPServer(("127.0.0.1", port), CleanupHandler)
+            break
+        except OSError:
+            port += 1
+    else:
+        # If we can't find a port, just return a dummy event
+        return 0, threading.Event()
+
+    # Start server in a separate thread
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    
+    return port, cleanup_event
+
 
 def calculate_trend_info(values):
     """Calculate trend information for a sequence of values"""
@@ -872,7 +961,7 @@ def plot_metric_interactive(
     </style>
     """
     
-    # ---- 1️⃣  start the cleanup server first ---------------------------------
+# ---- 1️⃣  start the cleanup server first ---------------------------------
     port, done = start_cleanup_server(output_html, timestamp, random_suffix)
     
     # ---- 2️⃣  build the JS that uses that port --------------------------------
@@ -899,62 +988,20 @@ def plot_metric_interactive(
     with open(output_html, "w", encoding="utf-8") as f:
         f.write(final_html)
     
+    # Replace this section near the end of plot_metric_interactive:
     # ---- 4️⃣  open it in the browser ------------------------------------------
-    webbrowser.open(output_html.as_uri())
-    
-    print("Waiting for browser to close…")
-    done.wait()   
+    with suppress_stdout_stderr():
+        import webbrowser
+        webbrowser.open(output_html.as_uri())
+        # Don't print waiting message
+        done.wait()  # Wait silently without any console output
         
     # Try to export PNG as well
     try:
-        png_path = output_html.with_suffix(".png")
-        fig.write_image(png_path, scale=2, width=1200, height=800)
-    except (ValueError, ImportError):
-        print("Note: PNG export requires additional dependencies (kaleido). Install with 'pip install kaleido'.")
+        with suppress_stdout_stderr():
+            png_path = output_html.with_suffix(".png")
+            fig.write_image(png_path, scale=2, width=1200, height=800)
+    except:
+        pass  # Silently ignore PNG export errors
     
-    return 
-    
-    
-def start_cleanup_server(output_html, timestamp, port_suffix):
-    """Start a tiny HTTP server that deletes *output_html* when the
-    browser tab sends a beacon.  Returns (port, cleanup_event)."""
-    cleanup_event = threading.Event()
-
-    class CleanupHandler(http.server.BaseHTTPRequestHandler):
-        def do_POST(self):
-            if self.path == '/cleanup':
-                self.send_response(200)
-                self.end_headers()
-                try:
-                    data = json.loads(self.rfile.read(
-                        int(self.headers['Content-Length'])).decode())
-                    if data.get('token') == timestamp:
-                        os.remove(output_html)
-                        print(f"✓ deleted {output_html}")
-                        cleanup_event.set()
-                        threading.Thread(target=self.server.shutdown,
-                                         daemon=True).start()
-                except Exception as e:
-                    print("cleanup error:", e)
-
-        def log_message(self, *_):        # silence default logging
-            pass
-
-    # ---------- THESE LINES WERE ACCIDENTALLY INDENTED ----------
-    base = 8000
-    port = base + (hash(port_suffix) % 1000)
-    for _ in range(20):
-        try:
-            server = socketserver.TCPServer(("127.0.0.1", port), CleanupHandler)
-            break
-        except OSError:
-            port += 1
-    else:
-        raise RuntimeError("No free port for cleanup server")
-
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    print(f"Cleanup server on :{port}")
-
-    return port, cleanup_event               # <-- real return
-
 
