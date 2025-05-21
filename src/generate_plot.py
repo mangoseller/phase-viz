@@ -24,6 +24,9 @@ from contextlib import contextmanager
 # Set this at module level
 os.environ['GTK_DEBUG'] = '0'
 os.environ['NO_AT_BRIDGE'] = '1'
+os.environ['ACCESSIBILITY_ENABLED'] = '0'
+os.environ['GTK_MODULES'] = ''  # Prevent loading of GTK modules
+os.environ['GDK_BACKEND'] = 'x11'  # Use X11 backend which has fewer messages
 
 @contextmanager
 def suppress_stdout_stderr():

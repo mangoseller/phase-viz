@@ -5,58 +5,25 @@ import datetime
 import threading
 from typing import Optional
 
-# Environment variable to silence GTK messages - set it as early as possible
+# Environment variable to silence GTK messages
 os.environ['GTK_DEBUG'] = '0'
-os.environ['NO_AT_BRIDGE'] = '1'  # This specifically addresses the atk-bridge message
+os.environ['NO_AT_BRIDGE'] = '1'
 
-class ProgressBar:
-    """A customizable command-line progress bar with animation."""
+class SimpleLoadingAnimation:
+    """A simple animated loading indicator for console output."""
     
-    def __init__(
-        self, 
-        total: int, 
-        desc: str = "", 
-        bar_length: int = 30, 
-        fill_char: str = "█",
-        empty_char: str = "░",
-        unit: str = "it",
-        leave: bool = True,
-        color: Optional[str] = None,
-    ):
-        """
-        Initialize a new progress bar.
-        
-        Args:
-            total: Total number of items to process
-            desc: Description to display before the progress bar
-            bar_length: Length of the progress bar in characters
-            fill_char: Character to use for filled portion of the bar
-            empty_char: Character to use for empty portion of the bar
-            unit: Unit of items being processed
-            leave: Whether to leave the progress bar after completion
-            color: Color to use for the progress bar (uses typer colors)
-        """
-        self.total = total
-        self.desc = desc
-        self.bar_length = bar_length
-        self.fill_char = fill_char
-        self.empty_char = empty_char
-        self.unit = unit
-        self.leave = leave
+    def __init__(self, base_text="Loading", color=None):
+        self.base_text = base_text
         self.color = color
+        self.frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+        self.current_frame = 0
+        self.stop_event = threading.Event()
+        self.thread = None
+        self.start_time = None
         
-        # Internal state
-        self.current = 0
-        self.start_time = time.time()
-        self.last_update_time = self.start_time
-        self.last_print_len = 0
-        self.completed = False
-        
-        # Animation state
-        self.animation_frames = ["Computing...", "Computing.", "Computing..", "Computing..."]
-        self.animation_index = 0
-        self.animation_timer = None
-        self.stop_animation = threading.Event()
+        # Use a lock to protect the progress data during concurrent updates
+        self.lock = threading.Lock()
+        self.progress = {'current': 0, 'total': 1}  # Default progress
         
         # Support for typer colors
         self._typer_available = False
@@ -66,132 +33,106 @@ class ProgressBar:
             self._typer = typer
         except ImportError:
             pass
-        
-        # Start animation if total > 0
-        if total > 0:
-            self._start_animation()
     
-    def _start_animation(self):
-        """Start the animation thread for the computing text."""
-        if self.animation_timer is None:
-            self.stop_animation.clear()
-            self.animation_timer = threading.Thread(target=self._animate_computing)
-            self.animation_timer.daemon = True
-            self.animation_timer.start()
-    
-    def _animate_computing(self):
-        """Animate the computing text."""
-        while not self.stop_animation.is_set() and not self.completed:
-            self.animation_index = (self.animation_index + 1) % len(self.animation_frames)
-            self._render()  # Just render, don't update progress
-            time.sleep(0.3)  # Animation speed
-    
-    def _render(self):
-        """Render the progress bar without updating progress."""
-        if self.completed:
+    def start(self, total_metrics=1):
+        """Start the animation in a separate thread."""
+        if self.thread is not None:
             return
             
-        # Calculate progress
-        progress = min(1.0, self.current / self.total)
-        filled_length = int(self.bar_length * progress)
+        self.start_time = time.time()
+        with self.lock:
+            self.progress = {'current': 0, 'total': total_metrics}
         
-        # Create the bar
-        bar = self.fill_char * filled_length + self.empty_char * (self.bar_length - filled_length)
-        
-        # Calculate time stats
-        now = time.time()
-        elapsed = now - self.start_time
-        if progress > 0:
-            eta = elapsed / progress - elapsed
+        self.stop_event.clear()
+        self.thread = threading.Thread(target=self._animate)
+        self.thread.daemon = True
+        self.thread.start()
+    
+    def update(self, current=None, total=None):
+        """Update progress information in a thread-safe way."""
+        if current is None and total is None:
+            return
+            
+        with self.lock:
+            if current is not None:
+                self.progress['current'] = current
+            if total is not None:
+                self.progress['total'] = total
+    
+    def _animate(self):
+        """Animation loop."""
+        while not self.stop_event.is_set():
+            # Get a thread-safe copy of the current progress
+            with self.lock:
+                progress = self.progress.copy()
+            
+            # Calculate elapsed time and estimated remaining time
+            elapsed = time.time() - self.start_time
+            progress_ratio = max(0.01, progress['current'] / progress['total']) if progress['total'] > 0 else 0
+            # Avoid division by zero or very small numbers
+            if progress_ratio > 0.01:
+                eta = (elapsed / progress_ratio) - elapsed
+            else:
+                eta = 0
+            
+            # Format the time strings
+            elapsed_str = self._format_time(elapsed)
             eta_str = self._format_time(eta)
-        else:
-            eta_str = "?"
-        
-        # Create the progress line with animated computing text
-        percent = int(progress * 100)
-        animation_text = self.animation_frames[self.animation_index]
-        line = f"{self.desc} |{bar}| {self.current}/{self.total} [{percent}%] - ETA: {eta_str} - {animation_text}"
-        
-        # Apply color if available and specified
-        if self._typer_available and self.color:
-            line = self._typer.style(line, fg=getattr(self._typer.colors, self.color.upper(), None))
-        
-        # Clear the previous line
-        sys.stdout.write("\r" + " " * self.last_print_len)
-        
-        # Print the new line
-        sys.stdout.write("\r" + line)
-        sys.stdout.flush()
-        
-        self.last_print_len = len(line)
+            
+            # Create the loading text
+            if progress['current'] > 0:
+                metrics_text = f"({progress['current']}/{progress['total']} metrics completed)"
+                text = f"{self.frames[self.current_frame]} {self.base_text} {metrics_text} - {elapsed_str} elapsed, ~{eta_str} remaining"
+            else:
+                text = f"{self.frames[self.current_frame]} {self.base_text}... {elapsed_str} elapsed"
+            
+            # Apply color if available
+            if self._typer_available and self.color:
+                try:
+                    text = self._typer.style(text, fg=self.color)
+                except:
+                    pass
+            
+            # Print the text
+            sys.stdout.write("\r" + " " * 100)  # Clear line
+            sys.stdout.write("\r" + text)
+            sys.stdout.flush()
+            
+            # Update animation frame
+            self.current_frame = (self.current_frame + 1) % len(self.frames)
+            time.sleep(0.1)
     
-    def update(self, current: Optional[int] = None):
-        """
-        Update the progress bar.
-        
-        Args:
-            current: Current progress (if None, increment by 1)
-        """
-        if self.completed:
+    def stop(self, final_text=None):
+        """Stop the animation."""
+        if self.thread is None:
             return
             
-        if current is not None:
-            self.current = current
-        else:
-            self.current += 1
+        self.stop_event.set()
+        self.thread.join(0.5)
+        self.thread = None
         
-        # Check if we're done
-        if self.current >= self.total:
-            self.finish()
-            return
+        # Calculate total time
+        if self.start_time is not None:
+            total_time = time.time() - self.start_time
+            time_str = self._format_time(total_time)
             
-        # Only update rendering if enough time has passed
-        now = time.time()
-        if now - self.last_update_time < 0.1 and self.current < self.total:
-            return
-        
-        self.last_update_time = now
-        self._render()
-    
-    def finish(self, message: str = "Completed"):
-        """Complete the progress bar with a final update."""
-        if self.completed:
-            return
+            # Create completion message
+            if final_text:
+                message = f"{final_text} (completed in {time_str})"
+            else:
+                message = f"✓ {self.base_text} completed in {time_str}"
             
-        # Stop the animation
-        self.stop_animation.set()
-        if self.animation_timer:
-            self.animation_timer.join(0.5)  # Wait briefly for animation to stop
-        
-        self.completed = True
-        self.current = self.total
-        
-        # Calculate progress
-        filled_length = self.bar_length
-        
-        # Create the final bar
-        bar = self.fill_char * filled_length
-        
-        # Create the completion line
-        line = f"{self.desc} |{bar}| {self.total}/{self.total} [100%] - {message}"
-        
-        # Apply color if available and specified
-        if self._typer_available and self.color:
-            line = self._typer.style(line, fg=getattr(self._typer.colors, self.color.upper(), None))
-        
-        # Clear the previous line
-        sys.stdout.write("\r" + " " * self.last_print_len)
-        
-        # Print the new line
-        sys.stdout.write("\r" + line)
-        
-        # If we're done, print a newline
-        if self.leave:
-            sys.stdout.write("\n")
-        else:
-            sys.stdout.write("\r" + " " * self.last_print_len + "\r")
-        
-        sys.stdout.flush()
+            # Apply color if available
+            if self._typer_available and self.color:
+                try:
+                    message = self._typer.style(message, fg=self.color)
+                except:
+                    pass
+            
+            # Print final message
+            sys.stdout.write("\r" + " " * 100)  # Clear line
+            sys.stdout.write("\r" + message + "\n")
+            sys.stdout.flush()
     
     def _format_time(self, seconds):
         """Format seconds into a human-readable time string."""
@@ -203,67 +144,3 @@ class ProgressBar:
             return f"{minutes}m {int(seconds)}s"
         else:
             return str(datetime.timedelta(seconds=int(seconds)))
-
-
-class AnimatedText:
-    """Simple class to provide animated text in the console."""
-    
-    def __init__(self, base_text="Processing", color=None):
-        self.base_text = base_text
-        self.color = color
-        self.frames = ["...", ".", "..", "..."]
-        self.current_frame = 0
-        self.stop_event = threading.Event()
-        self.thread = None
-    
-    def start(self):
-        """Start the animation in a separate thread."""
-        if self.thread is not None:
-            return
-            
-        self.stop_event.clear()
-        self.thread = threading.Thread(target=self._animate)
-        self.thread.daemon = True
-        self.thread.start()
-        
-    def _animate(self):
-        """Animation loop."""
-        while not self.stop_event.is_set():
-            text = f"{self.base_text}{self.frames[self.current_frame]}"
-            if self.color:
-                try:
-                    import typer
-                    text = typer.style(text, fg=self.color)
-                except ImportError:
-                    pass
-                
-            # Clear line and print the text
-            sys.stdout.write("\r" + " " * 50)
-            sys.stdout.write("\r" + text)
-            sys.stdout.flush()
-            
-            # Update frame and sleep
-            self.current_frame = (self.current_frame + 1) % len(self.frames)
-            time.sleep(0.3)
-    
-    def stop(self, final_text=None):
-        """Stop the animation."""
-        if self.thread is None:
-            return
-            
-        self.stop_event.set()
-        self.thread.join(0.5)
-        self.thread = None
-        
-        # Print final message if provided
-        if final_text:
-            try:
-                import typer
-                if self.color:
-                    final_text = typer.style(final_text, fg=self.color)
-            except ImportError:
-                pass
-                
-            sys.stdout.write("\r" + " " * 50)
-            sys.stdout.write("\r" + final_text + "\n")
-            sys.stdout.flush()

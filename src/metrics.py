@@ -100,9 +100,7 @@ def compute_metrics_over_checkpoints(
     checkpoints: Sequence[str],
     device: str = "auto",
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
-    simulate_slow: bool = False,
-    parallel: bool = True,
-    max_workers: Optional[int] = None,
+    parallel: bool = False
 ) -> Dict[str, List[float]]:
     """Compute multiple metrics over multiple checkpoints efficiently.
     
@@ -111,9 +109,7 @@ def compute_metrics_over_checkpoints(
         checkpoints: List of checkpoint paths
         device: Device to load models on ('auto', 'cpu', 'cuda')
         progress_callback: Callback for progress updates
-        simulate_slow: If True, adds artificial delay to simulate slow calculations
         parallel: If True, uses parallel processing for checkpoints
-        max_workers: Maximum number of worker threads (None = auto)
         
     Returns:
         Dict mapping metric names to lists of values for each checkpoint
@@ -125,42 +121,46 @@ def compute_metrics_over_checkpoints(
     # Initialize result structure
     results = {name: [None] * len(checkpoints) for name in metric_functions}
     
+    # Track metrics progress
+    metrics_progress = {
+        name: {"completed": 0, "total": len(checkpoints)}
+        for name in metric_functions
+    }
+    
     # Define the processing function
     def process_checkpoint(idx, path):
-        # Add a much longer delay when simulating slow calculations
-        if simulate_slow:
-            time.sleep(1.0)  # Increase to 1.0 second to make progress more visible
-        
-        # Compute all metrics for this checkpoint
-        checkpoint_results = compute_metric_batch(metric_functions, path, device)
-        
-        # Store results
-        for name, value in checkpoint_results.items():
-            results[name][idx] = value
-        
-        # Report progress
-        if progress_callback:
-            progress_info = {
-                "current": idx + 1,
-                "total": len(checkpoints),
-                "checkpoint": os.path.basename(path),
-                "metrics": {name: value for name, value in checkpoint_results.items()},
-                "metrics_progress": {
-                    name: {
-                        "completed": sum(1 for v in values if v is not None),
-                        "total": len(checkpoints) 
-                    } for name, values in results.items()
+        try:
+            # Get the checkpoint's base name for logging
+            checkpoint_name = os.path.basename(path)
+            
+            # Compute all metrics for this checkpoint
+            checkpoint_results = compute_metric_batch(metric_functions, path, device)
+            
+            # Store results and update progress info
+            for name, value in checkpoint_results.items():
+                results[name][idx] = value
+                metrics_progress[name]["completed"] += 1
+            
+            # Report progress
+            if progress_callback:
+                progress_info = {
+                    "current": idx + 1,
+                    "total": len(checkpoints),
+                    "checkpoint": checkpoint_name,
+                    "metrics": checkpoint_results,
+                    "metrics_progress": metrics_progress
                 }
-            }
-            progress_callback(progress_info)
-        
-        return idx, checkpoint_results
+                progress_callback(progress_info)
+            
+            return idx, checkpoint_results
+        except Exception as e:
+            logger.exception(f"Error processing checkpoint {path}: {e}")
+            raise
     
-    # Process checkpoints in parallel or sequential
+    # Process checkpoints either in parallel or sequentially
     if parallel and len(checkpoints) > 1:
         # Determine appropriate number of workers
-        if max_workers is None:
-            max_workers = min(len(checkpoints), os.cpu_count() or 4)
+        max_workers = min(len(checkpoints), os.cpu_count() or 4)
         
         # Use ThreadPoolExecutor for parallel processing
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -175,61 +175,18 @@ def compute_metrics_over_checkpoints(
                 except Exception as e:
                     logger.exception(f"Error in parallel processing: {e}")
     else:
-        # Sequential processing
+        # Sequential processing - better for displaying progress
         for i, path in enumerate(checkpoints):
-            process_checkpoint(i, path)
+            try:
+                process_checkpoint(i, path)
+            except Exception as e:
+                logger.exception(f"Error processing checkpoint {path}: {e}")
+                # Continue with other checkpoints even if one fails
     
     # Clean up the model cache to free memory
     clear_model_cache()
     
     return results
-
-
-def compute_metric_over_checkpoints(
-    metric_fn: Callable[[torch.nn.Module], float],
-    checkpoints: Sequence[str],
-    device: str = "auto",
-    progress_callback: Optional[Callable[[int, int, str], None]] = None,
-    simulate_slow: bool = False,
-) -> List[float]:
-    """Legacy function for backward compatibility.
-    
-    Load each checkpoint, apply *metric_fn(model)*, return the list.
-    
-    Args:
-        metric_fn: Function that takes a model and returns a metric value
-        checkpoints: List of checkpoint paths
-        device: Device to load the model on
-        progress_callback: Optional callback for progress updates
-        simulate_slow: If True, adds artificial delay to simulate slow calculations
-        
-    Returns:
-        List of metric values for each checkpoint
-    """
-    # Create a wrapper progress callback for the new API
-    new_callback = None
-    if progress_callback:
-        def new_callback(progress_info):
-            current = progress_info["current"]
-            total = progress_info["total"]
-            checkpoint = progress_info["checkpoint"]
-            metric_value = list(progress_info["metrics"].values())[0]
-            message = f"Processed {checkpoint} - value: {metric_value:.6f}"
-            progress_callback(current, total, message)
-    
-    # Use the new batch API with a single metric
-    metric_name = "metric"
-    results = compute_metrics_over_checkpoints(
-        {metric_name: metric_fn},
-        checkpoints,
-        device=device,
-        progress_callback=new_callback,
-        simulate_slow=simulate_slow,
-        parallel=False,  # Use sequential processing for compatibility
-    )
-    
-    # Return the list of values
-    return results[metric_name]
 
 
 def import_metric_functions(file_path: str) -> Dict[str, Callable[[torch.nn.Module], float]]:
@@ -283,5 +240,5 @@ def clear_metric_cache():
     _metric_cache = {}
 
 
-__all__ = ["compute_metrics_over_checkpoints", "compute_metric_over_checkpoints", 
-           "l2_norm_of_model", "import_metric_functions", "clear_metric_cache"]
+__all__ = ["compute_metrics_over_checkpoints", "l2_norm_of_model", 
+           "import_metric_functions", "clear_metric_cache"]
