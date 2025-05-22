@@ -7,7 +7,7 @@ import importlib.util
 import inspect
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from loader import load_model_from_checkpoint, clear_model_cache
+from load_models import load_model_from_checkpoint, clear_model_cache
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,7 +34,7 @@ def with_memory_optimization(func):
             logger.exception(f"Error calculating metric: {e}")
             raise
         finally:
-            # Clean up cache explicitly
+            
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
     
@@ -50,7 +50,7 @@ def l2_norm_of_model(model: torch.nn.Module) -> float:
     
     # Optimize computation on GPU if available
     device = next(model.parameters()).device
-    with torch.no_grad():  # Prevent tracking history
+    with torch.no_grad():  
         squared_sum = torch.tensor(0.0, device=device)
         for p in model.parameters():
             if p.requires_grad:
@@ -118,16 +118,14 @@ def compute_metrics_over_checkpoints(
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
     
-    # Initialize result structure
     results = {name: [None] * len(checkpoints) for name in metric_functions}
     
-    # Track metrics progress
+    # Track progress
     metrics_progress = {
         name: {"completed": 0, "total": len(checkpoints)}
         for name in metric_functions
     }
     
-    # Define the processing function
     def process_checkpoint(idx, path):
         try:
             # Get the checkpoint's base name for logging
@@ -157,7 +155,6 @@ def compute_metrics_over_checkpoints(
             logger.exception(f"Error processing checkpoint {path}: {e}")
             raise
     
-    # Process checkpoints either in parallel or sequentially
     if parallel and len(checkpoints) > 1:
         # Determine appropriate number of workers
         max_workers = min(len(checkpoints), os.cpu_count() or 4)
@@ -175,7 +172,6 @@ def compute_metrics_over_checkpoints(
                 except Exception as e:
                     logger.exception(f"Error in parallel processing: {e}")
     else:
-        # Sequential processing - better for displaying progress
         for i, path in enumerate(checkpoints):
             try:
                 process_checkpoint(i, path)

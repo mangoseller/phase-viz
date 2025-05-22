@@ -5,9 +5,6 @@ import datetime
 import threading
 from typing import Optional
 
-# Environment variable to silence GTK messages
-os.environ['GTK_DEBUG'] = '0'
-os.environ['NO_AT_BRIDGE'] = '1'
 
 class SimpleLoadingAnimation:
     """A simple animated loading indicator for console output."""

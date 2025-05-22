@@ -62,6 +62,7 @@ def extract_model_config_from_state_dict(state_dict: Dict[str, Any]) -> Dict[str
                 block_idx = int(key.split('.')[1])
                 config['num_blocks'] = max(config.get('num_blocks', 0), block_idx + 1)
     
+    #TODO: test this more throughly, dunno if this makes sense - that is, this entire function
     # Apply intelligent defaults for missing parameters
     if 'hidden_size' not in config:
         config['hidden_size'] = 128  # Reasonable default
@@ -72,6 +73,7 @@ def extract_model_config_from_state_dict(state_dict: Dict[str, Any]) -> Dict[str
     
     return config
 
+#TODO: also check this with varying architectures
 def initialize_model_with_config(model_class, config: Dict[str, Any]) -> torch.nn.Module:
     """
     Initialize a model using the extracted configuration parameters.

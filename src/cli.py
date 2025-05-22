@@ -1,12 +1,9 @@
-# Clean up, might be nice to print out using x threads, logging , delete html on kill sig, test with diff archs, metrics inc physics, run inference to get loss
+# Generate_plot doesn't end when browser closes now, probably because I moved logic to utils.py - fix this, and also register kill sigs, test with different architectures
+# inc transformers
+# might be nice to print out using x threads, logging , delete html on kill sig, test with diff archs, metrics inc physics, run inference to get loss
 # and what not, ProcessPoolExecutor if CPU, else normal threading (what I have now), ofc fixing up graph and implementing nice visual features there. 
 import os
-# Suppress all GTK-related warnings
-os.environ['GTK_DEBUG'] = '0'
-os.environ['NO_AT_BRIDGE'] = '1'
-os.environ['ACCESSIBILITY_ENABLED'] = '0'
-
-import typer as t # type: ignore
+import typer as t 
 import typing
 import sys
 import time
@@ -15,10 +12,10 @@ import inspect
 import logging
 import threading
 from pathlib import Path
-from contextlib import contextmanager
 import torch
+
 sys.path.append(os.path.dirname(__file__))
-from loader import load_model_class, contains_checkpoints, clear_model_cache
+from load_models import load_model_class, contains_checkpoints, clear_model_cache
 from state import load_state, save_state
 from metrics import (
     l2_norm_of_model,
@@ -28,33 +25,13 @@ from metrics import (
 )
 from generate_plot import plot_metric_interactive
 from loading import SimpleLoadingAnimation
+from utils import suppress_stdout_stderr
 
-# Configure logging - only show critical errors
+# Logging Config - TODO: Write logs to a file
 logging.basicConfig(level=logging.CRITICAL)
 logger = logging.getLogger("phase-viz")
 app = t.Typer(no_args_is_help=False)
 
-@contextmanager
-def suppress_stdout_stderr():
-    """
-    Context manager to suppress stdout and stderr.
-    """
-    original_stdout = sys.stdout
-    original_stderr = sys.stderr
-    
-    class NullIO:
-        def write(self, *args, **kwargs):
-            pass
-        def flush(self, *args, **kwargs):
-            pass
-    
-    try:
-        sys.stdout = NullIO()
-        sys.stderr = NullIO()
-        yield
-    finally:
-        sys.stdout = original_stdout
-        sys.stderr = original_stderr
 
 
 def welcome():
@@ -113,18 +90,19 @@ def plot_metric(
     and then visualizes them in an interactive plot.
     """
     try:
-        state = load_state() # load json state file if it exists
+        state = load_state() # Try to load state file
     except RuntimeError as e:
         t.secho(str(e), fg=t.colors.RED, bold=True)
         raise t.Exit(code=1)
     
-    # Check if CUDA is available when device is set to "cuda"
+
     using_cpu = False
     if device == "cuda" and not torch.cuda.is_available():
         t.secho("WARNING: CUDA requested but not available. Falling back to CPU.", 
                fg=t.colors.YELLOW, bold=True)
         device = "cpu"
         using_cpu = True
+
     elif device == "cpu":
         using_cpu = True
     
@@ -144,20 +122,28 @@ def plot_metric(
     # Loop to collect multiple metrics (but without calculating them yet)
     while True:
         raw = t.prompt(
-            "Enter metric name (e.g. 'l2'), path to a custom .py file, or 'done' to finish selecting metrics"
+            "Enter a metric name, a path to a custom .py file, 'metrics' or 'done' to finish selecting metrics"
         ).strip()
         
         if raw.lower() == 'done':
             if not metrics_to_calculate:
                 t.secho("No metrics selected. Please select at least one metric.", fg=t.colors.RED)
+                t.secho("To exit, type 'exit'", fg=t.colors.YELLOW)
                 continue
             break
+        if raw.lower() == 'exit':
+            t.secho("Exiting, goodbye.", fg=t.colors.GREEN)
+            t.Exit(code=1)
             
+        if not raw.endswith(".py"):
+            candidate = raw + ".py"
+            if os.path.isfile(candidate):
+                raw = candidate
+
         if os.path.isfile(raw):
             path = Path(raw).resolve()
             if path.suffix != ".py":
-                _err(f"Custom metric must be a .py file (got {path})")
-                
+                _err(f"Custom metrics must come from a .py file (got {path})")
             # Import all metric functions from the file
             try:
                 with suppress_stdout_stderr():
@@ -172,9 +158,9 @@ def plot_metric(
                         t.secho(f"Metric '{metric_name}' already added. Skipping.", fg=t.colors.YELLOW)
                         continue
                     
-                    t.secho(f"Added metric: {metric_name} (will be calculated when you type 'done')", fg=t.colors.GREEN)
+                    t.secho(f"Added metric: {metric_name}", fg=t.colors.GREEN)
                     metrics_to_calculate[metric_name] = metric_fn
-            except Exception as e:
+            except Exception as e: # Check this, we should import valid functions and not break
                 _err(f"Failed importing metric functions from {path}: {e}")
         else:
             # Look for built-in metrics
@@ -188,10 +174,10 @@ def plot_metric(
                         "L2 Norm"), fg=t.colors.GREEN)
                     metrics_to_calculate["L2 Norm"] = l2_norm_of_model
                 case _:
-                    t.secho("Could not locate metric/file.", fg=t.colors.RED)
+                    t.secho(f"{raw} is not an inbuilt metric. For a list of available metrics, enter 'metrics'.", fg=t.colors.RED)
                     continue
     
-    # Create a single loading animation for all metrics
+    
     t.secho(f"\nCalculating {len(metrics_to_calculate)} metrics across {len(checkpoints)} checkpoints...", 
            fg=t.colors.BLUE, bold=True)
     
@@ -206,10 +192,10 @@ def plot_metric(
     progress_lock = threading.Lock()
     completed_metrics = {name: 0 for name in metrics_to_calculate}
     
-    # Define a thread-safe progress callback for the animation
+    
     def progress_callback(progress_info):
         with progress_lock:
-            # Update completed count for each metric
+            
             for name, progress in progress_info["metrics_progress"].items():
                 completed = progress["completed"]
                 if completed > completed_metrics.get(name, 0):
@@ -236,7 +222,7 @@ def plot_metric(
         _err(f"Error calculating metrics: {str(e)}")
     
     # Stop the loading animation
-    loading_animation.stop(f"Metrics calculation complete")
+    loading_animation.stop(f"Successfully computed {len(completed_metrics.keys())} metrics.")
     
     # Clear caches to free memory
     with suppress_stdout_stderr():
@@ -250,19 +236,17 @@ def plot_metric(
     # Get checkpoint names for display
     checkpoint_names = [os.path.basename(p) for p in checkpoints]
     
-    # Show usage instructions BEFORE opening the browser
+    # Show usage instructions 
     t.secho("\nOpening interactive visualization. In the plot, you can:", fg=t.colors.CYAN)
     t.secho("- Use the dropdown menu to toggle between metrics or show all at once", fg=t.colors.CYAN)
     t.secho("- Interact with the data points for detailed information", fg=t.colors.CYAN)
     t.secho("- Download the plot as PNG using the button in the top-right", fg=t.colors.CYAN)
-    t.secho("- Export the data as CSV for further analysis", fg=t.colors.CYAN)
+    t.secho("- Export the data as a CSV for further analysis", fg=t.colors.CYAN)
     
-    # Show plotting animation (much simpler now)
-    plotting_animation = SimpleLoadingAnimation("Opening visualization", t.colors.BLUE)
-    plotting_animation.start(total_metrics=1)
+    
     
     try:
-        # Generate the interactive plot
+        # Generate the plot
         with suppress_stdout_stderr():
             plot_metric_interactive(
                 checkpoint_names=checkpoint_names,
@@ -271,9 +255,7 @@ def plot_metric(
     except Exception as e:
         plotting_animation.stop(f"Error generating plot: {str(e)}")
         _err(f"Error generating plot: {str(e)}")
-    finally:
-        # Ensure animation stops even if plotting fails
-        plotting_animation.stop("Interactive plot opened in browser")
+
 
 
 def _err(msg: str) -> None:  
@@ -287,5 +269,3 @@ if __name__ == "__main__":
     else:
         app()
 
-# Add the required import at the top level
-import torch
