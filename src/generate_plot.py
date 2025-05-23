@@ -767,7 +767,7 @@ def plot_metric_interactive(
                 // Add x-axis label
                 g.append('text')
                     .attr('x', innerWidth / 2)
-                    .attr('y', innerHeight + margin.bottom - 5)
+                    .attr('y', innerHeight + margin.bottom - 10)
                     .style('text-anchor', 'middle')
                     .style('fill', '#9ca3af')
                     .style('font-size', '12px')
@@ -990,7 +990,7 @@ def plot_metric_interactive(
                 // Use most of the available screen height
                 const baseHeight = window.innerHeight - 400;
                 const height = Math.max(600, baseHeight * 0.8);
-                const margin = {{ top: 20, right: 120, bottom: 80, left: 80 }};
+                const margin = {{ top: 20, right: 180, bottom: 80, left: 80 }};
                 const innerWidth = width - margin.left - margin.right;
                 const innerHeight = height - margin.top - margin.bottom;
                 
@@ -1095,16 +1095,16 @@ def plot_metric_interactive(
                             if (DATA.checkpoints.length > 20) {{
                                 if (i % 5 !== 0) return '';
                                 return checkpoint.length > maxLabelLength 
-                                    ? checkpoint.substring(0, maxLabelLength) + '...' 
+                                    ? checkpoint.substring(0, maxLabelLength - 2) + '...' 
                                     : checkpoint;
                             }} else if (DATA.checkpoints.length > 10) {{
                                 if (i % 2 !== 0) return '';
                                 return checkpoint.length > maxLabelLength 
-                                    ? checkpoint.substring(0, maxLabelLength) + '...' 
+                                    ? checkpoint.substring(0, maxLabelLength - 2) + '...' 
                                     : checkpoint;
                             }} else {{
-                                return checkpoint.length > 12 
-                                    ? checkpoint.substring(0, 12) + '...' 
+                                return checkpoint.length > 8
+                                    ? checkpoint.substring(0, 6) + '...' 
                                     : checkpoint;
                             }}
                         }}));
@@ -1302,7 +1302,9 @@ def plot_metric_interactive(
             return (
                 <div className="chart-wrapper">
                     <div className="chart-header">
-                        <h3 className="chart-title">All Metrics (Normalized)</h3>
+                        <h3 className="chart-title"> {{metrics.length === DATA.metricsList.length 
+                ? 'All Metrics (Normalized)' 
+                : `Viewing ${{metrics.length}} Normalized Metrics`}}</h3>
                     </div>
                     <div className="chart-container" ref={{containerRef}}>
                         <svg ref={{svgRef}} className="chart"></svg>

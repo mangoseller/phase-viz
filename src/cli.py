@@ -1,11 +1,10 @@
-# Fix overlay title - should not just say All metrics when two metrics are overlayed - fix x-axis cut off and legend
-# cut off, fix metrics and test with multiple metrics properly to make sure overlay and phase-transitions buttons
-# do in fact work.
-
-#TODO: pass final tests, ensure differing architectures can be loaded, test cuda on vast or something
-# trim slop, fix metrics - all custom metrics arent working right now, get good models to test with (checks)
+# TODO:
+# fix x-axis cut off, fix loading custom metrics on multiprocesses 
+# make sure overlay and phase-transitions buttons work
+# ensure differing architectures can be loaded, test cuda on vast or something
+# get good models to test with 
 # bugtest, find good metrics to compute LLC and stuff, --help arg for metrics list metrics
-
+# readme
 # Stretch Goals - Metrics that require inference, multiple model direct comparison
 
 
