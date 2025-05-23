@@ -2,14 +2,12 @@
 # cut off, fix metrics and test with multiple metrics properly to make sure overlay and phase-transitions buttons
 # do in fact work.
 
-
-#TODO: pass final tests, ensure differing architectures can be loaded, be able to run inference when the metric
-# being computed requires it, test cuda on vast or something, fix the graph - right now the overlay,
-# multiple display, and derivative views, all do not work. Text on the x axis is also truncated
+#TODO: pass final tests, ensure differing architectures can be loaded, test cuda on vast or something
 # trim slop, fix metrics - all custom metrics arent working right now, get good models to test with (checks)
-# fix overlay, 
-# inc transformers, find good metrics to compute LLC and stuff, and -help arg for metrics list metrics
-# fix comparison views, allow for model comparisons, write readme, bugtest and squash and stuff
+# bugtest, find good metrics to compute LLC and stuff, --help arg for metrics list metrics
+
+# Stretch Goals - Metrics that require inference, multiple model direct comparison
+
 
 import os
 import typer as t 

@@ -730,20 +730,20 @@ def plot_metric_interactive(
                             if (!checkpoint) return '';
                             
                             // Smart label handling based on number of checkpoints and available space
-                            const maxLabelLength = Math.max(8, Math.floor(innerWidth / DATA.checkpoints.length / 8));
+                            const maxLabelLength = Math.max(10, Math.floor(innerWidth / DATA.checkpoints.length / 6));
                             
                             if (DATA.checkpoints.length > 20) {{
                                 // Show every 5th label for many checkpoints
                                 if (i % 5 !== 0) return '';
                                 // Truncate if needed
                                 return checkpoint.length > maxLabelLength 
-                                    ? checkpoint.substring(0, maxLabelLength) + '...' 
+                                    ? checkpoint.substring(0, maxLabelLength - 3) + '...' 
                                     : checkpoint;
                             }} else if (DATA.checkpoints.length > 10) {{
                                 // Show every other label for moderate number of checkpoints
                                 if (i % 2 !== 0) return '';
                                 return checkpoint.length > maxLabelLength 
-                                    ? checkpoint.substring(0, maxLabelLength) + '...' 
+                                    ? checkpoint.substring(0, maxLabelLength - 3) + '...' 
                                     : checkpoint;
                             }} else {{
                                 // Show all labels for few checkpoints, but truncate if needed

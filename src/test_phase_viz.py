@@ -390,11 +390,15 @@ class TestIntegration:
     """Integration tests for the full workflow."""
     
     def test_end_to_end_workflow(self):
+        from pathlib import Path
+
+     #   print(Path.cwd())
         """Test complete workflow from loading to metric computation."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create model file
             model_file = Path(tmpdir) / "models.py"
-            shutil.copy("test_models.py", model_file)
+            test_models_path = Path(__file__).parent / "test_models.py"
+            shutil.copy(test_models_path, model_file)
             
             # Create checkpoints directory
             checkpoint_dir = Path(tmpdir) / "checkpoints"
