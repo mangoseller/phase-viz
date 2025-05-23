@@ -140,14 +140,14 @@ def plot_metric_interactive(
         .container {{
             max-width: 1600px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 1.5rem 2rem;
             position: relative;
             z-index: 1;
         }}
         
         .header {{
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             position: relative;
         }}
         
@@ -155,7 +155,7 @@ def plot_metric_interactive(
             font-size: 2.5rem;
             font-weight: 600;
             color: #f3f4f6;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
             letter-spacing: -0.02em;
         }}
         
@@ -169,12 +169,17 @@ def plot_metric_interactive(
         .controls {{
             display: flex;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             align-items: center;
             flex-wrap: wrap;
         }}
         
-        .metric-selector {{
+        .metric-selector-container {{
+            position: relative;
+            min-width: 200px;
+        }}
+        
+        .metric-selector-button {{
             background: #1a1a1a;
             border: 1px solid #333;
             padding: 0.75rem 1.25rem;
@@ -185,21 +190,103 @@ def plot_metric_interactive(
             cursor: pointer;
             transition: all 0.2s ease;
             outline: none;
-            min-width: 200px;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }}
         
-        .metric-selector:hover {{
+        .metric-selector-button:hover {{
             background: #222;
             border-color: #444;
         }}
         
-        .metric-selector:focus {{
-            border-color: #6366f1;
+        .metric-selector-dropdown {{
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
         }}
         
-        .metric-selector option {{
+        .metric-selector-dropdown.open {{
+            display: block;
+        }}
+        
+        .metric-option {{
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }}
+        
+        .metric-option:hover {{
+            background: #222;
+        }}
+        
+        .metric-option input[type="checkbox"] {{
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }}
+        
+        .overlay-button {{
             background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
             color: #e0e0e0;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }}
+        
+        .overlay-button:hover {{
+            background: #222;
+            border-color: #444;
+        }}
+        
+        .overlay-button.active {{
+            background: #6366f1;
+            border-color: #6366f1;
+            color: white;
+        }}
+        
+        .phase-button {{
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }}
+        
+        .phase-button:hover {{
+            background: #222;
+            border-color: #444;
+        }}
+        
+        .phase-button.active {{
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: white;
         }}
         
         .action-button {{
@@ -227,7 +314,7 @@ def plot_metric_interactive(
         .charts-grid {{
             display: grid;
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }}
         
         .chart-wrapper {{
@@ -238,6 +325,7 @@ def plot_metric_interactive(
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
+            min-height: 500px; /* Ensure minimum height */
         }}
         
         .chart-wrapper:hover {{
@@ -282,7 +370,7 @@ def plot_metric_interactive(
         }}
         
         .chart-container {{
-            padding: 1.5rem;
+            padding: 1.25rem;
             position: relative;
         }}
         
@@ -295,14 +383,14 @@ def plot_metric_interactive(
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1rem;
-            margin-top: 2rem;
+            margin-top: 1.5rem;
         }}
         
         .stat-card {{
             background: #1a1a1a;
             border: 1px solid #333;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             transition: all 0.2s ease;
         }}
         
@@ -348,6 +436,19 @@ def plot_metric_interactive(
             font-family: 'JetBrains Mono', monospace;
             font-weight: 500;
             color: #e0e0e0;
+        }}
+        
+        .phase-info {{
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }}
+        
+        .phase-info strong {{
+            color: #f59e0b;
         }}
         
         .loading {{
@@ -443,7 +544,10 @@ def plot_metric_interactive(
         
         /* Grid layouts based on number of metrics */
         .charts-grid.single {{ grid-template-columns: 1fr; }}
-        .charts-grid.double {{ grid-template-columns: repeat(2, 1fr); }}
+        .charts-grid.double {{ 
+            grid-template-columns: 1fr; 
+            grid-template-rows: repeat(2, minmax(450px, 1fr));
+        }}
         .charts-grid.triple {{ grid-template-columns: repeat(3, 1fr); }}
         .charts-grid.quad {{ grid-template-columns: repeat(2, 1fr); }}
         .charts-grid.many {{ grid-template-columns: repeat(3, 1fr); }}
@@ -483,7 +587,10 @@ def plot_metric_interactive(
             metricColors[metric] = COLOR_PALETTE[i % COLOR_PALETTE.length];
         }});
         
-        function Chart({{ metric, data, isExpanded, onToggleExpand }}) {{
+        // Phase transition detection threshold
+        const PHASE_TRANSITION_THRESHOLD = 0.2; // 20% change
+        
+        function Chart({{ metric, data, isExpanded, onToggleExpand, showPhaseTransitions }}) {{
             const svgRef = useRef(null);
             const containerRef = useRef(null);
             const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -508,14 +615,50 @@ def plot_metric_interactive(
                 }};
             }}, [data]);
             
+            // Calculate phase transitions
+            const phaseTransitions = useMemo(() => {{
+                const transitions = [];
+                for (let i = 1; i < data.length; i++) {{
+                    if (!isNaN(data[i]) && !isNaN(data[i-1])) {{
+                        const change = Math.abs(data[i] - data[i-1]);
+                        const baseValue = Math.abs(data[i-1]) || 1;
+                        const relativeChange = change / baseValue;
+                        
+                        if (relativeChange > PHASE_TRANSITION_THRESHOLD) {{
+                            transitions.push({{
+                                index: i,
+                                change: relativeChange,
+                                from: data[i-1],
+                                to: data[i]
+                            }});
+                        }}
+                    }}
+                }}
+                return transitions;
+            }}, [data]);
+            
             // Render chart with D3
             useEffect(() => {{
                 if (!svgRef.current || !containerRef.current || !stats) return;
                 
                 const container = containerRef.current;
                 const width = container.clientWidth;
-                const height = isExpanded ? 500 : 300;
-                const margin = {{ top: 20, right: 40, bottom: 60, left: 60 }};
+                // Dynamic height based on number of selected metrics
+                const baseHeight = window.innerHeight - 400; // Account for header, controls, stats
+                const numMetrics = document.querySelectorAll('.chart-wrapper').length;
+                let height;
+                
+                if (isExpanded) {{
+                    height = 600;
+                }} else if (numMetrics === 1) {{
+                    height = Math.max(500, baseHeight * 0.8);
+                }} else if (numMetrics === 2) {{
+                    height = Math.max(400, baseHeight * 0.4);
+                }} else {{
+                    height = 350;
+                }}
+                
+                const margin = {{ top: 20, right: 40, bottom: 80, left: 80 }};
                 const innerWidth = width - margin.left - margin.right;
                 const innerHeight = height - margin.top - margin.bottom;
                 
@@ -539,6 +682,24 @@ def plot_metric_interactive(
                 const yScale = d3.scaleLinear()
                     .domain([stats.min - yPadding, stats.max + yPadding])
                     .range([innerHeight, 0]);
+                
+                // Add phase transition indicators
+                if (showPhaseTransitions && phaseTransitions.length > 0) {{
+                    phaseTransitions.forEach(transition => {{
+                        const x = xScale(transition.index - 0.5);
+                        const width = xScale(1) - xScale(0);
+                        
+                        g.append('rect')
+                            .attr('x', x)
+                            .attr('y', 0)
+                            .attr('width', width)
+                            .attr('height', innerHeight)
+                            .style('fill', 'rgba(245, 158, 11, 0.1)')
+                            .style('stroke', '#f59e0b')
+                            .style('stroke-width', 1)
+                            .style('stroke-dasharray', '4,2');
+                    }});
+                }}
                 
                 // Grid lines
                 g.append('g')
@@ -565,10 +726,31 @@ def plot_metric_interactive(
                     .attr('transform', `translate(0,${{innerHeight}})`)
                     .call(d3.axisBottom(xScale)
                         .tickFormat(i => {{
+                            const checkpoint = DATA.checkpoints[i];
+                            if (!checkpoint) return '';
+                            
+                            // Smart label handling based on number of checkpoints and available space
+                            const maxLabelLength = Math.max(8, Math.floor(innerWidth / DATA.checkpoints.length / 8));
+                            
                             if (DATA.checkpoints.length > 20) {{
-                                return i % 5 === 0 ? DATA.checkpoints[i] : '';
+                                // Show every 5th label for many checkpoints
+                                if (i % 5 !== 0) return '';
+                                // Truncate if needed
+                                return checkpoint.length > maxLabelLength 
+                                    ? checkpoint.substring(0, maxLabelLength) + '...' 
+                                    : checkpoint;
+                            }} else if (DATA.checkpoints.length > 10) {{
+                                // Show every other label for moderate number of checkpoints
+                                if (i % 2 !== 0) return '';
+                                return checkpoint.length > maxLabelLength 
+                                    ? checkpoint.substring(0, maxLabelLength) + '...' 
+                                    : checkpoint;
+                            }} else {{
+                                // Show all labels for few checkpoints, but truncate if needed
+                                return checkpoint.length > 12 
+                                    ? checkpoint.substring(0, 12) + '...' 
+                                    : checkpoint;
                             }}
-                            return DATA.checkpoints[i];
                         }}));
                 
                 xAxis.selectAll('text')
@@ -577,10 +759,19 @@ def plot_metric_interactive(
                     .attr('dy', '.15em')
                     .attr('transform', 'rotate(-45)')
                     .style('fill', '#9ca3af')
-                    .style('font-size', isExpanded ? '12px' : '10px');
+                    .style('font-size', isExpanded ? '11px' : '10px');
                 
                 xAxis.select('.domain').style('stroke', '#333');
                 xAxis.selectAll('.tick line').style('stroke', '#333');
+                
+                // Add x-axis label
+                g.append('text')
+                    .attr('x', innerWidth / 2)
+                    .attr('y', innerHeight + margin.bottom - 5)
+                    .style('text-anchor', 'middle')
+                    .style('fill', '#9ca3af')
+                    .style('font-size', '12px')
+                    .text('Checkpoint');
                 
                 const yAxis = g.append('g')
                     .call(d3.axisLeft(yScale)
@@ -722,7 +913,7 @@ def plot_metric_interactive(
                             .attr('r', 3);
                     }});
                     
-            }}, [data, metric, stats, isExpanded]);
+            }}, [data, metric, stats, isExpanded, showPhaseTransitions, phaseTransitions]);
             
             return (
                 <div 
@@ -756,6 +947,18 @@ def plot_metric_interactive(
                                 </div>
                             </div>
                         )}}
+                        {{showPhaseTransitions && phaseTransitions.length > 0 && (
+                            <div className="phase-info">
+                                <strong>Phase transitions detected at:</strong>
+                                <ul style={{{{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}}}>
+                                    {{phaseTransitions.map((t, i) => (
+                                        <li key={{i}}>
+                                            Checkpoint {{DATA.checkpoints[t.index]}}: {{(t.change * 100).toFixed(1)}}% change
+                                        </li>
+                                    ))}}
+                                </ul>
+                            </div>
+                        )}}
                     </div>
                     {{hoveredPoint && (
                         <div 
@@ -773,188 +976,7 @@ def plot_metric_interactive(
             );
         }}
         
-        function MetricsVisualization() {{
-            const [selectedMetrics, setSelectedMetrics] = useState(DATA.metricsList);
-            const [expandedMetric, setExpandedMetric] = useState(null);
-            const [subtitle, setSubtitle] = useState('Visualizing training dynamics across checkpoints');
-            
-            // Calculate statistics for all metrics
-            const allStats = useMemo(() => {{
-                const result = {{}};
-                DATA.metricsList.forEach(metric => {{
-                    const values = DATA.metrics[metric].filter(v => !isNaN(v));
-                    if (values.length > 0) {{
-                        const min = Math.min(...values);
-                        const max = Math.max(...values);
-                        const mean = values.reduce((a, b) => a + b, 0) / values.length;
-                        const start = values[0];
-                        const end = values[values.length - 1];
-                        const change = end - start;
-                        const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
-                        
-                        result[metric] = {{
-                            min, max, mean, start, end, change, changePercent
-                        }};
-                    }}
-                }});
-                return result;
-            }}, []);
-            
-            // Handle metric selection
-            const handleMetricChange = (e) => {{
-                const value = e.target.value;
-                if (value === 'all') {{
-                    setSelectedMetrics(DATA.metricsList);
-                    setSubtitle('Visualizing training dynamics across checkpoints');
-                }} else {{
-                    setSelectedMetrics([value]);
-                    setSubtitle(`Displaying change in ${{value}}`);
-                }}
-            }};
-            
-            // Export data as CSV
-            const exportCSV = () => {{
-                let csv = 'Checkpoint';
-                DATA.metricsList.forEach(metric => {{
-                    csv += ',' + metric;
-                }});
-                csv += '\\n';
-                
-                DATA.checkpoints.forEach((checkpoint, i) => {{
-                    csv += checkpoint;
-                    DATA.metricsList.forEach(metric => {{
-                        csv += ',' + DATA.metrics[metric][i];
-                    }});
-                    csv += '\\n';
-                }});
-                
-                const blob = new Blob([csv], {{ type: 'text/csv' }});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'metrics_data.csv';
-                a.click();
-                URL.revokeObjectURL(url);
-            }};
-            
-            // Download all charts as PNG
-            const downloadPNG = () => {{
-                // For simplicity, we'll download the current view
-                alert('PNG download would capture the current visualization');
-            }};
-            
-            // Determine grid class based on number of metrics
-            const getGridClass = () => {{
-                const count = selectedMetrics.length;
-                if (count === 1) return 'single';
-                if (count === 2) return 'double';
-                if (count === 3) return 'triple';
-                if (count === 4) return 'quad';
-                return 'many';
-            }};
-            
-            return (
-                <div className="container">
-                    <div className="header">
-                        <h1>Phase-Viz</h1>
-                        <p>{{subtitle}}</p>
-                    </div>
-                    
-                    <div className="controls">
-                        <select 
-                            className="metric-selector"
-                            onChange={{handleMetricChange}}
-                            defaultValue="all"
-                        >
-                            <option value="all">All Metrics</option>
-                            {{DATA.metricsList.map(metric => (
-                                <option key={{metric}} value={{metric}}>{{metric}}</option>
-                            ))}}
-                        </select>
-                        
-                        <button className="action-button" onClick={{exportCSV}}>
-                            Export CSV
-                        </button>
-                        
-                        <button className="action-button" onClick={{downloadPNG}}>
-                            Download PNG
-                        </button>
-                    </div>
-                    
-                    <div className={{`charts-grid ${{getGridClass()}}`}}>
-                        {{selectedMetrics.map(metric => (
-                            <Chart
-                                key={{metric}}
-                                metric={{metric}}
-                                data={{DATA.metrics[metric]}}
-                                isExpanded={{expandedMetric === metric}}
-                                onToggleExpand={{() => setExpandedMetric(
-                                    expandedMetric === metric ? null : metric
-                                )}}
-                            />
-                        ))}}
-                    </div>
-                    
-                    {{expandedMetric && (
-                        <div 
-                            className="overlay visible"
-                            onClick={{() => setExpandedMetric(null)}}
-                        />
-                    )}}
-                    
-                    <div className="stats-container">
-                        {{selectedMetrics.map(metric => allStats[metric] && (
-                            <div key={{metric}} className="stat-card">
-                                <h3>
-                                    <span 
-                                        className="metric-color" 
-                                        style={{{{ backgroundColor: metricColors[metric] }}}}
-                                    ></span>
-                                    {{metric}}
-                                </h3>
-                                <div className="stat-grid">
-                                    <div className="stat-item">
-                                        <span className="stat-label">Mean</span>
-                                        <span className="stat-value">{{allStats[metric].mean.toFixed(6)}}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Min</span>
-                                        <span className="stat-value">{{allStats[metric].min.toFixed(6)}}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Max</span>
-                                        <span className="stat-value">{{allStats[metric].max.toFixed(6)}}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Start</span>
-                                        <span className="stat-value">{{allStats[metric].start.toFixed(6)}}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">End</span>
-                                        <span className="stat-value">{{allStats[metric].end.toFixed(6)}}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Change</span>
-                                        <span 
-                                            className="stat-value"
-                                            style={{{{
-                                                color: allStats[metric].change > 0 ? '#10b981' : 
-                                                      allStats[metric].change < 0 ? '#ef4444' : '#9ca3af'
-                                            }}}}
-                                        >
-                                            {{allStats[metric].change > 0 ? '+' : ''}}
-                                            {{allStats[metric].changePercent.toFixed(2)}}%
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}}
-                    </div>
-                </div>
-            );
-        }}
-        
-        function OverlayChart({{ metrics, data, phaseTransitions }}) {{
+        function OverlayChart({{ metrics, data, showPhaseTransitions }}) {{
             const svgRef = useRef(null);
             const containerRef = useRef(null);
             const [hoveredLine, setHoveredLine] = useState(null);
@@ -965,8 +987,10 @@ def plot_metric_interactive(
                 
                 const container = containerRef.current;
                 const width = container.clientWidth;
-                const height = 500;
-                const margin = {{ top: 20, right: 120, bottom: 60, left: 60 }};
+                // Use most of the available screen height
+                const baseHeight = window.innerHeight - 400;
+                const height = Math.max(600, baseHeight * 0.8);
+                const margin = {{ top: 20, right: 120, bottom: 80, left: 80 }};
                 const innerWidth = width - margin.left - margin.right;
                 const innerHeight = height - margin.top - margin.bottom;
                 
@@ -1005,10 +1029,21 @@ def plot_metric_interactive(
                 }});
                 
                 // Add phase transition indicators for all metrics
-                if (phaseTransitions) {{
+                if (showPhaseTransitions) {{
                     const allTransitions = new Set();
-                    Object.values(phaseTransitions).forEach(transitions => {{
-                        transitions.forEach(t => allTransitions.add(t.index));
+                    metrics.forEach(metric => {{
+                        const values = data[metric];
+                        for (let i = 1; i < values.length; i++) {{
+                            if (!isNaN(values[i]) && !isNaN(values[i-1])) {{
+                                const change = Math.abs(values[i] - values[i-1]);
+                                const baseValue = Math.abs(values[i-1]) || 1;
+                                const relativeChange = change / baseValue;
+                                
+                                if (relativeChange > PHASE_TRANSITION_THRESHOLD) {{
+                                    allTransitions.add(i);
+                                }}
+                            }}
+                        }}
                     }});
                     
                     allTransitions.forEach(index => {{
@@ -1020,8 +1055,8 @@ def plot_metric_interactive(
                             .attr('y', 0)
                             .attr('width', width)
                             .attr('height', innerHeight)
-                            .style('fill', 'rgba(251, 191, 36, 0.1)')
-                            .style('stroke', '#fbbf24')
+                            .style('fill', 'rgba(245, 158, 11, 0.1)')
+                            .style('stroke', '#f59e0b')
                             .style('stroke-width', 1)
                             .style('stroke-dasharray', '4,2');
                     }});
@@ -1052,10 +1087,26 @@ def plot_metric_interactive(
                     .attr('transform', `translate(0,${{innerHeight}})`)
                     .call(d3.axisBottom(xScale)
                         .tickFormat(i => {{
+                            const checkpoint = DATA.checkpoints[i];
+                            if (!checkpoint) return '';
+                            
+                            const maxLabelLength = Math.max(8, Math.floor(innerWidth / DATA.checkpoints.length / 8));
+                            
                             if (DATA.checkpoints.length > 20) {{
-                                return i % 5 === 0 ? DATA.checkpoints[i] : '';
+                                if (i % 5 !== 0) return '';
+                                return checkpoint.length > maxLabelLength 
+                                    ? checkpoint.substring(0, maxLabelLength) + '...' 
+                                    : checkpoint;
+                            }} else if (DATA.checkpoints.length > 10) {{
+                                if (i % 2 !== 0) return '';
+                                return checkpoint.length > maxLabelLength 
+                                    ? checkpoint.substring(0, maxLabelLength) + '...' 
+                                    : checkpoint;
+                            }} else {{
+                                return checkpoint.length > 12 
+                                    ? checkpoint.substring(0, 12) + '...' 
+                                    : checkpoint;
                             }}
-                            return DATA.checkpoints[i];
                         }}));
                 
                 xAxis.selectAll('text')
@@ -1064,10 +1115,19 @@ def plot_metric_interactive(
                     .attr('dy', '.15em')
                     .attr('transform', 'rotate(-45)')
                     .style('fill', '#9ca3af')
-                    .style('font-size', '11px');
+                    .style('font-size', '10px');
                 
                 xAxis.select('.domain').style('stroke', '#333');
                 xAxis.selectAll('.tick line').style('stroke', '#333');
+                
+                // Add x-axis label
+                g.append('text')
+                    .attr('x', innerWidth / 2)
+                    .attr('y', innerHeight + margin.bottom - 5)
+                    .style('text-anchor', 'middle')
+                    .style('fill', '#9ca3af')
+                    .style('font-size', '12px')
+                    .text('Checkpoint');
                 
                 const yAxis = g.append('g')
                     .call(d3.axisLeft(yScale)
@@ -1133,7 +1193,7 @@ def plot_metric_interactive(
                             g.selectAll('path')
                                 .filter(function() {{
                                     return d3.select(this).attr('stroke') !== 'transparent';
-                        }})
+                                }})
                                 .style('opacity', function() {{
                                     const color = d3.select(this).attr('stroke');
                                     return color === metricColors[metric] ? 1 : 0.3;
@@ -1215,7 +1275,7 @@ def plot_metric_interactive(
                                     const color = d3.select(this).attr('stroke');
                                     return color === metricColors[metric] ? 1 : 0.3;
                                 }});
-                }})
+                        }})
                         .on('mouseleave', function() {{
                             setHoveredLine(null);
                             g.selectAll('path')
@@ -1237,7 +1297,7 @@ def plot_metric_interactive(
                         .text(metric);
                 }});
                 
-             }}, [metrics, data, phaseTransitions, hoveredLine]);
+            }}, [metrics, data, showPhaseTransitions]);
             
             return (
                 <div className="chart-wrapper">
@@ -1250,7 +1310,7 @@ def plot_metric_interactive(
                     {{hoveredPoint && (
                         <div 
                             className="tooltip visible"
-                            style={{{{
+                            style={{{{ 
                                 left: `${{hoveredPoint.x + 10}}px`, 
                                 top: `${{hoveredPoint.y - 10}}px` 
                             }}}}
@@ -1267,8 +1327,290 @@ def plot_metric_interactive(
                     )}}
                 </div>
             );
-            }}
+        }}
         
+        function MetricsVisualization() {{
+            const [selectedMetrics, setSelectedMetrics] = useState(DATA.metricsList);
+            const [expandedMetric, setExpandedMetric] = useState(null);
+            const [subtitle, setSubtitle] = useState('Visualizing training dynamics across checkpoints');
+            const [dropdownOpen, setDropdownOpen] = useState(false);
+            const [overlayMode, setOverlayMode] = useState(true); // Start with overlay for "All"
+            const [showPhaseTransitions, setShowPhaseTransitions] = useState(false);
+            
+            // Calculate statistics for all metrics
+            const allStats = useMemo(() => {{
+                const result = {{}};
+                DATA.metricsList.forEach(metric => {{
+                    const values = DATA.metrics[metric].filter(v => !isNaN(v));
+                    if (values.length > 0) {{
+                        const min = Math.min(...values);
+                        const max = Math.max(...values);
+                        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                        const start = values[0];
+                        const end = values[values.length - 1];
+                        const change = end - start;
+                        const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
+                        
+                        result[metric] = {{
+                            min, max, mean, start, end, change, changePercent
+                        }};
+                    }}
+                }});
+                return result;
+            }}, []);
+            
+            // Handle metric selection
+            const handleMetricToggle = (metric) => {{
+                setSelectedMetrics(prev => {{
+                    if (prev.includes(metric)) {{
+                        const newSelection = prev.filter(m => m !== metric);
+                        if (newSelection.length === 0) {{
+                            // Don't allow empty selection
+                            return prev;
+                        }}
+                        return newSelection;
+                    }} else {{
+                        return [...prev, metric];
+                    }}
+                }});
+                setOverlayMode(false); // Switch to separate view when manually selecting
+            }};
+            
+            const handleSelectAll = () => {{
+                setSelectedMetrics(DATA.metricsList);
+                setOverlayMode(true);
+                setDropdownOpen(false);
+                setSubtitle('Visualizing training dynamics across checkpoints');
+            }};
+            
+            // Close dropdown when clicking outside
+            useEffect(() => {{
+                const handleClickOutside = (event) => {{
+                    if (dropdownOpen && !event.target.closest('.metric-selector-container')) {{
+                        setDropdownOpen(false);
+                    }}
+                }};
+                
+                document.addEventListener('click', handleClickOutside);
+                return () => document.removeEventListener('click', handleClickOutside);
+            }}, [dropdownOpen]);
+            
+            // Update subtitle based on selection
+            useEffect(() => {{
+                if (selectedMetrics.length === DATA.metricsList.length && overlayMode) {{
+                    setSubtitle('Visualizing training dynamics across checkpoints');
+                }} else if (selectedMetrics.length === 1) {{
+                    setSubtitle(`Displaying change in ${{selectedMetrics[0]}}`);
+                }} else if (overlayMode) {{
+                    setSubtitle(`Comparing ${{selectedMetrics.length}} metrics in overlay view`);
+                }} else {{
+                    setSubtitle(`Viewing ${{selectedMetrics.length}} metrics`);
+                }}
+            }}, [selectedMetrics, overlayMode]);
+            
+            // Export data as CSV
+            const exportCSV = () => {{
+                let csv = 'Checkpoint';
+                DATA.metricsList.forEach(metric => {{
+                    csv += ',' + metric;
+                }});
+                csv += '\\n';
+                
+                DATA.checkpoints.forEach((checkpoint, i) => {{
+                    csv += checkpoint;
+                    DATA.metricsList.forEach(metric => {{
+                        csv += ',' + DATA.metrics[metric][i];
+                    }});
+                    csv += '\\n';
+                }});
+                
+                const blob = new Blob([csv], {{ type: 'text/csv' }});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'metrics_data.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            }};
+            
+            // Download all charts as PNG
+            const downloadPNG = () => {{
+                // For simplicity, we'll download the current view
+                alert('PNG download would capture the current visualization');
+            }};
+            
+            // Determine grid class based on number of metrics
+            const getGridClass = () => {{
+                if (overlayMode) return 'single';
+                const count = selectedMetrics.length;
+                if (count === 1) return 'single';
+                if (count === 2) return 'double';
+                if (count === 3) return 'triple';
+                if (count === 4) return 'quad';
+                return 'many';
+            }};
+            
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>Phase-Viz</h1>
+                        <p>{{subtitle}}</p>
+                    </div>
+                    
+                    <div className="controls">
+                        <div className="metric-selector-container">
+                            <button 
+                                className="metric-selector-button"
+                                onClick={{() => setDropdownOpen(!dropdownOpen)}}
+                            >
+                                <span>
+                                    {{selectedMetrics.length === DATA.metricsList.length 
+                                        ? 'All Metrics' 
+                                        : `${{selectedMetrics.length}} Selected`}}
+                                </span>
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                    <path d="M2.5 4.5l3.5 3.5 3.5-3.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                                </svg>
+                            </button>
+                            
+                            <div className={{`metric-selector-dropdown ${{dropdownOpen ? 'open' : ''}}`}}>
+                                <div className="metric-option" onClick={{handleSelectAll}}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={{selectedMetrics.length === DATA.metricsList.length}}
+                                        readOnly
+                                    />
+                                    <span>All Metrics</span>
+                                </div>
+                                {{DATA.metricsList.map(metric => (
+                                    <div 
+                                        key={{metric}} 
+                                        className="metric-option"
+                                        onClick={{() => handleMetricToggle(metric)}}
+                                    >
+                                        <input 
+                                            type="checkbox" 
+                                            checked={{selectedMetrics.includes(metric)}}
+                                            readOnly
+                                        />
+                                        <span>{{metric}}</span>
+                                    </div>
+                                ))}}
+                            </div>
+                        </div>
+                        
+                        {{selectedMetrics.length > 1 && (
+                            <button 
+                                className={{`overlay-button ${{overlayMode ? 'active' : ''}}`}}
+                                onClick={{() => setOverlayMode(!overlayMode)}}
+                            >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z" opacity={{overlayMode ? 0.3 : 1}}/>
+                                    <path d="M4 4h8v8H4z" opacity={{overlayMode ? 1 : 0.3}}/>
+                                </svg>
+                                {{overlayMode ? 'Separate Views' : 'Overlay Plots'}}
+                            </button>
+                        )}}
+                        
+                        <button 
+                            className={{`phase-button ${{showPhaseTransitions ? 'active' : ''}}`}}
+                            onClick={{() => setShowPhaseTransitions(!showPhaseTransitions)}}
+                        >
+                            Phase Transitions
+                        </button>
+                        
+                        <button className="action-button" onClick={{exportCSV}}>
+                            Export CSV
+                        </button>
+                        
+                        <button className="action-button" onClick={{downloadPNG}}>
+                            Download PNG
+                        </button>
+                    </div>
+                    
+                    {{overlayMode && selectedMetrics.length > 1 ? (
+                        <div className="charts-grid single">
+                            <OverlayChart 
+                                metrics={{selectedMetrics}}
+                                data={{DATA.metrics}}
+                                showPhaseTransitions={{showPhaseTransitions}}
+                            />
+                        </div>
+                    ) : (
+                        <div className={{`charts-grid ${{getGridClass()}}`}}>
+                            {{selectedMetrics.map(metric => (
+                                <Chart
+                                    key={{metric}}
+                                    metric={{metric}}
+                                    data={{DATA.metrics[metric]}}
+                                    isExpanded={{expandedMetric === metric}}
+                                    onToggleExpand={{() => setExpandedMetric(
+                                        expandedMetric === metric ? null : metric
+                                    )}}
+                                    showPhaseTransitions={{showPhaseTransitions}}
+                                />
+                            ))}}
+                        </div>
+                    )}}
+                    
+                    {{expandedMetric && (
+                        <div 
+                            className="overlay visible"
+                            onClick={{() => setExpandedMetric(null)}}
+                        />
+                    )}}
+                    
+                    <div className="stats-container">
+                        {{selectedMetrics.map(metric => allStats[metric] && (
+                            <div key={{metric}} className="stat-card">
+                                <h3>
+                                    <span 
+                                        className="metric-color" 
+                                        style={{{{ backgroundColor: metricColors[metric] }}}}
+                                    ></span>
+                                    {{metric}}
+                                </h3>
+                                <div className="stat-grid">
+                                    <div className="stat-item">
+                                        <span className="stat-label">Mean</span>
+                                        <span className="stat-value">{{allStats[metric].mean.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">Min</span>
+                                        <span className="stat-value">{{allStats[metric].min.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">Max</span>
+                                        <span className="stat-value">{{allStats[metric].max.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">Start</span>
+                                        <span className="stat-value">{{allStats[metric].start.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">End</span>
+                                        <span className="stat-value">{{allStats[metric].end.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">Change</span>
+                                        <span 
+                                            className="stat-value"
+                                            style={{{{
+                                                color: allStats[metric].change > 0 ? '#10b981' : 
+                                                      allStats[metric].change < 0 ? '#ef4444' : '#9ca3af'
+                                            }}}}
+                                        >
+                                            {{allStats[metric].change > 0 ? '+' : ''}}
+                                            {{allStats[metric].changePercent.toFixed(2)}}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}}
+                    </div>
+                </div>
+            );
+        }}
         
         // Cleanup handling
         function setupCleanup() {{

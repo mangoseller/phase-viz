@@ -1,10 +1,16 @@
-# Test testomg. go from there
+# Fix overlay title - should not just say All metrics when two metrics are overlayed - fix x-axis cut off and legend
+# cut off, fix metrics and test with multiple metrics properly to make sure overlay and phase-transitions buttons
+# do in fact work.
 
-# Generate_plot doesn't end when browser closes now, probably because I moved logic to utils.py - fix this, and also register kill sigs, test with different architectures
-# inc transformers
-# might be nice to print out using x threads, logging , delete html on kill sig, test with diff archs, metrics inc physics, run inference to get loss
-# and what not, ProcessPoolExecutor if CPU, else normal threading (what I have now), ofc fixing up graph and implementing nice visual features there. 
-#TODO: Finish cuda install lol - test cuda stuff, make sure detection of differing architecture models makes sense
+
+#TODO: pass final tests, ensure differing architectures can be loaded, be able to run inference when the metric
+# being computed requires it, test cuda on vast or something, fix the graph - right now the overlay,
+# multiple display, and derivative views, all do not work. Text on the x axis is also truncated
+# trim slop, fix metrics - all custom metrics arent working right now, get good models to test with (checks)
+# fix overlay, 
+# inc transformers, find good metrics to compute LLC and stuff, and -help arg for metrics list metrics
+# fix comparison views, allow for model comparisons, write readme, bugtest and squash and stuff
+
 import os
 import typer as t 
 import typing
