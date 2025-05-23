@@ -11,15 +11,20 @@ import http.server
 import socketserver
 import webbrowser
 import random
-import os
 import sys
-import webbrowser
 from contextlib import contextmanager
 
-from utils import suppress_stdout_stderr, silent_open_browser, start_cleanup_server, find_interesting_points, calculate_trend_info
-import os
-import sys
-from contextlib import contextmanager
+from utils import (
+    suppress_stdout_stderr, 
+    silent_open_browser, 
+    start_cleanup_server, 
+    find_interesting_points, 
+    calculate_trend_info,
+    logger,
+    register_html_for_cleanup,
+    unregister_html_from_cleanup
+)
+
 os.environ['GTK_MODULES'] = ''  
 
 #TODO: split this into pure JS at some point
@@ -99,13 +104,19 @@ def plot_metric_interactive(
         else:
             raise ValueError("Either (values, metric_name) or metrics_data must be provided")
     
-    # Validate input lengths
+    # Validate input lengths and convert to floats
     for name, vals in metrics_data.items():
         if len(checkpoint_names) != len(vals):
             raise ValueError(
                 f"checkpoint_names and values for {name} must have identical length; "
                 f"got {len(checkpoint_names)} vs {len(vals)}."
             )
+        # Ensure all values are floats
+        try:
+            metrics_data[name] = [float(v) if v is not None else float('nan') for v in vals]
+        except (TypeError, ValueError) as e:
+            logger.error(f"Error converting metric '{name}' values to float: {e}")
+            raise ValueError(f"Metric '{name}' contains non-numeric values: {e}")
     
     # --- Set up color palette ---
     # Create a color palette with enough distinct colors for all metrics
@@ -463,31 +474,59 @@ def plot_metric_interactive(
     random_suffix = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=8))
     output_html = Path(f"metrics_over_checkpoints_{timestamp}_{random_suffix}.html").absolute()
     
-    # Add JavaScript for improved interactivity and stats toggling
+    # Start cleanup server
+    port, cleanup_event = start_cleanup_server(output_html, timestamp, random_suffix)
+    logger.info(f"Started cleanup server on port {port} for {output_html}")
+    
+    # Add JavaScript for improved interactivity and cleanup
     custom_js = f"""
     <script>
-        // Store file path for cleanup
-        const tempFilePath = '{str(output_html)}';
-        const timestamp = '{timestamp}';
+        // Cleanup configuration
+        const cleanupPort = {port};
+        const cleanupURL = 'http://localhost:' + cleanupPort + '/cleanup';
+        let cleanupAttempted = false;
         
         // Metrics data for JS interactions
         const metricsData = {json.dumps(metrics_data)};
         const checkpointNames = {json.dumps(list(checkpoint_names))};
         const metricColors = {json.dumps(colors['metrics'])};
         
-        // Add event listener for page unload to clean up the file
-        window.addEventListener('beforeunload', function() {{
-            // Create a cleanup request
+        // Function to send cleanup request
+        async function sendCleanupRequest() {{
+            if (cleanupAttempted) return;
+            cleanupAttempted = true;
+            
             try {{
-                const cleanupURL = 'http://localhost:{random_suffix}/cleanup';
-                navigator.sendBeacon(cleanupURL, JSON.stringify({{
-                    path: tempFilePath,
-                    token: timestamp
-                }}));
-            }} catch(e) {{
-                console.error("Error in cleanup:", e);
+                // Try using fetch first
+                await fetch(cleanupURL, {{
+                    method: 'POST',
+                    mode: 'no-cors',
+                    keepalive: true,
+                    body: JSON.stringify({{cleanup: true}})
+                }});
+            }} catch (e) {{
+                // If fetch fails, try sendBeacon
+                try {{
+                    navigator.sendBeacon(cleanupURL, JSON.stringify({{cleanup: true}}));
+                }} catch (e2) {{
+                    console.error('Cleanup failed:', e2);
+                }}
+            }}
+        }}
+        
+        // Multiple cleanup triggers
+        window.addEventListener('beforeunload', sendCleanupRequest);
+        window.addEventListener('unload', sendCleanupRequest);
+        
+        // Also cleanup on visibility change (tab switching)
+        document.addEventListener('visibilitychange', function() {{
+            if (document.visibilityState === 'hidden') {{
+                sendCleanupRequest();
             }}
         }});
+        
+        // Cleanup on page hide (mobile browsers)
+        window.addEventListener('pagehide', sendCleanupRequest);
         
         // Add custom interactivity
         document.addEventListener('DOMContentLoaded', function() {{
@@ -829,42 +868,42 @@ def plot_metric_interactive(
     </style>
     """
 
-    port, done = start_cleanup_server(output_html, timestamp, random_suffix)
-
-    custom_js = f"""
-    <script>
-        const tempFilePath = '{str(output_html)}';
-        const cleanupURL   = 'http://localhost:{port}/cleanup';
-        const token        = '{timestamp}';
-    
-        window.addEventListener('beforeunload', () => {{
-            navigator.sendBeacon(cleanupURL, JSON.stringify({{
-                path: tempFilePath,
-                token: token
-            }}));
-        }});
-    </script>
-    """
+    # Generate the final HTML
     raw_html = fig.to_html(include_plotlyjs="cdn", full_html=True)
-    html_with_head   = raw_html.replace("<head>", f"<head>{meta_tags}")
-    final_html       = html_with_head.replace("</body>", f"{custom_js}</body>")
+    html_with_head = raw_html.replace("<head>", f"<head>{meta_tags}")
+    final_html = html_with_head.replace("</body>", f"{custom_js}</body>")
     
-    with open(output_html, "w", encoding="utf-8") as f:
-        f.write(final_html)
-    
-
-    with suppress_stdout_stderr():
-        import webbrowser
-        webbrowser.open(output_html.as_uri())
-        # Don't print waiting message
-        done.wait() 
+    try:
+        with open(output_html, "w", encoding="utf-8") as f:
+            f.write(final_html)
         
-
+        logger.info(f"Created HTML file: {output_html}")
+        
+        # Open browser silently
+        with suppress_stdout_stderr():
+            webbrowser.open(output_html.as_uri())
+        
+        # Wait for cleanup to complete
+        cleanup_event.wait()
+        logger.info(f"Cleanup completed for {output_html}")
+        
+    except Exception as e:
+        logger.error(f"Error creating/opening HTML file: {e}")
+        # Make sure to clean up if something goes wrong
+        unregister_html_from_cleanup(output_html)
+        if output_html.exists():
+            try:
+                output_html.unlink()
+            except:
+                pass
+        raise
+    
+    # Try to save PNG version
     try:
         with suppress_stdout_stderr():
             png_path = output_html.with_suffix(".png")
             fig.write_image(png_path, scale=2, width=1200, height=800)
-    except:
-        pass  
-    
-
+            logger.info(f"Saved PNG file: {png_path}")
+    except Exception as e:
+        logger.warning(f"Could not save PNG file: {e}")
+        pass  # PNG export is optional

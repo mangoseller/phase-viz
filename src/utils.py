@@ -2,8 +2,88 @@ from contextlib import contextmanager
 import sys
 import numpy as np
 import threading
-import http
+import http.server
 import socketserver
+import json
+import os
+import signal
+import atexit
+import logging
+import logging.handlers
+from pathlib import Path
+from typing import Optional, Set, Tuple
+
+# Global set to track HTML files for cleanup
+_temp_html_files: Set[Path] = set()
+_cleanup_lock = threading.Lock()
+
+# Configure file-based logging with rotation
+def setup_file_logging(log_dir: str = "logs", max_lines: int = 10000) -> logging.Logger:
+    """Set up file-based logging with rotation after max_lines."""
+    # Create logs directory if it doesn't exist
+    log_path = Path(log_dir)
+    log_path.mkdir(exist_ok=True)
+    
+    # Create a custom formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
+    )
+    
+    # Create a rotating file handler based on line count
+    class LineCountRotatingHandler(logging.handlers.RotatingFileHandler):
+        def __init__(self, filename, max_lines=10000, *args, **kwargs):
+            super().__init__(filename, *args, **kwargs)
+            self.max_lines = max_lines
+            self.line_count = 0
+            self._count_existing_lines()
+        
+        def _count_existing_lines(self):
+            """Count lines in existing file."""
+            try:
+                if os.path.exists(self.baseFilename):
+                    with open(self.baseFilename, 'r') as f:
+                        self.line_count = sum(1 for _ in f)
+            except:
+                self.line_count = 0
+        
+        def emit(self, record):
+            """Emit a record, rotating if we exceed max_lines."""
+            if self.line_count >= self.max_lines:
+                self.doRollover()
+                self.line_count = 0
+            
+            super().emit(record)
+            self.line_count += 1
+    
+    # Set up the main logger
+    logger = logging.getLogger("phase-viz")
+    logger.setLevel(logging.DEBUG)
+    
+    # Remove existing handlers
+    logger.handlers.clear()
+    
+    # Create and add the file handler
+    log_file = log_path / "phase-viz.log"
+    file_handler = LineCountRotatingHandler(
+        str(log_file),
+        max_lines=max_lines,
+        maxBytes=0,  # We're using line count, not byte size
+        backupCount=10  # Keep up to 10 old log files
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    
+    # Also add a null handler for console (to suppress output)
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+    
+    logger.addHandler(NullHandler())
+    
+    return logger
+
+# Initialize the logger
+logger = setup_file_logging()
 
 @contextmanager
 def suppress_stdout_stderr():
@@ -28,7 +108,6 @@ def suppress_stdout_stderr():
         sys.stderr = original_stderr
 
 
-
 def silent_open_browser(url):
     """Open a browser window silently without any console output."""
     with suppress_stdout_stderr():
@@ -36,50 +115,154 @@ def silent_open_browser(url):
         webbrowser.open(url)
 
 
-def start_cleanup_server(output_html, timestamp, port_suffix):
-    """Start a tiny HTTP server that deletes *output_html* when the
-    browser tab sends a beacon.  Returns (port, cleanup_event)."""
-    cleanup_event = threading.Event()
+def register_html_for_cleanup(filepath: Path):
+    """Register an HTML file for cleanup on exit."""
+    with _cleanup_lock:
+        _temp_html_files.add(filepath)
+        logger.info(f"Registered HTML file for cleanup: {filepath}")
 
-    class CleanupHandler(http.server.BaseHTTPRequestHandler):
-        def do_POST(self):
-            if self.path == '/cleanup':
-                self.send_response(200)
-                self.end_headers()
-                try:
-                    data = json.loads(self.rfile.read(
-                        int(self.headers['Content-Length'])).decode())
-                    if data.get('token') == timestamp:
-                        try:
-                            os.remove(output_html)
-                        except:
-                            pass  # Silently handle cleanup errors
-                        cleanup_event.set()
-                        threading.Thread(target=self.server.shutdown,
-                                        daemon=True).start()
-                except:
-                    pass  # Silently handle cleanup errors
 
-        def log_message(self, *_):
-            pass  # silence default logging
+def unregister_html_from_cleanup(filepath: Path):
+    """Remove an HTML file from the cleanup list."""
+    with _cleanup_lock:
+        _temp_html_files.discard(filepath)
+        logger.info(f"Unregistered HTML file from cleanup: {filepath}")
 
-    # Find an available port
-    base = 8000
-    port = base + (hash(port_suffix) % 1000)
-    for _ in range(20):
-        try:
-            server = socketserver.TCPServer(("127.0.0.1", port), CleanupHandler)
-            break
-        except OSError:
-            port += 1
-    else:
-        # If we can't find a port, just return a dummy event
-        return 0, threading.Event()
 
-    # Start server in a separate thread
-    threading.Thread(target=server.serve_forever, daemon=True).start()
+def cleanup_all_html_files():
+    """Clean up all registered HTML files."""
+    with _cleanup_lock:
+        for filepath in _temp_html_files.copy():
+            try:
+                if filepath.exists():
+                    filepath.unlink()
+                    logger.info(f"Cleaned up HTML file: {filepath}")
+            except Exception as e:
+                logger.error(f"Error cleaning up {filepath}: {e}")
+        _temp_html_files.clear()
+
+
+# Register cleanup handlers for various exit scenarios
+def _signal_handler(signum, frame):
+    """Handle termination signals."""
+    logger.info(f"Received signal {signum}, cleaning up...")
+    cleanup_all_html_files()
+    sys.exit(0)
+
+
+# Register signal handlers
+signal.signal(signal.SIGINT, _signal_handler)  # Ctrl+C
+signal.signal(signal.SIGTERM, _signal_handler)  # Termination
+
+# Register atexit handler for normal exit
+atexit.register(cleanup_all_html_files)
+
+
+class CleanupHTTPServer:
+    """HTTP server for handling browser-based cleanup requests."""
     
-    return port, cleanup_event
+    def __init__(self, filepath: Path, cleanup_callback: Optional[callable] = None):
+        self.filepath = filepath
+        self.cleanup_callback = cleanup_callback
+        self.server = None
+        self.port = None
+        self.thread = None
+        self.cleanup_event = threading.Event()
+        
+    def start(self) -> Tuple[int, threading.Event]:
+        """Start the cleanup server and return (port, cleanup_event)."""
+        
+        class CleanupHandler(http.server.BaseHTTPRequestHandler):
+            def do_POST(handler_self):
+                if handler_self.path == '/cleanup':
+                    handler_self.send_response(200)
+                    handler_self.send_header('Access-Control-Allow-Origin', '*')
+                    handler_self.end_headers()
+                    
+                    try:
+                        # Clean up the file
+                        if self.filepath.exists():
+                            self.filepath.unlink()
+                            unregister_html_from_cleanup(self.filepath)
+                            logger.info(f"Browser requested cleanup of {self.filepath}")
+                        
+                        # Set the cleanup event
+                        self.cleanup_event.set()
+                        
+                        # Call the callback if provided
+                        if self.cleanup_callback:
+                            self.cleanup_callback()
+                        
+                        # Schedule server shutdown
+                        threading.Thread(
+                            target=lambda: self.server.shutdown(),
+                            daemon=True
+                        ).start()
+                    except Exception as e:
+                        logger.error(f"Error during browser cleanup: {e}")
+            
+            def do_OPTIONS(handler_self):
+                """Handle CORS preflight requests."""
+                handler_self.send_response(200)
+                handler_self.send_header('Access-Control-Allow-Origin', '*')
+                handler_self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+                handler_self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+                handler_self.end_headers()
+            
+            def log_message(self, *args):
+                """Suppress default HTTP logging."""
+                pass
+        
+        # Find an available port
+        base_port = 8000
+        for port_offset in range(100):
+            port = base_port + port_offset
+            try:
+                self.server = socketserver.TCPServer(("127.0.0.1", port), CleanupHandler)
+                self.server.socket.setsockopt(socketserver.socket.SOL_SOCKET, 
+                                            socketserver.socket.SO_REUSEADDR, 1)
+                self.port = port
+                break
+            except OSError:
+                continue
+        else:
+            logger.error("Could not find available port for cleanup server")
+            return 0, self.cleanup_event
+        
+        # Start server in a separate thread
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        
+        logger.info(f"Started cleanup server on port {self.port} for {self.filepath}")
+        return self.port, self.cleanup_event
+    
+    def stop(self):
+        """Stop the cleanup server."""
+        if self.server:
+            self.server.shutdown()
+            if self.thread:
+                self.thread.join(timeout=1)
+            logger.info(f"Stopped cleanup server on port {self.port}")
+
+
+def start_cleanup_server(output_html: Path, timestamp: str, random_suffix: str) -> Tuple[int, threading.Event]:
+    """Start a cleanup server for the HTML file.
+    
+    Args:
+        output_html: Path to the HTML file
+        timestamp: Timestamp for validation
+        random_suffix: Random suffix (not used in new implementation)
+        
+    Returns:
+        Tuple of (port, cleanup_event)
+    """
+    # Register the file for cleanup
+    register_html_for_cleanup(output_html)
+    
+    # Create and start the cleanup server
+    server = CleanupHTTPServer(output_html)
+    return server.start()
+
 
 def calculate_trend_info(values):
     """Calculate trend information for a sequence of values"""
@@ -105,6 +288,7 @@ def calculate_trend_info(values):
                 "end": last_valid
             }
     return None
+
 
 def find_interesting_points(values, x_numeric):
     """Find interesting points in the data (min, max, significant jumps)"""

@@ -1,20 +1,26 @@
 import os
 import time
-import logging
+import tempfile
 from typing import Callable, Sequence, List, Dict, Optional, Any, Union
 import torch
 import importlib.util
 import inspect
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+import multiprocessing as mp
 from load_models import load_model_from_checkpoint, clear_model_cache
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("phase-viz")
+from utils import logger
+import typer as t
 
 # Global metric cache for memoization
 _metric_cache = {}
+
+# Import built-in metrics at module level for ProcessPoolExecutor
+def _get_builtin_metrics():
+    """Get built-in metrics that are always available."""
+    return {
+        "L2 Norm": l2_norm_of_model
+    }
 
 def with_memory_optimization(func):
     """Decorator to optimize memory usage for metric functions."""
@@ -34,7 +40,6 @@ def with_memory_optimization(func):
             logger.exception(f"Error calculating metric: {e}")
             raise
         finally:
-            
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
     
@@ -86,7 +91,13 @@ def compute_metric_batch(
     results = {}
     for name, func in metric_functions.items():
         try:
-            results[name] = func(model)
+            value = func(model)
+            # Ensure the result is a float
+            if value is None:
+                logger.warning(f"Metric {name} returned None, converting to NaN")
+                results[name] = float('nan')
+            else:
+                results[name] = float(value)
         except Exception as e:
             logger.exception(f"Error calculating {name}: {e}")
             results[name] = float('nan')
@@ -95,12 +106,62 @@ def compute_metric_batch(
     return results
 
 
+# Helper function for ProcessPoolExecutor (needs to be at module level)
+def _process_checkpoint_cpu(args):
+    """Process a checkpoint on CPU (for ProcessPoolExecutor)."""
+    idx, path, metric_names, metric_module_path, device = args
+    try:
+        # Get built-in metrics
+        builtin_metrics = _get_builtin_metrics()
+        metric_functions = {}
+        
+        # Add built-in metrics
+        for name in metric_names:
+            if name in builtin_metrics:
+                metric_functions[name] = builtin_metrics[name]
+        
+        # Import custom metrics if provided
+        if metric_module_path and os.path.exists(metric_module_path):
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("_metrics", metric_module_path)
+            metrics_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(metrics_module)
+            
+            # Add custom metrics
+            for name in metric_names:
+                if name not in metric_functions:
+                    # Find the function in the module
+                    func_name = name.lower().replace(" ", "_") + "_of_model"
+                    if hasattr(metrics_module, func_name):
+                        metric_functions[name] = getattr(metrics_module, func_name)
+        
+        checkpoint_name = os.path.basename(path)
+        checkpoint_results = compute_metric_batch(metric_functions, path, device)
+        
+        return {
+            'idx': idx,
+            'path': path,
+            'checkpoint_name': checkpoint_name,
+            'results': checkpoint_results,
+            'error': None
+        }
+    except Exception as e:
+        logger.exception(f"Error processing checkpoint {path}: {e}")
+        return {
+            'idx': idx,
+            'path': path,
+            'checkpoint_name': os.path.basename(path),
+            'results': {name: float('nan') for name in metric_names},
+            'error': str(e)
+        }
+
+
 def compute_metrics_over_checkpoints(
     metric_functions: Dict[str, Callable[[torch.nn.Module], float]],
     checkpoints: Sequence[str],
     device: str = "auto",
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
-    parallel: bool = False
+    parallel: bool = True
 ) -> Dict[str, List[float]]:
     """Compute multiple metrics over multiple checkpoints efficiently.
     
@@ -118,6 +179,9 @@ def compute_metrics_over_checkpoints(
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
     
+    # Determine if we're using GPU
+    using_gpu = device.startswith("cuda")
+    
     results = {name: [None] * len(checkpoints) for name in metric_functions}
     
     # Track progress
@@ -127,11 +191,9 @@ def compute_metrics_over_checkpoints(
     }
     
     def process_checkpoint(idx, path):
+        """Process checkpoint for ThreadPoolExecutor (GPU)."""
         try:
-            # Get the checkpoint's base name for logging
             checkpoint_name = os.path.basename(path)
-            
-            # Compute all metrics for this checkpoint
             checkpoint_results = compute_metric_batch(metric_functions, path, device)
             
             # Store results and update progress info
@@ -156,25 +218,94 @@ def compute_metrics_over_checkpoints(
             raise
     
     if parallel and len(checkpoints) > 1:
-        # Determine appropriate number of workers
-        max_workers = min(len(checkpoints), os.cpu_count() or 4)
-        
-        # Use ThreadPoolExecutor for parallel processing
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [
-                executor.submit(process_checkpoint, i, path) 
+        if using_gpu:
+            # Use ThreadPoolExecutor for GPU
+            max_workers = min(len(checkpoints), 4)  # Limit threads on GPU
+            executor_type = "threads"
+            
+            # Print info about execution
+            t.secho(f"Using {max_workers} threads on GPU", fg=t.colors.BLUE)
+            logger.info(f"Using ThreadPoolExecutor with {max_workers} threads on GPU")
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [
+                    executor.submit(process_checkpoint, i, path) 
+                    for i, path in enumerate(checkpoints)
+                ]
+                
+                for future in as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        logger.exception(f"Error in parallel processing: {e}")
+        else:
+            # Use ProcessPoolExecutor for CPU
+            max_workers = min(len(checkpoints), mp.cpu_count() or 4)
+            
+            # Print info about execution
+            t.secho(f"Created {max_workers} processes on CPU", fg=t.colors.BLUE)
+            logger.info(f"Using ProcessPoolExecutor with {max_workers} processes on CPU")
+            
+            # Prepare arguments for multiprocessing
+            args_list = [
+                (i, path, metric_functions, device)
                 for i, path in enumerate(checkpoints)
             ]
             
-            for future in as_completed(futures):
-                try:
-                    future.result()
-                except Exception as e:
-                    logger.exception(f"Error in parallel processing: {e}")
+            with ProcessPoolExecutor(max_workers=max_workers) as executor:
+                futures = [executor.submit(_process_checkpoint_cpu, args) for args in args_list]
+                
+                for future in as_completed(futures):
+                    try:
+                        result = future.result()
+                        idx = result['idx']
+                        
+                        # Store results
+                        for name, value in result['results'].items():
+                            results[name][idx] = value
+                            metrics_progress[name]["completed"] += 1
+                        
+                        # Report progress
+                        if progress_callback:
+                            progress_info = {
+                                "current": idx + 1,
+                                "total": len(checkpoints),
+                                "checkpoint": result['checkpoint_name'],
+                                "metrics": result['results'],
+                                "metrics_progress": metrics_progress
+                            }
+                            progress_callback(progress_info)
+                    except Exception as e:
+                        logger.exception(f"Error in parallel processing: {e}")
     else:
+        # Sequential processing
+        t.secho("Processing checkpoints sequentially", fg=t.colors.BLUE)
+        logger.info("Processing checkpoints sequentially")
+        
         for i, path in enumerate(checkpoints):
             try:
-                process_checkpoint(i, path)
+                if using_gpu:
+                    process_checkpoint(i, path)
+                else:
+                    # For CPU, we can still use the same approach
+                    checkpoint_name = os.path.basename(path)
+                    checkpoint_results = compute_metric_batch(metric_functions, path, device)
+                    
+                    # Store results and update progress info
+                    for name, value in checkpoint_results.items():
+                        results[name][i] = value
+                        metrics_progress[name]["completed"] += 1
+                    
+                    # Report progress
+                    if progress_callback:
+                        progress_info = {
+                            "current": i + 1,
+                            "total": len(checkpoints),
+                            "checkpoint": checkpoint_name,
+                            "metrics": checkpoint_results,
+                            "metrics_progress": metrics_progress
+                        }
+                        progress_callback(progress_info)
             except Exception as e:
                 logger.exception(f"Error processing checkpoint {path}: {e}")
                 # Continue with other checkpoints even if one fails
