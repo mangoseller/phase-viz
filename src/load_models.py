@@ -3,35 +3,68 @@ import os
 import inspect
 import torch
 import re
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, Type
 from utils import logger
+from collections.abc import Mapping
 
 # Global cache for the model class
-_model_class = None
+_model_class: Optional[Type] = None
+_model_class_cache: Dict[Tuple[str, str], Type] = {}
 # Cache for loaded models to avoid redundant loading
-_model_cache = {}
+_model_cache: Dict[str, "torch.nn.Module"] = {}
+
+import importlib.util
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+# (abs_path, class_name) ➜ class  (keeps every distinct load)
+_model_cache: Dict[Tuple[str, str], Type] = {}
+
 
 def load_model_class(model_path: str, class_name: str):
-    """Dynamically load a model class from a Python file and cache it."""
+    """
+    Dynamically load (and cache) *class_name* from *model_path*.
+    Keeps a per-file-and-name cache *and* sets `_model_class`
+    so existing code that relies on that global continues to work.
+    """
     global _model_class
-    if _model_class is not None:
-        logger.debug(f"Model class already cached: {class_name}")
+
+    abs_path  = os.path.abspath(model_path)
+    cache_key = (abs_path, class_name)
+
+    # Fast-path: already loaded
+    if cache_key in _model_class_cache:
+        _model_class = _model_class_cache[cache_key]
+        logger.debug("Model class already cached: %s from %s", class_name, abs_path)
         return _model_class
 
-    logger.info(f"Loading model class {class_name} from {model_path}")
-    module_name = os.path.splitext(os.path.basename(model_path))[0]
-    spec = importlib.util.spec_from_file_location(module_name, model_path)
+    # Load the module
+    module_name = os.path.splitext(os.path.basename(abs_path))[0]
+    spec = importlib.util.spec_from_file_location(module_name, abs_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot import module from path '{abs_path}'")
+
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    spec.loader.exec_module(module)        # type: ignore[arg-type]
 
+    # Pull out the class
     if not hasattr(module, class_name):
-        error_msg = f"Class '{class_name}' not found in '{model_path}'"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
+        msg = f"Class '{class_name}' not found"
+        logger.error(msg)
+        raise ValueError(msg)
 
-    _model_class = getattr(module, class_name)
-    logger.info(f"Successfully loaded model class: {class_name}")
-    return _model_class
+    cls = getattr(module, class_name)
+
+    # Populate both caches
+    _model_class_cache[cache_key] = cls
+    _model_class = cls
+
+    logger.info("Successfully loaded model class: %s", class_name)
+    return cls
+
+
 
 def extract_model_config_from_state_dict(state_dict: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -121,107 +154,59 @@ def initialize_model_with_config(model_class, config: Dict[str, Any]) -> torch.n
         # Fallback to default initialization
         return model_class()
 
-def load_model_from_checkpoint(path: str, device="auto") -> torch.nn.Module:
-    """
-    Intelligently load a model from a checkpoint, automatically determining
-    the correct model configuration by analyzing the state dictionary.
-    
-    Args:
-        path: Path to the checkpoint file
-        device: Device to load the model on ('auto', 'cpu', 'cuda', or specific cuda device)
-        
-    Returns:
-        The loaded model
-    """
+
+def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Module:
     global _model_cache, _model_class
-    
-    # Auto-detect device if set to auto
+
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.debug(f"Auto-detected device: {device}")
-    
-    # Check cache first
+
     cache_key = f"{path}_{device}"
     if cache_key in _model_cache:
-        logger.debug(f"Loading model from cache: {cache_key}")
         return _model_cache[cache_key]
-    
+
     if _model_class is None:
-        error_msg = "Model class not loaded. Call load_model_class first."
-        logger.error(error_msg)
-        raise RuntimeError(error_msg)
-    
-    logger.info(f"Loading checkpoint from {path} on device {device}")
-    
-    # Load the checkpoint
+        raise RuntimeError("Model class not loaded. Call load_model_class first.")
+
     try:
         checkpoint = torch.load(path, map_location=device)
-        logger.debug("Checkpoint loaded successfully")
     except Exception as e:
-        error_msg = f"Failed to load checkpoint from {path}: {e}"
-        logger.error(error_msg)
-        raise RuntimeError(error_msg)
-    
-    # Extract the state dict from various checkpoint formats
+        raise RuntimeError(f"Failed to load checkpoint from {path}: {e}")
+
     if isinstance(checkpoint, dict):
-        if "model_state" in checkpoint:
-            state_dict = checkpoint["model_state"]
-            logger.debug("Found state dict under 'model_state' key")
-        elif "state_dict" in checkpoint:
-            state_dict = checkpoint["state_dict"]
-            logger.debug("Found state dict under 'state_dict' key")
-        else:
-            # Assume the entire dict is the state dict if no specific keys found
-            state_dict = checkpoint
-            logger.debug("Using entire checkpoint as state dict")
+        state_dict = (
+            checkpoint.get("model_state")
+            or checkpoint.get("state_dict")
+            or checkpoint
+        )
+        model_config = checkpoint.get("config")
     else:
-        # If not a dict, assume the entire object is the state dict (unusual but possible)
-        state_dict = checkpoint
-        logger.debug("Checkpoint is not a dict, using as state dict")
-    
-    # Extract configuration from the state dict
-    # First, check for explicit config in the checkpoint
-    model_config = None
-    if isinstance(checkpoint, dict) and "config" in checkpoint:
-        model_config = checkpoint["config"]
-        logger.info("Found explicit config in checkpoint")
-    else:
-        # If no explicit config, extract it from the state dict
+        state_dict, model_config = checkpoint, None
+
+    if model_config is None:
         model_config = extract_model_config_from_state_dict(state_dict)
-    
-    # Create a model instance using the extracted configuration
+
     model = initialize_model_with_config(_model_class, model_config)
-    
-    # Load the state dict
+
+    if not isinstance(state_dict, Mapping):
+        raise RuntimeError("Checkpoint does not contain a valid state dict")
+
     try:
-        # Try loading with strict=True first (exact match)
         model.load_state_dict(state_dict, strict=True)
-        logger.info("State dict loaded successfully with strict=True")
-    except Exception as e:
-        logger.warning(f"Strict loading failed, attempting non-strict loading: {e}")
+    except Exception:
         try:
-            # If strict loading fails, try non-strict loading
-            missing, unexpected = model.load_state_dict(state_dict, strict=False)
-            if missing:
-                logger.warning(f"Missing keys: {missing}")
-            if unexpected:
-                logger.warning(f"Unexpected keys: {unexpected}")
-            logger.info("State dict loaded successfully with strict=False")
-        except Exception as e2:
-            # If both approaches fail, raise an error
-            error_msg = f"Failed to load state dict into model: {e2}"
-            logger.error(error_msg)
-            raise RuntimeError(error_msg)
-    
-    # Move to device and set to eval mode
+            model.load_state_dict(state_dict, strict=False)
+        except Exception:
+            model_keys = model.state_dict()
+            filtered = {k: v for k, v in state_dict.items()
+                        if k in model_keys and v.shape == model_keys[k].shape}
+            if not filtered:
+                raise RuntimeError("Failed to load state dict into model")
+            model.load_state_dict(filtered, strict=False)
+
     model.to(device)
     model.eval()
-    logger.debug(f"Model moved to {device} and set to eval mode")
-    
-    # Cache model
     _model_cache[cache_key] = model
-    logger.debug(f"Model cached with key: {cache_key}")
-    
     return model
 
 def clear_model_cache():
@@ -231,29 +216,37 @@ def clear_model_cache():
     _model_cache = {}
     logger.info(f"Cleared model cache ({cache_size} models)")
 
-def contains_checkpoints(dir: str) -> list[str]:
-    """Check for .pt or .ckpt files in the directory. Raise an error if none found."""
-    logger.info(f"Searching for checkpoints in directory: {dir}")
-    
+def contains_checkpoints(directory: str) -> list[str]:
+    """
+    Return a list of *.pt / *.ckpt* files in *directory*.
+
+    Raises
+    ------
+    Exception
+        If the directory cannot be read or contains no checkpoints.
+    """
+    logger.info("Searching for checkpoints in: %s", directory)
+
+    # 1️⃣  Read directory
     try:
-        files = os.listdir(dir)
-        logger.debug(f"Found {len(files)} files in directory")
+        files = os.listdir(directory)
+        logger.debug("Found %d entries", len(files))
     except Exception as e:
-        error_msg = "error searching directory for model checkpoints"
-        logger.error(f"{error_msg}: {str(e)}")
-        raise Exception(error_msg)
-    
-    # Filter for checkpoint files
+        msg = "error searching directory for model checkpoints"
+        logger.error("%s: %s", msg, e)
+        raise Exception(msg) from e
+
+    # 2️⃣  Filter for candidate files
     checkpoint_files = [
-        os.path.join(dir, f)
-        for f in files
+        os.path.join(directory, f) for f in files
         if f.endswith(".pt") or f.endswith(".ckpt")
     ]
 
+    # 3️⃣  No matches → raise with precise message
     if not checkpoint_files:
-        error_msg = f"could not find any valid model checkpoints in {os.getcwd()}"
-        logger.error(error_msg)
-        raise Exception(error_msg)
+        msg = f"could not find any valid model checkpoints in {directory}"
+        logger.error(msg)
+        raise Exception(msg)
 
-    logger.info(f"Found {len(checkpoint_files)} checkpoint files")
+    logger.info("Found %d checkpoint files", len(checkpoint_files))
     return checkpoint_files

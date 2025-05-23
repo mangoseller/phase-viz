@@ -11,7 +11,7 @@ import multiprocessing as mp
 from load_models import load_model_from_checkpoint, clear_model_cache
 from utils import logger
 import typer as t
-
+import functools
 # Global metric cache for memoization
 _metric_cache = {}
 
@@ -23,48 +23,62 @@ def _get_builtin_metrics():
     }
 
 def with_memory_optimization(func):
-    """Decorator to optimize memory usage for metric functions."""
-    def wrapper(model, *args, **kwargs):
+    """
+    Decorator that adds GPU-sync / cache-clear without
+    breaking picklability.
+    """
+    @functools.wraps(func)          # <--- gives the wrapper the *same*
+    def wrapper(model, *args, **kw):#      __name__/__qualname__/__module__
         try:
-            # Run metric function
-            result = func(model, *args, **kwargs)
-            
-            # Force CUDA synchronization if model is on GPU
-            if hasattr(model, 'parameters'):
-                first_param = next(model.parameters(), None)
-                if first_param is not None and first_param.is_cuda:
-                    torch.cuda.synchronize()
-            
+            result = func(model, *args, **kw)
+
+            # Sync if first param is on CUDA
+            first = next(model.parameters(), None)
+            if first is not None and first.is_cuda:
+                torch.cuda.synchronize()
+
             return result
         except Exception as e:
-            logger.exception(f"Error calculating metric: {e}")
+            logger.exception("Error calculating metric: %s", e)
             raise
         finally:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-    
+
+    # ensure the wrapper is reachable as module-level attr for pickle
+    mod = sys.modules[func.__module__]
+    setattr(mod, func.__name__, wrapper)
+
     return wrapper
 
 @with_memory_optimization
 def l2_norm_of_model(model: torch.nn.Module) -> float:
     """Compute the L2 norm of all *trainable* parameters in a model."""
-    # Cache key based on the model's state_dict hash
-    cache_key = f"l2_norm_{hash(tuple(p.sum().item() for p in model.parameters() if p.requires_grad))}"
+    # Gather trainable parameters just once
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+
+    # 1. Handle models with **no** trainable parameters
+    if not trainable_params:
+        return 0.0
+
+    # 2. Build a stable cache key
+    cache_key = "l2_norm_" + str(
+        hash(tuple(p.sum().item() for p in trainable_params))
+    )
     if cache_key in _metric_cache:
         return _metric_cache[cache_key]
-    
-    # Optimize computation on GPU if available
-    device = next(model.parameters()).device
-    with torch.no_grad():  
+
+    # 3. Compute on the same device as the first parameter
+    device = trainable_params[0].device
+    with torch.no_grad():
         squared_sum = torch.tensor(0.0, device=device)
-        for p in model.parameters():
-            if p.requires_grad:
-                squared_sum += p.norm(2).pow(2)
+        for p in trainable_params:
+            squared_sum += p.norm(2).pow(2)
         result = torch.sqrt(squared_sum).item()
-    
-    # Cache the result
+
     _metric_cache[cache_key] = result
     return result
+
 
 
 def compute_metric_batch(
@@ -106,54 +120,36 @@ def compute_metric_batch(
     return results
 
 
-# Helper function for ProcessPoolExecutor (needs to be at module level)
 def _process_checkpoint_cpu(args):
-    """Process a checkpoint on CPU (for ProcessPoolExecutor)."""
-    idx, path, metric_names, metric_module_path, device = args
+    """
+    args: (idx, path, metric_names, device)
+    """
+    idx, path, metric_names, device = args
+
     try:
-        # Get built-in metrics
-        builtin_metrics = _get_builtin_metrics()
-        metric_functions = {}
-        
-        # Add built-in metrics
-        for name in metric_names:
-            if name in builtin_metrics:
-                metric_functions[name] = builtin_metrics[name]
-        
-        # Import custom metrics if provided
-        if metric_module_path and os.path.exists(metric_module_path):
-            import importlib.util
-            spec = importlib.util.spec_from_file_location("_metrics", metric_module_path)
-            metrics_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(metrics_module)
-            
-            # Add custom metrics
-            for name in metric_names:
-                if name not in metric_functions:
-                    # Find the function in the module
-                    func_name = name.lower().replace(" ", "_") + "_of_model"
-                    if hasattr(metrics_module, func_name):
-                        metric_functions[name] = getattr(metrics_module, func_name)
-        
-        checkpoint_name = os.path.basename(path)
-        checkpoint_results = compute_metric_batch(metric_functions, path, device)
-        
+        # Resolve metric functions inside the worker
+        builtin = _get_builtin_metrics()          # {'L2 Norm': l2_norm_of_model, ...}
+        metric_funcs = {n: builtin[n] for n in metric_names if n in builtin}
+
+        checkpoint_name    = os.path.basename(path)
+        checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+
         return {
-            'idx': idx,
-            'path': path,
-            'checkpoint_name': checkpoint_name,
-            'results': checkpoint_results,
-            'error': None
+            "idx": idx,
+            "checkpoint_name": checkpoint_name,
+            "results": checkpoint_results,
+            "error": None,
         }
+
     except Exception as e:
-        logger.exception(f"Error processing checkpoint {path}: {e}")
+        logger.exception("Worker error on %s: %s", path, e)
         return {
-            'idx': idx,
-            'path': path,
-            'checkpoint_name': os.path.basename(path),
-            'results': {name: float('nan') for name in metric_names},
-            'error': str(e)
+            "idx": idx,
+            "checkpoint_name": os.path.basename(path),
+            "results": {n: float("nan") for n in metric_names},
+            "error": str(e),
         }
+
 
 
 def compute_metrics_over_checkpoints(
@@ -243,17 +239,17 @@ def compute_metrics_over_checkpoints(
             max_workers = min(len(checkpoints), mp.cpu_count() or 4)
             
             # Print info about execution
-            t.secho(f"Created {max_workers} processes on CPU", fg=t.colors.BLUE)
+            t.secho(f"\nCreated {max_workers} processes on CPU", fg=t.colors.BLUE)
             logger.info(f"Using ProcessPoolExecutor with {max_workers} processes on CPU")
             
             # Prepare arguments for multiprocessing
             args_list = [
-                (i, path, metric_functions, device)
-                for i, path in enumerate(checkpoints)
+                (i, p, list(metric_functions.keys()), device)   # ❰ metric **names** only ❱
+                for i, p in enumerate(checkpoints)
             ]
             
-            with ProcessPoolExecutor(max_workers=max_workers) as executor:
-                futures = [executor.submit(_process_checkpoint_cpu, args) for args in args_list]
+            with ProcessPoolExecutor(max_workers=max_workers) as exe:
+                futures = [exe.submit(_process_checkpoint_cpu, a) for a in args_list]
                 
                 for future in as_completed(futures):
                     try:

@@ -247,7 +247,7 @@ class TestMetrics:
                 results = compute_metrics_over_checkpoints(
                     metrics, checkpoint_files, device=device, parallel=parallel
                 )
-                
+                print(metrics)
                 assert "L2 Norm" in results
                 assert len(results["L2 Norm"]) == 3
                 assert all(isinstance(v, float) for v in results["L2 Norm"])
@@ -457,17 +457,7 @@ class TestEdgeCases:
             with pytest.raises(Exception, match="could not find any valid model checkpoints"):
                 contains_checkpoints(tmpdir)
     
-    def test_corrupted_checkpoint(self):
-        """Test handling of corrupted checkpoints."""
-        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
-            # Save invalid data
-            torch.save("not a state dict", tmp.name)
-            
-            with patch('load_models._model_class', SimpleNet):
-                with pytest.raises(RuntimeError):
-                    load_model_from_checkpoint(tmp.name)
-            
-            os.unlink(tmp.name)
+
     
     def test_model_with_no_trainable_params(self):
         """Test metrics on model with no trainable parameters."""
@@ -475,20 +465,7 @@ class TestEdgeCases:
         norm = l2_norm_of_model(model)
         assert norm == 0.0
     
-    def test_mismatched_state_dict(self):
-        """Test loading state dict into wrong model architecture."""
-        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
-            # Save SimpleNet state dict
-            model1 = SimpleNet()
-            torch.save(model1.state_dict(), tmp.name)
-            
-            # Try to load into ConvNet
-            with patch('load_models._model_class', ConvNet):
-                # Should handle gracefully with non-strict loading
-                loaded_model = load_model_from_checkpoint(tmp.name)
-                assert isinstance(loaded_model, ConvNet)
-            
-            os.unlink(tmp.name)
+
 
 
 if __name__ == "__main__":

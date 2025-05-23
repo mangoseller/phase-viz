@@ -907,3 +907,6 @@ def plot_metric_interactive(
     except Exception as e:
         logger.warning(f"Could not save PNG file: {e}")
         pass  # PNG export is optional
+
+
+    
