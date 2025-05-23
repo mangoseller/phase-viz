@@ -1,22 +1,15 @@
 from pathlib import Path
 from typing import Sequence, Dict, List, Optional, Tuple
 import datetime as dt
-import plotly.graph_objects as go
 import numpy as np
-from plotly.subplots import make_subplots
 import os
 import json
 import threading
-import http.server
-import socketserver
-import webbrowser
 import random
 import sys
-from contextlib import contextmanager
 
 from utils import (
     suppress_stdout_stderr, 
-    silent_open_browser, 
     start_cleanup_server, 
     find_interesting_points, 
     calculate_trend_info,
@@ -25,59 +18,8 @@ from utils import (
     unregister_html_from_cleanup
 )
 
-os.environ['GTK_MODULES'] = ''  
+os.environ['GTK_MODULES'] = ''
 
-#TODO: split this into pure JS at some point
-
-
-def create_annotations(interesting_points, colors):
-    """Create annotations for interesting points in the data"""
-    annotations = []
-    for point_type, point_data in interesting_points.items():
-        if point_type == "min":
-            annotations.append(dict(
-                x=point_data["idx"],
-                y=point_data["value"],
-                text="Min",
-                showarrow=True,
-                arrowhead=2,
-                arrowcolor=colors["annotation"],
-                arrowsize=1,
-                arrowwidth=1.5,
-                font=dict(family="Inter, system-ui, sans-serif", color=colors["annotation"], size=10),
-                ax=0,
-                ay=-30
-            ))
-        elif point_type == "max":
-            annotations.append(dict(
-                x=point_data["idx"],
-                y=point_data["value"],
-                text="Max",
-                showarrow=True,
-                arrowhead=2,
-                arrowcolor=colors["annotation"],
-                arrowsize=1,
-                arrowwidth=1.5,
-                font=dict(family="Inter, system-ui, sans-serif", color=colors["annotation"], size=10),
-                ax=0,
-                ay=-30
-            ))
-        elif point_type == "jump" and abs(point_data["value"] - point_data["prev_value"]) > 0.1 * (max(point_data["value"], point_data["prev_value"]) - min(point_data["value"], point_data["prev_value"])):
-            annotations.append(dict(
-                x=point_data["idx"],
-                y=point_data["value"],
-                text="Significant Change",
-                showarrow=True,
-                arrowhead=2,
-                arrowcolor=colors["highlight"],
-                arrowsize=1,
-                arrowwidth=1.5,
-                font=dict(family="Inter, system-ui, sans-serif", color=colors["highlight"], size=10),
-                ax=30,
-                ay=-30
-            ))
-    
-    return annotations
 
 def plot_metric_interactive(
     checkpoint_names: Sequence[str],
@@ -85,7 +27,7 @@ def plot_metric_interactive(
     metric_name: str = None,
     metrics_data: Dict[str, List[float]] = None,
 ) -> None:
-    """Render an interactive line-plot (Plotly) of metrics over checkpoints.
+    """Render an interactive line-plot using React and D3.js.
     
     Args:
         checkpoint_names: List of checkpoint identifiers
@@ -94,7 +36,7 @@ def plot_metric_interactive(
         metrics_data: (Optional) Dictionary mapping metric names to values
     
     Returns:
-        None: Outputs are saved to HTML and PNG files
+        None: Outputs are saved to HTML file
     """
     
     # Convert single metric to metrics_data format if provided
@@ -118,356 +60,12 @@ def plot_metric_interactive(
             logger.error(f"Error converting metric '{name}' values to float: {e}")
             raise ValueError(f"Metric '{name}' contains non-numeric values: {e}")
     
-    # --- Set up color palette ---
-    # Create a color palette with enough distinct colors for all metrics
-    base_colors = [
-        "#3498db",  # Blue
-        "#e74c3c",  # Red
-        "#2ecc71",  # Green
-        "#9b59b6",  # Purple
-        "#f39c12",  # Orange
-        "#1abc9c",  # Turquoise
-        "#d35400",  # Pumpkin
-        "#34495e",  # Dark Blue/Gray
-        "#16a085",  # Green Sea
-        "#27ae60",  # Nephritis
-        "#2980b9",  # Belize Hole
-        "#8e44ad",  # Wisteria
-        "#c0392b",  # Pomegranate
-    ]
-    
-    # Ensure we have enough colors for all metrics
-    metric_colors = {}
-    for i, name in enumerate(metrics_data.keys()):
-        metric_colors[name] = base_colors[i % len(base_colors)]
-    
-    colors = {
-        "background": "#f9f9f9",     # Light background
-        "paper_bg": "#ffffff",       # White for paper elements
-        "plot_bg": "#ffffff",        # White for plot area
-        "grid": "#e1e1e1",           # Light gray for grid lines
-        "text": "#2c3e50",           # Dark blue/gray for text
-        "annotation": "#7f8c8d",     # Gray for annotation text
-        "highlight": "#9b59b6",      # Purple for highlights
-        "button_bg": "#ecf0f1",      # Light gray for buttons
-        "button_text": "#2c3e50",    # Dark blue/gray for button text
-        "metrics": metric_colors,    # Colors for each metric line
+    # Prepare data for React component
+    react_data = {
+        "checkpoints": list(checkpoint_names),
+        "metrics": metrics_data,
+        "metricsList": list(metrics_data.keys())
     }
-    
-    # --- Convert to numeric axis for zoom behavior ---
-    x_numeric = list(range(len(checkpoint_names)))
-    
-    # --- Create main figure ---
-    fig = go.Figure()
-    
-    # --- Calculate overall min/max for y-axis scaling ---
-    all_values = []
-    for vals in metrics_data.values():
-        all_values.extend([v for v in vals if not np.isnan(v)])
-    
-    y_min = min(all_values) if all_values else 0
-    y_max = max(all_values) if all_values else 1
-    y_range_padding = (y_max - y_min) * 0.1  # Add 10% padding
-    
-    # --- Add traces for each metric ---
-    annotations_by_metric = {}
-    for i, (metric_name, values) in enumerate(metrics_data.items()):
-        # Calculate trend info
-        trend_info = calculate_trend_info(values)
-        
-        # Find interesting points
-        interesting_points = find_interesting_points(values, x_numeric)
-        
-        # Create annotations (but store them by metric for toggling)
-        metric_annotations = create_annotations(interesting_points, colors)
-        annotations_by_metric[metric_name] = metric_annotations
-        
-        # Add moving average if we have enough points
-        if len(values) > 5:
-            window_size = max(3, len(values) // 10)
-            ma_values = []
-            for i in range(len(values)):
-                start = max(0, i - window_size // 2)
-                end = min(len(values), i + window_size // 2 + 1)
-                valid_values = [values[j] for j in range(start, end) if not np.isnan(values[j])]
-                if valid_values:
-                    ma_values.append(sum(valid_values) / len(valid_values))
-                else:
-                    ma_values.append(np.nan)
-            
-            # Add moving average trace (hidden by default)
-            fig.add_trace(
-                go.Scatter(
-                    x=x_numeric,
-                    y=ma_values,
-                    mode="lines",
-                    name=f"{metric_name} - Moving Avg ({window_size} pts)",
-                    line=dict(
-                        color=colors["metrics"][metric_name], 
-                        width=1.5, 
-                        dash="dash"
-                    ),
-                    hoverinfo="skip",
-                    visible=False,  # Hidden by default
-                    legendgroup=metric_name,
-                )
-            )
-        
-        # Add main trace for this metric
-        fig.add_trace(
-            go.Scatter(
-                x=x_numeric,
-                y=values,
-                mode="lines+markers",
-                name=metric_name,
-                line=dict(
-                    color=colors["metrics"][metric_name], 
-                    width=2, 
-                    shape="spline", 
-                    smoothing=0.3
-                ),
-                marker=dict(
-                    symbol="circle", 
-                    size=6, 
-                    color=colors["metrics"][metric_name],
-                    line=dict(color=colors["plot_bg"], width=1)
-                ),
-                hovertemplate=(
-                    f"<b>Checkpoint:</b> %{{customdata}}<br>"
-                    f"<b>{metric_name}:</b> %{{y:.6f}}<extra></extra>"
-                ),
-                customdata=checkpoint_names,
-                legendgroup=metric_name,
-                visible=i == 0,  # Only the first metric is visible by default
-            )
-        )
-    
-    # --- Set initial annotations (only for the first metric) ---
-    first_metric = next(iter(metrics_data.keys()))
-    annotations = annotations_by_metric[first_metric]
-    
-    # --- Add statistics for first metric ---
-    first_values = metrics_data[first_metric]
-    stats_annotations = [
-        # Statistics positioned at the top center of the plot
-        dict(
-            xref="paper",
-            yref="paper",
-            x=0.5,  # Center horizontally
-            y=1.04,  # Positioned at the top
-            text=f"Min: {min(first_values):.4f} | Max: {max(first_values):.4f} | Mean: {sum(first_values)/len(first_values):.4f}",
-            showarrow=False,
-            font=dict(family="Inter, system-ui, sans-serif", size=11, color=colors["text"]),
-            align="center"  # Center-align the text
-        )
-    ]
-    
-    # --- Prepare dropdown menu options ---
-    dropdown_options = []
-    
-    # Add option for each individual metric
-    for i, metric_name in enumerate(metrics_data.keys()):
-        # Create visibility list for this option (only this metric is visible)
-        # Account for both main traces and moving average traces
-        visibility = []
-        for j, name in enumerate(metrics_data.keys()):
-            # For each metric, we have potentially 2 traces (main and moving avg)
-            # So we need to set visibility for both
-            if name in metrics_data:
-                has_ma = len(metrics_data[name]) > 5  # Check if it has moving average
-                
-                if name == metric_name:
-                    # This metric should be visible (but not its moving avg)
-                    visibility.extend([True, False] if has_ma else [True])
-                else:
-                    # Other metrics should be hidden
-                    visibility.extend([False, False] if has_ma else [False])
-        
-        # Add dropdown option
-        dropdown_options.append(
-            dict(
-                args=[
-                    {"visible": visibility},
-                    {"annotations": annotations_by_metric[metric_name] + stats_annotations},
-                    {'title.text': f"<b>{metric_name} over Checkpoints</b>"}
-                ],
-                label=metric_name,
-                method="update"
-            )
-        )
-    
-    # Add "All Metrics" option
-    all_visibility = []
-    for name in metrics_data.keys():
-        has_ma = len(metrics_data[name]) > 5
-        all_visibility.extend([True, False] if has_ma else [True])  # Show all main traces but not MAs
-    
-    # Calculate min and max for all metrics for the "All" option stats
-    all_min = min(min(vals) for vals in metrics_data.values())
-    all_max = max(max(vals) for vals in metrics_data.values())
-    all_mean = sum(sum(vals) for vals in metrics_data.values()) / sum(len(vals) for vals in metrics_data.values())
-    
-    # Combined annotations for "All" option
-    all_stats_annotation = dict(
-        xref="paper",
-        yref="paper",
-        x=0.5,
-        y=1.04,
-        text=f"Min: {all_min:.4f} | Max: {all_max:.4f} | Mean: {all_mean:.4f}",
-        showarrow=False,
-        font=dict(family="Inter, system-ui, sans-serif", size=11, color=colors["text"]),
-        align="center"
-    )
-    
-    dropdown_options.append(
-        dict(
-            args=[
-                {"visible": all_visibility},
-                {"annotations": [all_stats_annotation]},  # No individual metric annotations when showing all
-                {'title.text': "<b>All Metrics over Checkpoints</b>"}
-            ],
-            label="All Metrics",
-            method="update"
-        )
-    )
-    
-    # --- Get title for first selected metric ---
-    metric_title = f"<b>{first_metric} over Checkpoints</b>"
-    if len(metrics_data) == 1:
-        trend_info = calculate_trend_info(list(metrics_data.values())[0])
-        if trend_info:
-            direction_symbol = "↗" if trend_info["direction"] == "increasing" else "↘" if trend_info["direction"] == "decreasing" else "→"
-            trend_color = "#27ae60" if trend_info["direction"] == "increasing" else "#e74c3c" if trend_info["direction"] == "decreasing" else colors["text"]
-            metric_title += f" <span style='font-size:0.9em;color:{trend_color};'>{direction_symbol} {abs(trend_info['change_pct']):.1f}% change</span>"
-    
-    # --- Update layout with enhanced styling ---
-    fig.update_layout(
-        template="plotly_white",  # Use white template for minimalist design
-        paper_bgcolor=colors["paper_bg"],
-        plot_bgcolor=colors["plot_bg"],
-        font=dict(
-            family="Inter, system-ui, -apple-system, sans-serif",
-            size=12,
-            color=colors["text"]
-        ),
-        title=dict(
-            text=metric_title,
-            x=0.01, 
-            xanchor="left",
-            font=dict(family="Inter, system-ui, sans-serif", size=20, color=colors["text"])
-        ),
-        xaxis=dict(
-            title="Checkpoint",
-            # Handle overlapping labels by using a subset of ticks
-            tickmode="array",
-            tickvals=x_numeric[::max(1, len(x_numeric) // 10)] if len(x_numeric) > 10 else x_numeric,
-            ticktext=[checkpoint_names[i] for i in range(0, len(checkpoint_names), max(1, len(x_numeric) // 10))] if len(x_numeric) > 10 else checkpoint_names,
-            tickangle=45,  # Angle labels to avoid overlap
-            gridcolor=colors["grid"],
-            showspikes=True,
-            spikethickness=1,
-            spikedash="solid",
-            spikecolor=colors["annotation"],
-            spikemode="across",
-            color=colors["text"]
-        ),
-        yaxis=dict(
-            title=dict(text="Metric Value", font=dict(size=14, color=colors["text"])),
-            gridcolor=colors["grid"],
-            showspikes=True,
-            spikethickness=1,
-            spikedash="solid",
-            spikecolor=colors["annotation"],
-            zeroline=True,
-            zerolinecolor=colors["grid"],
-            zerolinewidth=1.5,
-            color=colors["text"],
-            # Set range with padding to avoid data being too close to the edge
-            range=[y_min - y_range_padding, y_max + y_range_padding]
-        ),
-        hovermode="x unified",
-        hoverlabel=dict(
-            bgcolor=colors["paper_bg"],
-            font_size=12,
-            font_family="Inter, system-ui, sans-serif",
-            font_color=colors["text"],
-            bordercolor=colors["grid"]
-        ),
-        margin=dict(l=50, r=50, t=80, b=80),
-        height=600,
-        legend=dict(
-            orientation="h", 
-            yanchor="bottom", 
-            y=1.02, 
-            xanchor="right", 
-            x=1,
-            bgcolor=colors["paper_bg"],
-            bordercolor=colors["grid"],
-            borderwidth=1,
-            font=dict(color=colors["text"])
-        ),
-        # Set initial annotations
-        annotations=annotations + stats_annotations,
-        # Add dropdown menu
-        updatemenus=[
-            dict(
-                buttons=dropdown_options,
-                direction="down",
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0.01,
-                xanchor="left",
-                y=1.15,
-                yanchor="top",
-                bgcolor=colors["button_bg"],
-                font=dict(color=colors["button_text"], size=12),
-                bordercolor=colors["grid"],
-                borderwidth=1,
-            )
-        ]
-    )
-    
-    # --- Create stats HTML for all metrics ---
-    all_stats_html = f"""
-    <div id="stats-panel" style="padding: 15px; background-color: {colors['paper_bg']}; border: 1px solid {colors['grid']}; 
-        border-radius: 4px; margin-top: 20px; color: {colors['text']}; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 800px; margin-left: auto; margin-right: auto;">
-        <h4 style="margin-top: 0; color: {colors['text']}; border-bottom: 1px solid {colors['grid']}; padding-bottom: 8px; font-family: 'Inter', system-ui, sans-serif; font-weight: 500;">
-            Metric Statistics</h4>
-        <div class="metrics-stats-container" style="display: flex; flex-wrap: wrap; gap: 20px;">
-    """
-    
-    # Add a stats panel for each metric
-    for metric_name, values in metrics_data.items():
-        trend_color = ""
-        if values[-1] > values[0]:
-            trend_color = "#27ae60"  # Green for increasing
-        elif values[-1] < values[0]:
-            trend_color = "#e74c3c"  # Red for decreasing
-        else:
-            trend_color = colors["text"]  # Default for stable
-            
-        all_stats_html += f"""
-        <div class="metric-stats" id="stats-{metric_name.replace(' ', '-').lower()}" style="flex: 1; min-width: 300px;">
-            <h5 style="color: {colors['metrics'][metric_name]}; margin-top: 0; font-family: 'Inter', system-ui, sans-serif;">
-                {metric_name}</h5>
-            <table style="width: 100%; border-collapse: collapse; font-family: 'Inter', system-ui, sans-serif;">
-                <tr><td style="padding: 3px 10px;"><b>Mean:</b></td><td>{sum(values)/len(values):.6f}</td></tr>
-                <tr><td style="padding: 3px 10px;"><b>Min:</b></td><td>{min(values):.6f}</td></tr>
-                <tr><td style="padding: 3px 10px;"><b>Max:</b></td><td>{max(values):.6f}</td></tr>
-                <tr><td style="padding: 3px 10px;"><b>Start:</b></td><td>{values[0]:.6f}</td></tr>
-                <tr><td style="padding: 3px 10px;"><b>End:</b></td><td>{values[-1]:.6f}</td></tr>
-                <tr><td style="padding: 3px 10px;"><b>Change:</b></td>
-                    <td style="color: {trend_color}">
-                        {values[-1] - values[0]:.6f} ({((values[-1] - values[0]) / abs(values[0]) * 100) if values[0] != 0 else 0:.2f}%)
-                    </td></tr>
-            </table>
-        </div>
-        """
-    
-    all_stats_html += """
-        </div>
-    </div>
-    """
     
     # Create output filename
     timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -478,409 +76,1256 @@ def plot_metric_interactive(
     port, cleanup_event = start_cleanup_server(output_html, timestamp, random_suffix)
     logger.info(f"Started cleanup server on port {port} for {output_html}")
     
-    # Add JavaScript for improved interactivity and cleanup
-    custom_js = f"""
-    <script>
-        // Cleanup configuration
-        const cleanupPort = {port};
-        const cleanupURL = 'http://localhost:' + cleanupPort + '/cleanup';
-        let cleanupAttempted = false;
-        
-        // Metrics data for JS interactions
-        const metricsData = {json.dumps(metrics_data)};
-        const checkpointNames = {json.dumps(list(checkpoint_names))};
-        const metricColors = {json.dumps(colors['metrics'])};
-        
-        // Function to send cleanup request
-        async function sendCleanupRequest() {{
-            if (cleanupAttempted) return;
-            cleanupAttempted = true;
-            
-            try {{
-                // Try using fetch first
-                await fetch(cleanupURL, {{
-                    method: 'POST',
-                    mode: 'no-cors',
-                    keepalive: true,
-                    body: JSON.stringify({{cleanup: true}})
-                }});
-            }} catch (e) {{
-                // If fetch fails, try sendBeacon
-                try {{
-                    navigator.sendBeacon(cleanupURL, JSON.stringify({{cleanup: true}}));
-                }} catch (e2) {{
-                    console.error('Cleanup failed:', e2);
-                }}
-            }}
+    # Generate the React-based HTML
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase-Viz</title>
+    
+    <!-- Load React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Load D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- Load Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Modern fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }}
         
-        // Multiple cleanup triggers
-        window.addEventListener('beforeunload', sendCleanupRequest);
-        window.addEventListener('unload', sendCleanupRequest);
+        body {{
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }}
         
-        // Also cleanup on visibility change (tab switching)
-        document.addEventListener('visibilitychange', function() {{
-            if (document.visibilityState === 'hidden') {{
-                sendCleanupRequest();
-            }}
+        /* Subtle animated background */
+        body::before {{
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(244, 63, 94, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: gradientShift 30s ease infinite;
+        }}
+        
+        @keyframes gradientShift {{
+            0%, 100% {{ transform: translate(0, 0) scale(1); }}
+            33% {{ transform: translate(-10px, -10px) scale(1.05); }}
+            66% {{ transform: translate(10px, -5px) scale(0.95); }}
+        }}
+        
+        .container {{
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .header {{
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }}
+        
+        .header h1 {{
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #f3f4f6;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }}
+        
+        .header p {{
+            font-size: 1.1rem;
+            color: #9ca3af;
+            font-weight: 400;
+            transition: all 0.3s ease;
+        }}
+        
+        .controls {{
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }}
+        
+        .metric-selector {{
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            min-width: 200px;
+        }}
+        
+        .metric-selector:hover {{
+            background: #222;
+            border-color: #444;
+        }}
+        
+        .metric-selector:focus {{
+            border-color: #6366f1;
+        }}
+        
+        .metric-selector option {{
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }}
+        
+        .action-button {{
+            background: #6366f1;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }}
+        
+        .action-button:hover {{
+            background: #4f46e5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }}
+        
+        .action-button:active {{
+            transform: translateY(0);
+        }}
+        
+        .charts-grid {{
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }}
+        
+        .chart-wrapper {{
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }}
+        
+        .chart-wrapper:hover {{
+            border-color: #444;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }}
+        
+        .chart-wrapper.expanded {{
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            height: 90vh;
+            z-index: 1000;
+            cursor: default;
+        }}
+        
+        .chart-header {{
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }}
+        
+        .chart-title {{
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f3f4f6;
+        }}
+        
+        .expand-icon {{
+            width: 20px;
+            height: 20px;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }}
+        
+        .chart-wrapper:hover .expand-icon {{
+            opacity: 1;
+        }}
+        
+        .chart-container {{
+            padding: 1.5rem;
+            position: relative;
+        }}
+        
+        .chart {{
+            width: 100%;
+            display: block;
+        }}
+        
+        .stats-container {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }}
+        
+        .stat-card {{
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+        }}
+        
+        .stat-card:hover {{
+            border-color: #444;
+            transform: translateY(-2px);
+        }}
+        
+        .stat-card h3 {{
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #f3f4f6;
+        }}
+        
+        .stat-card .metric-color {{
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }}
+        
+        .stat-grid {{
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }}
+        
+        .stat-item {{
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }}
+        
+        .stat-label {{
+            color: #9ca3af;
+        }}
+        
+        .stat-value {{
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            color: #e0e0e0;
+        }}
+        
+        .loading {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            gap: 1rem;
+        }}
+        
+        .loading-spinner {{
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }}
+        
+        @keyframes spin {{
+            to {{ transform: rotate(360deg); }}
+        }}
+        
+        .tooltip {{
+            position: absolute;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 0.75rem;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }}
+        
+        .tooltip.visible {{
+            opacity: 1;
+        }}
+        
+        .tooltip-title {{
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #f3f4f6;
+        }}
+        
+        .tooltip-value {{
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }}
+        
+        .legend {{
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }}
+        
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }}
+        
+        .legend-color {{
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }}
+        
+        .overlay {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }}
+        
+        .overlay.visible {{
+            opacity: 1;
+            pointer-events: all;
+        }}
+        
+        /* Grid layouts based on number of metrics */
+        .charts-grid.single {{ grid-template-columns: 1fr; }}
+        .charts-grid.double {{ grid-template-columns: repeat(2, 1fr); }}
+        .charts-grid.triple {{ grid-template-columns: repeat(3, 1fr); }}
+        .charts-grid.quad {{ grid-template-columns: repeat(2, 1fr); }}
+        .charts-grid.many {{ grid-template-columns: repeat(3, 1fr); }}
+        
+        @media (max-width: 1200px) {{
+            .charts-grid.triple {{ grid-template-columns: repeat(2, 1fr); }}
+            .charts-grid.many {{ grid-template-columns: repeat(2, 1fr); }}
+        }}
+        
+        @media (max-width: 768px) {{
+            .charts-grid.double {{ grid-template-columns: 1fr; }}
+            .charts-grid.triple {{ grid-template-columns: 1fr; }}
+            .charts-grid.quad {{ grid-template-columns: 1fr; }}
+            .charts-grid.many {{ grid-template-columns: 1fr; }}
+        }}
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const {{ useState, useEffect, useRef, useMemo }} = React;
+        
+        // Data passed from Python
+        const DATA = {json.dumps(react_data)};
+        const CLEANUP_PORT = {port};
+        
+        // Color palette for metrics
+        const COLOR_PALETTE = [
+            '#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6',
+            '#8b5cf6', '#ef4444', '#14b8a6', '#f97316', '#06b6d4'
+        ];
+        
+        // Create color mapping
+        const metricColors = {{}};
+        DATA.metricsList.forEach((metric, i) => {{
+            metricColors[metric] = COLOR_PALETTE[i % COLOR_PALETTE.length];
         }});
         
-        // Cleanup on page hide (mobile browsers)
-        window.addEventListener('pagehide', sendCleanupRequest);
-        
-        // Add custom interactivity
-        document.addEventListener('DOMContentLoaded', function() {{
-            // Create container for buttons
-            var btnContainer = document.createElement('div');
-            btnContainer.style.position = 'absolute';
-            btnContainer.style.top = '10px';
-            btnContainer.style.right = '10px';  // Positioned on right
-            btnContainer.style.zIndex = 1000;
+        function Chart({{ metric, data, isExpanded, onToggleExpand }}) {{
+            const svgRef = useRef(null);
+            const containerRef = useRef(null);
+            const [hoveredPoint, setHoveredPoint] = useState(null);
             
-            // Create download button
-            var downloadBtn = document.createElement('button');
-            downloadBtn.innerText = 'Download PNG';
-            downloadBtn.style.padding = '8px 12px';
-            downloadBtn.style.backgroundColor = '#ecf0f1';
-            downloadBtn.style.color = '#2c3e50';
-            downloadBtn.style.fontWeight = '500';
-            downloadBtn.style.border = '1px solid #bdc3c7';
-            downloadBtn.style.borderRadius = '4px';
-            downloadBtn.style.cursor = 'pointer';
-            downloadBtn.style.marginRight = '10px';
-            downloadBtn.style.fontFamily = "'Inter', system-ui, sans-serif";
-            downloadBtn.style.fontSize = '12px';
-            downloadBtn.style.transition = 'all 0.2s ease';
-            
-            downloadBtn.onmouseover = function() {{
-                this.style.backgroundColor = '#dfe6e9';
-            }};
-            
-            downloadBtn.onmouseout = function() {{
-                this.style.backgroundColor = '#ecf0f1';
-            }};
-            
-            downloadBtn.onclick = function() {{
-                Plotly.downloadImage(
-                    document.getElementsByClassName('js-plotly-plot')[0], 
-                    {{format: 'png', width: 1200, height: 800, filename: 'model_metrics_plot'}}
-                );
-            }};
-            
-            btnContainer.appendChild(downloadBtn);
-            
-            // Create CSV export button
-            var csvBtn = document.createElement('button');
-            csvBtn.innerText = 'Export CSV';
-            csvBtn.style.padding = '8px 12px';
-            csvBtn.style.backgroundColor = '#ecf0f1';
-            csvBtn.style.color = '#2c3e50';
-            csvBtn.style.fontWeight = '500';
-            csvBtn.style.border = '1px solid #bdc3c7';
-            csvBtn.style.borderRadius = '4px';
-            csvBtn.style.cursor = 'pointer';
-            csvBtn.style.fontFamily = "'Inter', system-ui, sans-serif";
-            csvBtn.style.fontSize = '12px';
-            csvBtn.style.transition = 'all 0.2s ease';
-            
-            csvBtn.onmouseover = function() {{
-                this.style.backgroundColor = '#dfe6e9';
-            }};
-            
-            csvBtn.onmouseout = function() {{
-                this.style.backgroundColor = '#ecf0f1';
-            }};
-            
-            csvBtn.onclick = function() {{
-                // Get all metrics data
-                let csvContent = "Checkpoint";
+            // Calculate statistics
+            const stats = useMemo(() => {{
+                const values = data.filter(v => !isNaN(v));
+                if (values.length === 0) return null;
                 
-                // Add header row with metric names
-                for (const metricName in metricsData) {{
-                    csvContent += "," + metricName;
-                }}
-                csvContent += "\\n";
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                const start = values[0];
+                const end = values[values.length - 1];
+                const change = end - start;
+                const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
                 
-                // Add data rows
-                for (let i = 0; i < checkpointNames.length; i++) {{
-                    csvContent += checkpointNames[i];
-                    for (const metricName in metricsData) {{
-                        csvContent += "," + metricsData[metricName][i];
-                    }}
-                    csvContent += "\\n";
-                }}
+                return {{
+                    min, max, mean, start, end, change, changePercent,
+                    minIndex: data.indexOf(min),
+                    maxIndex: data.indexOf(max)
+                }};
+            }}, [data]);
+            
+            // Render chart with D3
+            useEffect(() => {{
+                if (!svgRef.current || !containerRef.current || !stats) return;
                 
-                // Create and trigger download
-                const blob = new Blob([csvContent], {{ type: 'text/csv;charset=utf-8;' }});
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', 'model_metrics_data.csv');
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }};
-            
-            btnContainer.appendChild(csvBtn);
-            
-            // Add to document
-            document.getElementsByClassName('js-plotly-plot')[0].appendChild(btnContainer);
-            
-            // Get the dropdown buttons
-            var dropdownButtons = document.querySelector('.updatemenu-container');
-            if (dropdownButtons) {{
-                dropdownButtons.style.fontFamily = "'Inter', system-ui, sans-serif";
-                dropdownButtons.style.fontSize = '12px';
-            }}
-            
-            // Update stats panel visibility when a metric is selected
-            var plotDiv = document.getElementsByClassName('js-plotly-plot')[0];
-            if (plotDiv && plotDiv._context) {{
-                var origUpdate = plotDiv._context.plotlyServerURL;
-                plotDiv.on('plotly_click', function() {{
-                    console.log('Plot clicked');
-                }});
+                const container = containerRef.current;
+                const width = container.clientWidth;
+                const height = isExpanded ? 500 : 300;
+                const margin = {{ top: 20, right: 40, bottom: 60, left: 60 }};
+                const innerWidth = width - margin.left - margin.right;
+                const innerHeight = height - margin.top - margin.bottom;
                 
-                plotDiv.on('plotly_afterplot', function() {{
-                    console.log('After plot');
-                }});
+                // Clear previous chart
+                d3.select(svgRef.current).selectAll('*').remove();
                 
-                // Custom update handler for dropdown selection
-                plotDiv.on('plotly_afterupdate', function(data) {{
-                    const currentButton = document.querySelector('.updatemenu-item.active');
-                    if (currentButton) {{
-                        const selectedMetric = currentButton.textContent.trim();
-                        
-                        // Update stats visibility
-                        for (const metricName in metricsData) {{
-                            const statsPanel = document.getElementById(`stats-${{metricName.replace(' ', '-').toLowerCase()}}`);
-                            if (statsPanel) {{
-                                if (selectedMetric === "All Metrics" || selectedMetric === metricName) {{
-                                    statsPanel.style.display = '';
-                                }} else {{
-                                    statsPanel.style.display = 'none';
-                                }}
+                const svg = d3.select(svgRef.current)
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                const g = svg.append('g')
+                    .attr('transform', `translate(${{margin.left}},${{margin.top}})`);
+                
+                // Create scales
+                const xScale = d3.scaleLinear()
+                    .domain([0, DATA.checkpoints.length - 1])
+                    .range([0, innerWidth]);
+                
+                const validValues = data.filter(v => !isNaN(v));
+                const yPadding = (stats.max - stats.min) * 0.1 || 0.1;
+                const yScale = d3.scaleLinear()
+                    .domain([stats.min - yPadding, stats.max + yPadding])
+                    .range([innerHeight, 0]);
+                
+                // Grid lines
+                g.append('g')
+                    .attr('class', 'grid')
+                    .attr('transform', `translate(0,${{innerHeight}})`)
+                    .call(d3.axisBottom(xScale)
+                        .tickSize(-innerHeight)
+                        .tickFormat('')
+                        .ticks(10))
+                    .style('stroke-dasharray', '3,3')
+                    .style('opacity', 0.3);
+                
+                g.append('g')
+                    .attr('class', 'grid')
+                    .call(d3.axisLeft(yScale)
+                        .tickSize(-innerWidth)
+                        .tickFormat('')
+                        .ticks(6))
+                    .style('stroke-dasharray', '3,3')
+                    .style('opacity', 0.3);
+                
+                // Axes
+                const xAxis = g.append('g')
+                    .attr('transform', `translate(0,${{innerHeight}})`)
+                    .call(d3.axisBottom(xScale)
+                        .tickFormat(i => {{
+                            if (DATA.checkpoints.length > 20) {{
+                                return i % 5 === 0 ? DATA.checkpoints[i] : '';
                             }}
-                        }}
+                            return DATA.checkpoints[i];
+                        }}));
+                
+                xAxis.selectAll('text')
+                    .style('text-anchor', 'end')
+                    .attr('dx', '-.8em')
+                    .attr('dy', '.15em')
+                    .attr('transform', 'rotate(-45)')
+                    .style('fill', '#9ca3af')
+                    .style('font-size', isExpanded ? '12px' : '10px');
+                
+                xAxis.select('.domain').style('stroke', '#333');
+                xAxis.selectAll('.tick line').style('stroke', '#333');
+                
+                const yAxis = g.append('g')
+                    .call(d3.axisLeft(yScale)
+                        .tickFormat(d => d.toFixed(4)));
+                
+                yAxis.selectAll('text')
+                    .style('fill', '#9ca3af')
+                    .style('font-size', isExpanded ? '12px' : '10px');
+                
+                yAxis.select('.domain').style('stroke', '#333');
+                yAxis.selectAll('.tick line').style('stroke', '#333');
+                
+                // Line generator
+                const line = d3.line()
+                    .x((d, i) => xScale(i))
+                    .y(d => yScale(d))
+                    .curve(d3.curveMonotoneX)
+                    .defined(d => !isNaN(d));
+                
+                // Add gradient
+                const gradient = svg.append('defs')
+                    .append('linearGradient')
+                    .attr('id', `gradient-${{metric.replace(/\s+/g, '-')}}`)
+                    .attr('gradientUnits', 'userSpaceOnUse')
+                    .attr('x1', 0).attr('y1', yScale(stats.max))
+                    .attr('x2', 0).attr('y2', yScale(stats.min));
+                
+                gradient.append('stop')
+                    .attr('offset', '0%')
+                    .attr('stop-color', metricColors[metric])
+                    .attr('stop-opacity', 0.8);
+                
+                gradient.append('stop')
+                    .attr('offset', '100%')
+                    .attr('stop-color', metricColors[metric])
+                    .attr('stop-opacity', 0.1);
+                
+                // Area under curve
+                const area = d3.area()
+                    .x((d, i) => xScale(i))
+                    .y0(innerHeight)
+                    .y1(d => yScale(d))
+                    .curve(d3.curveMonotoneX)
+                    .defined(d => !isNaN(d));
+                
+                g.append('path')
+                    .datum(data)
+                    .attr('fill', `url(#gradient-${{metric.replace(/\s+/g, '-')}})`)
+                    .attr('d', area)
+                    .attr('opacity', 0.3);
+                
+                // Draw line
+                const path = g.append('path')
+                    .datum(data)
+                    .attr('fill', 'none')
+                    .attr('stroke', metricColors[metric])
+                    .attr('stroke-width', 2)
+                    .attr('d', line);
+                
+                // Animate line
+                const totalLength = path.node().getTotalLength();
+                path
+                    .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                    .attr('stroke-dashoffset', totalLength)
+                    .transition()
+                    .duration(1000)
+                    .ease(d3.easeQuadInOut)
+                    .attr('stroke-dashoffset', 0);
+                
+                // Add data points
+                const points = g.selectAll('.point')
+                    .data(data)
+                    .enter()
+                    .filter(d => !isNaN(d))
+                    .append('circle')
+                    .attr('cx', (d, i) => xScale(i))
+                    .attr('cy', d => yScale(d))
+                    .attr('r', 0)
+                    .attr('fill', metricColors[metric])
+                    .style('cursor', 'pointer');
+                
+                points
+                    .transition()
+                    .duration(1000)
+                    .delay((d, i) => i * 30)
+                    .attr('r', 3);
+                
+                // Add max/min highlights
+                if (stats.maxIndex >= 0) {{
+                    g.append('circle')
+                        .attr('cx', xScale(stats.maxIndex))
+                        .attr('cy', yScale(data[stats.maxIndex]))
+                        .attr('r', 0)
+                        .attr('fill', '#3b82f6')
+                        .attr('stroke', '#fff')
+                        .attr('stroke-width', 2)
+                        .transition()
+                        .duration(1000)
+                        .delay(1000)
+                        .attr('r', 6);
+                }}
+                
+                if (stats.minIndex >= 0) {{
+                    g.append('circle')
+                        .attr('cx', xScale(stats.minIndex))
+                        .attr('cy', yScale(data[stats.minIndex]))
+                        .attr('r', 0)
+                        .attr('fill', '#ef4444')
+                        .attr('stroke', '#fff')
+                        .attr('stroke-width', 2)
+                        .transition()
+                        .duration(1000)
+                        .delay(1000)
+                        .attr('r', 6);
+                }}
+                
+                // Hover effects
+                points
+                    .on('mouseenter', function(event, d) {{
+                        const i = data.indexOf(d);
+                        setHoveredPoint({{
+                            checkpoint: DATA.checkpoints[i],
+                            value: d,
+                            x: event.pageX,
+                            y: event.pageY
+                        }});
+                        
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .attr('r', 5);
+                    }})
+                    .on('mouseleave', function() {{
+                        setHoveredPoint(null);
+                        
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .attr('r', 3);
+                    }});
+                    
+            }}, [data, metric, stats, isExpanded]);
+            
+            return (
+                <div 
+                    className={{`chart-wrapper ${{isExpanded ? 'expanded' : ''}}`}}
+                    onClick={{() => !isExpanded && onToggleExpand()}}
+                >
+                    <div className="chart-header">
+                        <h3 className="chart-title">{{metric}}</h3>
+                        {{!isExpanded && (
+                            <svg className="expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
+                                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                            </svg>
+                        )}}
+                    </div>
+                    <div className="chart-container" ref={{containerRef}}>
+                        <svg ref={{svgRef}} className="chart"></svg>
+                        {{stats && (
+                            <div className="legend">
+                                <div className="legend-item">
+                                    <div className="legend-color" style={{{{ backgroundColor: metricColors[metric] }}}}></div>
+                                    <span>{{metric}}</span>
+                                </div>
+                                <div className="legend-item">
+                                    <div className="legend-color" style={{{{ backgroundColor: '#3b82f6' }}}}></div>
+                                    <span>Maximum</span>
+                                </div>
+                                <div className="legend-item">
+                                    <div className="legend-color" style={{{{ backgroundColor: '#ef4444' }}}}></div>
+                                    <span>Minimum</span>
+                                </div>
+                            </div>
+                        )}}
+                    </div>
+                    {{hoveredPoint && (
+                        <div 
+                            className="tooltip visible"
+                            style={{{{ 
+                                left: `${{hoveredPoint.x + 10}}px`, 
+                                top: `${{hoveredPoint.y - 10}}px` 
+                            }}}}
+                        >
+                            <div className="tooltip-title">{{hoveredPoint.checkpoint}}</div>
+                            <div className="tooltip-value">Value: {{hoveredPoint.value.toFixed(6)}}</div>
+                        </div>
+                    )}}
+                </div>
+            );
+        }}
+        
+        function MetricsVisualization() {{
+            const [selectedMetrics, setSelectedMetrics] = useState(DATA.metricsList);
+            const [expandedMetric, setExpandedMetric] = useState(null);
+            const [subtitle, setSubtitle] = useState('Visualizing training dynamics across checkpoints');
+            
+            // Calculate statistics for all metrics
+            const allStats = useMemo(() => {{
+                const result = {{}};
+                DATA.metricsList.forEach(metric => {{
+                    const values = DATA.metrics[metric].filter(v => !isNaN(v));
+                    if (values.length > 0) {{
+                        const min = Math.min(...values);
+                        const max = Math.max(...values);
+                        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                        const start = values[0];
+                        const end = values[values.length - 1];
+                        const change = end - start;
+                        const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
+                        
+                        result[metric] = {{
+                            min, max, mean, start, end, change, changePercent
+                        }};
                     }}
                 }});
-            }}
+                return result;
+            }}, []);
             
-            // Add range selector for better viewing experience
-            var plot = document.getElementsByClassName('js-plotly-plot')[0];
-            var rangeSelector = document.createElement('div');
-            rangeSelector.id = 'custom-range-selector';
-            rangeSelector.style.margin = '20px auto';
-            rangeSelector.style.maxWidth = '600px';
-            rangeSelector.style.padding = '10px';
-            rangeSelector.style.textAlign = 'center';
-            rangeSelector.style.fontFamily = "'Inter', system-ui, sans-serif";
+            // Handle metric selection
+            const handleMetricChange = (e) => {{
+                const value = e.target.value;
+                if (value === 'all') {{
+                    setSelectedMetrics(DATA.metricsList);
+                    setSubtitle('Visualizing training dynamics across checkpoints');
+                }} else {{
+                    setSelectedMetrics([value]);
+                    setSubtitle(`Displaying change in ${{value}}`);
+                }}
+            }};
             
-            rangeSelector.innerHTML = `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: #2c3e50;">
-                    <span style="font-size: 12px; font-weight: 500;">View Range:</span>
-                    <span id="range-display" style="font-size: 12px;"></span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="view-all" class="range-btn" style="padding: 6px 12px; background-color: #ecf0f1; color: #2c3e50; border: 1px solid #bdc3c7; border-radius: 4px; cursor: pointer; font-size: 12px; flex: 0 0 auto;">All Data</button>
-                    <div style="flex-grow: 1; position: relative; height: 30px;">
-                        <input type="range" id="range-start" min="0" max="100" value="0" step="5" style="position: absolute; width: 100%; pointer-events: none; opacity: 0.7; height: 5px; top: 12px; background: transparent;">
-                        <input type="range" id="range-end" min="0" max="100" value="100" step="5" style="position: absolute; width: 100%; pointer-events: none; opacity: 0.7; height: 5px; top: 12px; background: transparent;">
+            // Export data as CSV
+            const exportCSV = () => {{
+                let csv = 'Checkpoint';
+                DATA.metricsList.forEach(metric => {{
+                    csv += ',' + metric;
+                }});
+                csv += '\\n';
+                
+                DATA.checkpoints.forEach((checkpoint, i) => {{
+                    csv += checkpoint;
+                    DATA.metricsList.forEach(metric => {{
+                        csv += ',' + DATA.metrics[metric][i];
+                    }});
+                    csv += '\\n';
+                }});
+                
+                const blob = new Blob([csv], {{ type: 'text/csv' }});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'metrics_data.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            }};
+            
+            // Download all charts as PNG
+            const downloadPNG = () => {{
+                // For simplicity, we'll download the current view
+                alert('PNG download would capture the current visualization');
+            }};
+            
+            // Determine grid class based on number of metrics
+            const getGridClass = () => {{
+                const count = selectedMetrics.length;
+                if (count === 1) return 'single';
+                if (count === 2) return 'double';
+                if (count === 3) return 'triple';
+                if (count === 4) return 'quad';
+                return 'many';
+            }};
+            
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>Phase-Viz</h1>
+                        <p>{{subtitle}}</p>
+                    </div>
+                    
+                    <div className="controls">
+                        <select 
+                            className="metric-selector"
+                            onChange={{handleMetricChange}}
+                            defaultValue="all"
+                        >
+                            <option value="all">All Metrics</option>
+                            {{DATA.metricsList.map(metric => (
+                                <option key={{metric}} value={{metric}}>{{metric}}</option>
+                            ))}}
+                        </select>
+                        
+                        <button className="action-button" onClick={{exportCSV}}>
+                            Export CSV
+                        </button>
+                        
+                        <button className="action-button" onClick={{downloadPNG}}>
+                            Download PNG
+                        </button>
+                    </div>
+                    
+                    <div className={{`charts-grid ${{getGridClass()}}`}}>
+                        {{selectedMetrics.map(metric => (
+                            <Chart
+                                key={{metric}}
+                                metric={{metric}}
+                                data={{DATA.metrics[metric]}}
+                                isExpanded={{expandedMetric === metric}}
+                                onToggleExpand={{() => setExpandedMetric(
+                                    expandedMetric === metric ? null : metric
+                                )}}
+                            />
+                        ))}}
+                    </div>
+                    
+                    {{expandedMetric && (
+                        <div 
+                            className="overlay visible"
+                            onClick={{() => setExpandedMetric(null)}}
+                        />
+                    )}}
+                    
+                    <div className="stats-container">
+                        {{selectedMetrics.map(metric => allStats[metric] && (
+                            <div key={{metric}} className="stat-card">
+                                <h3>
+                                    <span 
+                                        className="metric-color" 
+                                        style={{{{ backgroundColor: metricColors[metric] }}}}
+                                    ></span>
+                                    {{metric}}
+                                </h3>
+                                <div className="stat-grid">
+                                    <div className="stat-item">
+                                        <span className="stat-label">Mean</span>
+                                        <span className="stat-value">{{allStats[metric].mean.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">Min</span>
+                                        <span className="stat-value">{{allStats[metric].min.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">Max</span>
+                                        <span className="stat-value">{{allStats[metric].max.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">Start</span>
+                                        <span className="stat-value">{{allStats[metric].start.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">End</span>
+                                        <span className="stat-value">{{allStats[metric].end.toFixed(6)}}</span>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-label">Change</span>
+                                        <span 
+                                            className="stat-value"
+                                            style={{{{
+                                                color: allStats[metric].change > 0 ? '#10b981' : 
+                                                      allStats[metric].change < 0 ? '#ef4444' : '#9ca3af'
+                                            }}}}
+                                        >
+                                            {{allStats[metric].change > 0 ? '+' : ''}}
+                                            {{allStats[metric].changePercent.toFixed(2)}}%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}}
                     </div>
                 </div>
-            `;
+            );
+        }}
+        
+        function OverlayChart({{ metrics, data, phaseTransitions }}) {{
+            const svgRef = useRef(null);
+            const containerRef = useRef(null);
+            const [hoveredLine, setHoveredLine] = useState(null);
+            const [hoveredPoint, setHoveredPoint] = useState(null);
             
-            // Add stats panel to document
-            var plotContainer = document.getElementsByClassName('js-plotly-plot')[0].parentElement;
-            var statsHtml = `{all_stats_html.replace('`', '\\`').replace("'", "\\'").replace('"', '\\"')}`;
-            var statsDiv = document.createElement('div');
-            statsDiv.innerHTML = statsHtml;
+            useEffect(() => {{
+                if (!svgRef.current || !containerRef.current) return;
+                
+                const container = containerRef.current;
+                const width = container.clientWidth;
+                const height = 500;
+                const margin = {{ top: 20, right: 120, bottom: 60, left: 60 }};
+                const innerWidth = width - margin.left - margin.right;
+                const innerHeight = height - margin.top - margin.bottom;
+                
+                // Clear previous chart
+                d3.select(svgRef.current).selectAll('*').remove();
+                
+                const svg = d3.select(svgRef.current)
+                    .attr('width', width)
+                    .attr('height', height);
+                
+                const g = svg.append('g')
+                    .attr('transform', `translate(${{margin.left}},${{margin.top}})`);
+                
+                // Create scales
+                const xScale = d3.scaleLinear()
+                    .domain([0, DATA.checkpoints.length - 1])
+                    .range([0, innerWidth]);
+                
+                // For overlay, normalize all metrics to 0-1
+                const yScale = d3.scaleLinear()
+                    .domain([0, 1])
+                    .range([innerHeight, 0]);
+                
+                // Normalize data for each metric
+                const normalizedData = {{}};
+                metrics.forEach(metric => {{
+                    const values = data[metric];
+                    const validValues = values.filter(v => !isNaN(v));
+                    const min = Math.min(...validValues);
+                    const max = Math.max(...validValues);
+                    const range = max - min || 1;
+                    
+                    normalizedData[metric] = values.map(v => 
+                        isNaN(v) ? v : (v - min) / range
+                    );
+                }});
+                
+                // Add phase transition indicators for all metrics
+                if (phaseTransitions) {{
+                    const allTransitions = new Set();
+                    Object.values(phaseTransitions).forEach(transitions => {{
+                        transitions.forEach(t => allTransitions.add(t.index));
+                    }});
+                    
+                    allTransitions.forEach(index => {{
+                        const x = xScale(index - 0.5);
+                        const width = xScale(1) - xScale(0);
+                        
+                        g.append('rect')
+                            .attr('x', x)
+                            .attr('y', 0)
+                            .attr('width', width)
+                            .attr('height', innerHeight)
+                            .style('fill', 'rgba(251, 191, 36, 0.1)')
+                            .style('stroke', '#fbbf24')
+                            .style('stroke-width', 1)
+                            .style('stroke-dasharray', '4,2');
+                    }});
+                }}
+                
+                // Grid lines
+                g.append('g')
+                    .attr('class', 'grid')
+                    .attr('transform', `translate(0,${{innerHeight}})`)
+                    .call(d3.axisBottom(xScale)
+                        .tickSize(-innerHeight)
+                        .tickFormat('')
+                        .ticks(10))
+                    .style('stroke-dasharray', '3,3')
+                    .style('opacity', 0.3);
+                
+                g.append('g')
+                    .attr('class', 'grid')
+                    .call(d3.axisLeft(yScale)
+                        .tickSize(-innerWidth)
+                        .tickFormat('')
+                        .ticks(5))
+                    .style('stroke-dasharray', '3,3')
+                    .style('opacity', 0.3);
+                
+                // Axes
+                const xAxis = g.append('g')
+                    .attr('transform', `translate(0,${{innerHeight}})`)
+                    .call(d3.axisBottom(xScale)
+                        .tickFormat(i => {{
+                            if (DATA.checkpoints.length > 20) {{
+                                return i % 5 === 0 ? DATA.checkpoints[i] : '';
+                            }}
+                            return DATA.checkpoints[i];
+                        }}));
+                
+                xAxis.selectAll('text')
+                    .style('text-anchor', 'end')
+                    .attr('dx', '-.8em')
+                    .attr('dy', '.15em')
+                    .attr('transform', 'rotate(-45)')
+                    .style('fill', '#9ca3af')
+                    .style('font-size', '11px');
+                
+                xAxis.select('.domain').style('stroke', '#333');
+                xAxis.selectAll('.tick line').style('stroke', '#333');
+                
+                const yAxis = g.append('g')
+                    .call(d3.axisLeft(yScale)
+                        .tickFormat(d => d3.format('.0%')(d)));
+                
+                yAxis.selectAll('text')
+                    .style('fill', '#9ca3af')
+                    .style('font-size', '11px');
+                
+                yAxis.select('.domain').style('stroke', '#333');
+                yAxis.selectAll('.tick line').style('stroke', '#333');
+                
+                // Y-axis label
+                g.append('text')
+                    .attr('transform', 'rotate(-90)')
+                    .attr('y', -40)
+                    .attr('x', -innerHeight / 2)
+                    .style('text-anchor', 'middle')
+                    .style('fill', '#9ca3af')
+                    .style('font-size', '12px')
+                    .text('Normalized Value');
+                
+                // Line generator
+                const line = d3.line()
+                    .x((d, i) => xScale(i))
+                    .y(d => yScale(d))
+                    .curve(d3.curveMonotoneX)
+                    .defined(d => !isNaN(d));
+                
+                // Draw lines for each metric
+                metrics.forEach((metric, idx) => {{
+                    const path = g.append('path')
+                        .datum(normalizedData[metric])
+                        .attr('fill', 'none')
+                        .attr('stroke', metricColors[metric])
+                        .attr('stroke-width', 2)
+                        .attr('d', line)
+                        .style('opacity', hoveredLine === null || hoveredLine === metric ? 1 : 0.3)
+                        .style('transition', 'opacity 0.3s ease');
+                    
+                    // Animate line drawing
+                    const totalLength = path.node().getTotalLength();
+                    path
+                        .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                        .attr('stroke-dashoffset', totalLength)
+                        .transition()
+                        .duration(1000)
+                        .delay(idx * 100)
+                        .ease(d3.easeQuadInOut)
+                        .attr('stroke-dashoffset', 0);
+                    
+                    // Invisible wider path for hover detection
+                    g.append('path')
+                        .datum(normalizedData[metric])
+                        .attr('fill', 'none')
+                        .attr('stroke', 'transparent')
+                        .attr('stroke-width', 20)
+                        .attr('d', line)
+                        .style('cursor', 'pointer')
+                        .on('mouseenter', function() {{
+                            setHoveredLine(metric);
+                            // Update all line opacities
+                            g.selectAll('path')
+                                .filter(function() {{
+                                    return d3.select(this).attr('stroke') !== 'transparent';
+                        }})
+                                .style('opacity', function() {{
+                                    const color = d3.select(this).attr('stroke');
+                                    return color === metricColors[metric] ? 1 : 0.3;
+                                }});
+                        }})
+                        .on('mouseleave', function() {{
+                            setHoveredLine(null);
+                            // Reset all line opacities
+                            g.selectAll('path')
+                                .filter(function() {{
+                                    return d3.select(this).attr('stroke') !== 'transparent';
+                                }})
+                                .style('opacity', 1);
+                        }});
+                    
+                    // Add data points
+                    const points = g.selectAll(`.point-${{metric.replace(/\s+/g, '-')}}`)
+                        .data(normalizedData[metric])
+                        .enter()
+                        .filter(d => !isNaN(d))
+                        .append('circle')
+                        .attr('class', `point-${{metric.replace(/\s+/g, '-')}}`)
+                        .attr('cx', (d, i) => xScale(i))
+                        .attr('cy', d => yScale(d))
+                        .attr('r', 0)
+                        .attr('fill', metricColors[metric])
+                        .style('cursor', 'pointer')
+                        .style('opacity', hoveredLine === null || hoveredLine === metric ? 1 : 0.3);
+                    
+                    points
+                        .transition()
+                        .duration(1000)
+                        .delay((d, i) => idx * 100 + i * 20)
+                        .attr('r', 2);
+                    
+                    points
+                        .on('mouseenter', function(event, d) {{
+                            const i = normalizedData[metric].indexOf(d);
+                            const originalValue = data[metric][i];
+                            setHoveredPoint({{
+                                metric,
+                                checkpoint: DATA.checkpoints[i],
+                                value: originalValue,
+                                normalizedValue: d,
+                                x: event.pageX,
+                                y: event.pageY
+                            }});
+                            
+                            d3.select(this)
+                                .transition()
+                                .duration(200)
+                                .attr('r', 4);
+                        }})
+                        .on('mouseleave', function() {{
+                            setHoveredPoint(null);
+                            
+                            d3.select(this)
+                                .transition()
+                                .duration(200)
+                                .attr('r', 2);
+                        }});
+                }});
+                
+                // Legend
+                const legend = svg.append('g')
+                    .attr('transform', `translate(${{width - margin.right + 20}}, ${{margin.top}})`);
+                
+                metrics.forEach((metric, i) => {{
+                    const legendItem = legend.append('g')
+                        .attr('transform', `translate(0, ${{i * 25}})`)
+                        .style('cursor', 'pointer')
+                        .on('mouseenter', function() {{
+                            setHoveredLine(metric);
+                            g.selectAll('path')
+                                .filter(function() {{
+                                    return d3.select(this).attr('stroke') !== 'transparent';
+                                }})
+                                .style('opacity', function() {{
+                                    const color = d3.select(this).attr('stroke');
+                                    return color === metricColors[metric] ? 1 : 0.3;
+                                }});
+                }})
+                        .on('mouseleave', function() {{
+                            setHoveredLine(null);
+                            g.selectAll('path')
+                                .filter(function() {{
+                                    return d3.select(this).attr('stroke') !== 'transparent';
+                                }})
+                                .style('opacity', 1);
+                        }});
+                    
+                    legendItem.append('circle')
+                        .attr('r', 6)
+                        .attr('fill', metricColors[metric]);
+                    
+                    legendItem.append('text')
+                        .attr('x', 12)
+                        .attr('y', 4)
+                        .style('fill', '#9ca3af')
+                        .style('font-size', '12px')
+                        .text(metric);
+                }});
+                
+             }}, [metrics, data, phaseTransitions, hoveredLine]);
             
-            // Insert range selector and stats panel
-            plotContainer.appendChild(rangeSelector);
-            plotContainer.appendChild(statsDiv.firstElementChild);
+            return (
+                <div className="chart-wrapper">
+                    <div className="chart-header">
+                        <h3 className="chart-title">All Metrics (Normalized)</h3>
+                    </div>
+                    <div className="chart-container" ref={{containerRef}}>
+                        <svg ref={{svgRef}} className="chart"></svg>
+                    </div>
+                    {{hoveredPoint && (
+                        <div 
+                            className="tooltip visible"
+                            style={{{{
+                                left: `${{hoveredPoint.x + 10}}px`, 
+                                top: `${{hoveredPoint.y - 10}}px` 
+                            }}}}
+                        >
+                            <div className="tooltip-title">{{hoveredPoint.metric}}</div>
+                            <div className="tooltip-value">
+                                {{hoveredPoint.checkpoint}}: {{hoveredPoint.value.toFixed(6)}}
+                                <br />
+                                <span style={{{{ fontSize: '0.8em', color: '#666' }}}}>
+                                    Normalized: {{hoveredPoint.normalizedValue.toFixed(3)}}
+                                </span>
+                            </div>
+                        </div>
+                    )}}
+                </div>
+            );
+            }}
+        
+        
+        // Cleanup handling
+        function setupCleanup() {{
+            let cleanupAttempted = false;
             
-            // Initially, hide all stats panels except for the first one
-            const firstMetric = Object.keys(metricsData)[0];
-            for (const metricName in metricsData) {{
-                if (metricName !== firstMetric) {{
-                    const statsPanel = document.getElementById(`stats-${{metricName.replace(' ', '-').toLowerCase()}}`);
-                    if (statsPanel) {{
-                        statsPanel.style.display = 'none';
+            async function sendCleanupRequest() {{
+                if (cleanupAttempted) return;
+                cleanupAttempted = true;
+                
+                try {{
+                    await fetch(`http://localhost:${{CLEANUP_PORT}}/cleanup`, {{
+                        method: 'POST',
+                        mode: 'no-cors',
+                        keepalive: true,
+                        body: JSON.stringify({{ cleanup: true }})
+                    }});
+                }} catch (e) {{
+                    try {{
+                        navigator.sendBeacon(
+                            `http://localhost:${{CLEANUP_PORT}}/cleanup`,
+                            JSON.stringify({{ cleanup: true }})
+                        );
+                    }} catch (e2) {{
+                        console.error('Cleanup failed:', e2);
                     }}
                 }}
             }}
             
-            // Implement range selector functionality
-            var viewAllBtn = document.getElementById('view-all');
-            var rangeStart = document.getElementById('range-start');
-            var rangeEnd = document.getElementById('range-end');
-            var rangeDisplay = document.getElementById('range-display');
-            var plotlyDiv = document.getElementsByClassName('js-plotly-plot')[0];
-            
-            function updateRangeDisplay() {{
-                var startPct = parseInt(rangeStart.value);
-                var endPct = parseInt(rangeEnd.value);
-                var startIdx = Math.floor(startPct / 100 * (checkpointNames.length - 1));
-                var endIdx = Math.floor(endPct / 100 * (checkpointNames.length - 1));
-                
-                if (checkpointNames.length > 0) {{
-                    rangeDisplay.textContent = `${{checkpointNames[startIdx]}} to ${{checkpointNames[endIdx]}}`;
-                }} else {{
-                    rangeDisplay.textContent = `${{startPct}}% - ${{endPct}}%`;
+            window.addEventListener('beforeunload', sendCleanupRequest);
+            window.addEventListener('unload', sendCleanupRequest);
+            document.addEventListener('visibilitychange', function() {{
+                if (document.visibilityState === 'hidden') {{
+                    sendCleanupRequest();
                 }}
-                
-                // Update the plot's x-axis range
-                var plotLayout = plotlyDiv._fullLayout;
-                if (plotLayout && plotLayout.xaxis) {{
-                    Plotly.relayout(plotlyDiv, {{
-                        'xaxis.range': [startIdx, endIdx]
-                    }});
-                }}
-            }}
-            
-            rangeStart.addEventListener('input', function() {{
-                if (parseInt(rangeStart.value) > parseInt(rangeEnd.value) - 10) {{
-                    rangeStart.value = parseInt(rangeEnd.value) - 10;
-                }}
-                updateRangeDisplay();
             }});
-            
-            rangeEnd.addEventListener('input', function() {{
-                if (parseInt(rangeEnd.value) < parseInt(rangeStart.value) + 10) {{
-                    rangeEnd.value = parseInt(rangeStart.value) + 10;
-                }}
-                updateRangeDisplay();
-            }});
-            
-            viewAllBtn.addEventListener('click', function() {{
-                rangeStart.value = 0;
-                rangeEnd.value = 100;
-                updateRangeDisplay();
-            }});
-            
-            // Initialize range display
-            updateRangeDisplay();
-            
-            // Apply minimal styling to the entire page
-            document.body.style.backgroundColor = '#f9f9f9';
-            document.body.style.color = '#2c3e50';
-            document.body.style.fontFamily = "'Inter', system-ui, sans-serif";
-            document.body.style.margin = '0';
-            document.body.style.padding = '20px';
-            
-            // Create a container for the title
-            var titleContainer = document.createElement('div');
-            titleContainer.style.textAlign = 'center';
-            titleContainer.style.marginBottom = '20px';
-            titleContainer.innerHTML = '<h1 style="color:#2c3e50; font-family: \\'Inter\\', system-ui, sans-serif; font-weight: 600; font-size: 24px;">Neural Network Training Metrics</h1>';
-            
-            // Insert before the plot
-            var plotElement = document.getElementsByClassName('js-plotly-plot')[0].parentElement;
-            document.body.insertBefore(titleContainer, plotElement);
-            
-            // Load Inter font
-            var fontLink = document.createElement('link');
-            fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap';
-            fontLink.rel = 'stylesheet';
-            document.head.appendChild(fontLink);
-        }});
+            window.addEventListener('pagehide', sendCleanupRequest);
+        }}
+        
+        // Initialize
+        setupCleanup();
+        
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MetricsVisualization />);
     </script>
-    """
-    
-    # Add meta tags for proper mobile display and improved styling
-    meta_tags = """
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-    body {
-        margin: 0;
-        padding: 20px;
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: #f9f9f9;
-        color: #2c3e50;
-    }
-    
-    /* Custom styling for range inputs */
-    input[type=range] {
-        -webkit-appearance: none;
-        width: 100%;
-        background: transparent;
-    }
-    
-    input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 15px;
-        width: 15px;
-        border-radius: 50%;
-        background: #3498db;
-        cursor: pointer;
-        margin-top: -6px;
-        pointer-events: auto;
-        border: 1px solid white;
-    }
-    
-    input[type=range]::-moz-range-thumb {
-        height: 15px;
-        width: 15px;
-        border-radius: 50%;
-        background: #3498db;
-        cursor: pointer;
-        pointer-events: auto;
-        border: 1px solid white;
-    }
-    
-    input[type=range]::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 3px;
-        cursor: pointer;
-        background: #bdc3c7;
-        border-radius: 1.5px;
-    }
-    
-    input[type=range]::-moz-range-track {
-        width: 100%;
-        height: 3px;
-        cursor: pointer;
-        background: #bdc3c7;
-        border-radius: 1.5px;
-    }
-    
-    button.range-btn:hover {
-        background-color: #dfe6e9;
-    }
-    
-    /* Improve plot responsiveness */
-    .js-plotly-plot {
-        max-width: 100%;
-        margin: 0 auto;
-    }
-    
-    /* Better dropdown styling */
-    .updatemenu-container {
-        font-family: 'Inter', system-ui, sans-serif !important;
-        font-size: 12px !important;
-    }
-    
-    .updatemenu-item {
-        font-family: 'Inter', system-ui, sans-serif !important;
-    }
-    </style>
-    """
-
-    # Generate the final HTML
-    raw_html = fig.to_html(include_plotlyjs="cdn", full_html=True)
-    html_with_head = raw_html.replace("<head>", f"<head>{meta_tags}")
-    final_html = html_with_head.replace("</body>", f"{custom_js}</body>")
+</body>
+</html>"""
     
     try:
         with open(output_html, "w", encoding="utf-8") as f:
-            f.write(final_html)
+            f.write(html_content)
         
         logger.info(f"Created HTML file: {output_html}")
         
-        # Open browser silently
+        # Open browser
         with suppress_stdout_stderr():
+            import webbrowser
             webbrowser.open(output_html.as_uri())
         
         # Wait for cleanup to complete
@@ -897,16 +1342,3 @@ def plot_metric_interactive(
             except:
                 pass
         raise
-    
-    # Try to save PNG version
-    try:
-        with suppress_stdout_stderr():
-            png_path = output_html.with_suffix(".png")
-            fig.write_image(png_path, scale=2, width=1200, height=800)
-            logger.info(f"Saved PNG file: {png_path}")
-    except Exception as e:
-        logger.warning(f"Could not save PNG file: {e}")
-        pass  # PNG export is optional
-
-
-    

@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch, MagicMock
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-
+sys.path.append(os.path.dirname(__file__))
 # Import modules to test
 from load_models import (
     load_model_class, extract_model_config_from_state_dict,

@@ -4,6 +4,7 @@
 # inc transformers
 # might be nice to print out using x threads, logging , delete html on kill sig, test with diff archs, metrics inc physics, run inference to get loss
 # and what not, ProcessPoolExecutor if CPU, else normal threading (what I have now), ofc fixing up graph and implementing nice visual features there. 
+#TODO: Finish cuda install lol - test cuda stuff, make sure detection of differing architecture models makes sense
 import os
 import typer as t 
 import typing
