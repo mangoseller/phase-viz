@@ -1,10 +1,9 @@
 # TODO:
-# fix x-axis cut off, fix loading custom metrics on multiprocesses 
-# make sure overlay and phase-transitions buttons work
+# fix x-axis cut off
 # ensure differing architectures can be loaded, test cuda on vast or something
 # get good models to test with 
-# bugtest, find good metrics to compute LLC and stuff, --help arg for metrics list metrics
-# readme
+# bugtest, find good metrics to compute LLC and stuff, 
+# readme - still to be improved but draft is ok
 
 # Legend for metric names still not working correctly, when viewing two metrics, the plots need to be clicked to resize - they need to resize automatically some how.
 # Stretch Goals - Metrics that require inference, multiple model direct comparison
@@ -28,7 +27,10 @@ from metrics import (
     l2_norm_of_model,
     compute_metrics_over_checkpoints,
     import_metric_functions,
-    clear_metric_cache
+    clear_metric_cache,
+    weight_entropy_of_model,
+    layer_connectivity_of_model,
+    
 )
 from generate_plot import plot_metric_interactive
 from loading import SimpleLoadingAnimation
@@ -162,7 +164,7 @@ def plot_metric(
             t.secho("Exiting, goodbye.", fg=t.colors.GREEN)
             raise t.Exit(code=0)
             
-        if not raw.endswith(".py"):
+        if not raw.endswith(".py") and raw != "metrics":
             candidate = raw + ".py"
             if os.path.isfile(candidate):
                 raw = candidate
@@ -195,6 +197,12 @@ def plot_metric(
         else:
             # Look for built-in metrics
             match raw.lower():
+                case "metrics":
+                    t.secho("\nAvailable built-in metrics:", fg=t.colors.CYAN, bold=True)
+                    t.secho("• L2 Norm (l2) - L2 norm of all trainable parameters", fg=t.colors.CYAN)
+                    t.secho("• Weight Entropy (entropy) - Shannon entropy of weight distribution", fg=t.colors.CYAN)
+                    t.secho("• Layer Connectivity (connectivity) - Average absolute weight per layer", fg=t.colors.CYAN)
+                    t.secho("\nYou can also provide a .py file with custom metrics ending in '_of_model'", fg=t.colors.YELLOW)
                 case "l2":
                     if "L2 Norm" in metrics_to_calculate:
                         logger.info("L2 Norm already added, skipping")
@@ -202,9 +210,29 @@ def plot_metric(
                         continue
                     
                     logger.info("Added metric: L2 Norm")
-                    t.secho("Added metric: {0} (will be calculated when you type 'done')".format(
+                    t.secho("Added metric: {0}".format(
                         "L2 Norm"), fg=t.colors.GREEN)
                     metrics_to_calculate["L2 Norm"] = l2_norm_of_model
+                case "entropy":
+                    if "Weight Entropy" in metrics_to_calculate:
+                        logger.info("Weight Entropy already added, skipping")
+                        t.secho("Metric 'Weight Entropy' already added. Skipping.", fg=t.colors.YELLOW)
+                        continue
+                    
+                    logger.info("Added metric: Weight Entropy")
+                    t.secho("Added metric: {0}".format(
+                        "Weight Entropy"), fg=t.colors.GREEN)
+                    metrics_to_calculate["Weight Entropy"] = weight_entropy_of_model
+                case "connectivity":
+                    if "Layer Connectivity" in metrics_to_calculate:
+                        logger.info("Layer Connectivity already added, skipping")
+                        t.secho("Metric 'Layer Connectivity' already added. Skipping.", fg=t.colors.YELLOW)
+                        continue
+                    
+                    logger.info("Added metric: Layer Connectivity")
+                    t.secho("Added metric: {0}".format(
+                        "Layer Connectivity"), fg=t.colors.GREEN)
+                    metrics_to_calculate["Layer Connectivity"] = layer_connectivity_of_model
                 case _:
                     logger.warning(f"Unknown metric: {raw}")
                     t.secho(f"{raw} is not an inbuilt metric. For a list of available metrics, enter 'metrics'.", fg=t.colors.RED)

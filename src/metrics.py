@@ -12,6 +12,7 @@ from load_models import load_model_from_checkpoint, clear_model_cache
 from utils import logger
 import typer as t
 import functools
+import numpy as np
 # Global metric cache for memoization
 _metric_cache = {}
 
@@ -19,7 +20,9 @@ _metric_cache = {}
 def _get_builtin_metrics():
     """Get built-in metrics that are always available."""
     return {
-        "L2 Norm": l2_norm_of_model
+        "L2 Norm": l2_norm_of_model,
+        "Weight Entropy": weight_entropy_of_model,
+        "Layer Connectivity": layer_connectivity_of_model
     }
 
 def with_memory_optimization(func):
@@ -78,6 +81,73 @@ def l2_norm_of_model(model: torch.nn.Module) -> float:
 
     _metric_cache[cache_key] = result
     return result
+
+
+@with_memory_optimization
+def weight_entropy_of_model(model: torch.nn.Module) -> float:
+    """
+    Compute the Shannon entropy of weight distribution.
+    
+    Higher entropy indicates more uniform weight distribution,
+    lower entropy indicates weights concentrated around specific values.
+    """
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    
+    if not trainable_params:
+        return 0.0
+    
+    # Build cache key
+    cache_key = "weight_entropy_" + str(
+        hash(tuple(p.sum().item() for p in trainable_params))
+    )
+    if cache_key in _metric_cache:
+        return _metric_cache[cache_key]
+    
+    # Collect all weights
+    device = trainable_params[0].device
+    with torch.no_grad():
+        all_weights = torch.cat([p.data.flatten() for p in trainable_params])
+        
+        # Create histogram of weight values
+        num_bins = 100
+        hist, bin_edges = torch.histogram(all_weights, bins=num_bins)
+        
+        # Convert to probabilities
+        hist = hist.float()
+        hist = hist / hist.sum()
+        
+        # Calculate entropy (avoid log(0))
+        epsilon = 1e-10
+        entropy = -(hist * torch.log(hist + epsilon)).sum().item()
+        
+        # Normalize by log(num_bins) to get value between 0 and 1
+        normalized_entropy = entropy / np.log(num_bins)
+    
+    _metric_cache[cache_key] = normalized_entropy
+    return normalized_entropy
+
+
+@with_memory_optimization  
+def layer_connectivity_of_model(model: torch.nn.Module) -> float:
+    """
+    Compute average absolute weight per layer.
+    
+    This metric indicates the average strength of connections in the network.
+    Higher values suggest stronger connections between neurons.
+    """
+    layer_weights = []
+    
+    for name, module in model.named_modules():
+        if isinstance(module, (torch.nn.Linear, torch.nn.Conv2d, torch.nn.Conv1d)):
+            if hasattr(module, 'weight') and module.weight is not None:
+                with torch.no_grad():
+                    avg_weight = module.weight.data.abs().mean().item()
+                    layer_weights.append(avg_weight)
+    
+    if not layer_weights:
+        return 0.0
+    
+    return float(np.mean(layer_weights))
 
 
 
