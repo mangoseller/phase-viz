@@ -1,0 +1,962 @@
+2025-05-24 10:26:19,688 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:26:19,688 - phase-viz - INFO - plot_metric:104 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 10:26:19,709 - phase-viz - INFO - plot_metric:108 - State loaded successfully
+2025-05-24 10:26:19,709 - phase-viz - WARNING - plot_metric:117 - CUDA requested but not available, falling back to CPU
+2025-05-24 10:26:19,716 - phase-viz - INFO - plot_metric:128 - Running on CPU
+2025-05-24 10:26:32,066 - phase-viz - INFO - plot_metric:148 - User input: metrics
+2025-05-24 10:26:32,091 - phase-viz - INFO - plot_metric:186 - Added metric: L2 Norm
+2025-05-24 10:26:36,750 - phase-viz - INFO - plot_metric:148 - User input: done
+2025-05-24 10:26:36,750 - phase-viz - INFO - plot_metric:210 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 10:26:36,750 - phase-viz - INFO - compute_metrics_over_checkpoints:243 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 10:26:40,140 - phase-viz - ERROR - _process_checkpoint_cpu:145 - Worker error on ../checkpoints\model_0_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 135, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 10:26:40,140 - phase-viz - ERROR - _process_checkpoint_cpu:145 - Worker error on ../checkpoints\model_1_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 135, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 10:26:40,148 - phase-viz - ERROR - _process_checkpoint_cpu:145 - Worker error on ../checkpoints\model_2_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 135, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 10:26:40,148 - phase-viz - ERROR - _process_checkpoint_cpu:145 - Worker error on ../checkpoints\model_3_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 135, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 10:26:40,720 - phase-viz - INFO - plot_metric:250 - Successfully computed all metrics
+2025-05-24 10:26:40,788 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-24 10:26:40,788 - phase-viz - INFO - plot_metric:268 - Saved metrics data to state
+2025-05-24 10:26:40,791 - phase-viz - INFO - plot_metric:284 - Generating interactive plot
+2025-05-24 10:26:40,793 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_102640_aa9szj4w.html
+2025-05-24 10:26:40,809 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_102640_aa9szj4w.html
+2025-05-24 10:26:40,809 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_102640_aa9szj4w.html
+2025-05-24 10:26:40,809 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_102640_aa9szj4w.html
+2025-05-24 10:26:46,562 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_102640_aa9szj4w.html
+2025-05-24 10:26:46,562 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_102640_aa9szj4w.html
+2025-05-24 10:26:46,562 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_102640_aa9szj4w.html
+2025-05-24 10:26:46,562 - phase-viz - INFO - plot_metric:290 - Plot generation completed
+2025-05-24 10:28:30,972 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:28:45,689 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:29:05,334 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:29:53,050 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:30:02,618 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:30:02,618 - phase-viz - INFO - load_dir:61 - Loading directory: checkpoints
+2025-05-24 10:30:02,618 - phase-viz - INFO - load_dir:62 - Model file: arithmetic.py
+2025-05-24 10:30:02,618 - phase-viz - INFO - load_dir:63 - Class name: ArithmeticNet
+2025-05-24 10:30:02,618 - phase-viz - ERROR - load_dir:70 - The path 'checkpoints' is not a directory.
+2025-05-24 10:30:16,978 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:30:16,978 - phase-viz - INFO - load_dir:61 - Loading directory: ./checkpoints
+2025-05-24 10:30:16,978 - phase-viz - INFO - load_dir:62 - Model file: arithmetic.py
+2025-05-24 10:30:16,978 - phase-viz - INFO - load_dir:63 - Class name: ArithmeticNet
+2025-05-24 10:30:16,978 - phase-viz - ERROR - load_dir:70 - The path './checkpoints' is not a directory.
+2025-05-24 10:30:25,518 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:30:25,518 - phase-viz - INFO - load_dir:61 - Loading directory: ../checkpoints
+2025-05-24 10:30:25,518 - phase-viz - INFO - load_dir:62 - Model file: arithmetic.py
+2025-05-24 10:30:25,518 - phase-viz - INFO - load_dir:63 - Class name: ArithmeticNet
+2025-05-24 10:30:25,518 - phase-viz - INFO - load_dir:76 - Found 4 checkpoints
+2025-05-24 10:30:25,518 - phase-viz - INFO - load_dir:89 - State saved successfully
+2025-05-24 10:30:56,513 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:30:56,521 - phase-viz - INFO - plot_metric:104 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 10:30:56,533 - phase-viz - INFO - plot_metric:108 - State loaded successfully
+2025-05-24 10:30:56,533 - phase-viz - WARNING - plot_metric:117 - CUDA requested but not available, falling back to CPU
+2025-05-24 10:30:56,535 - phase-viz - INFO - plot_metric:128 - Running on CPU
+2025-05-24 10:30:57,701 - phase-viz - INFO - plot_metric:148 - User input: l2
+2025-05-24 10:30:57,701 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-24 10:30:58,594 - phase-viz - INFO - plot_metric:148 - User input: done
+2025-05-24 10:30:58,594 - phase-viz - INFO - plot_metric:210 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 10:30:58,594 - phase-viz - INFO - compute_metrics_over_checkpoints:243 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 10:31:01,799 - phase-viz - ERROR - _process_checkpoint_cpu:145 - Worker error on ../checkpoints\model_0_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 135, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 10:31:01,799 - phase-viz - ERROR - _process_checkpoint_cpu:145 - Worker error on ../checkpoints\model_1_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 135, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 10:31:01,799 - phase-viz - ERROR - _process_checkpoint_cpu:145 - Worker error on ../checkpoints\model_2_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 135, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 10:31:01,799 - phase-viz - ERROR - _process_checkpoint_cpu:145 - Worker error on ../checkpoints\model_3_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 135, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 10:31:02,333 - phase-viz - INFO - plot_metric:250 - Successfully computed all metrics
+2025-05-24 10:31:02,424 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-24 10:31:02,424 - phase-viz - INFO - plot_metric:268 - Saved metrics data to state
+2025-05-24 10:31:02,427 - phase-viz - INFO - plot_metric:284 - Generating interactive plot
+2025-05-24 10:31:02,427 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103102_55nhuy3a.html
+2025-05-24 10:31:02,427 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103102_55nhuy3a.html
+2025-05-24 10:31:02,427 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103102_55nhuy3a.html
+2025-05-24 10:31:02,429 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103102_55nhuy3a.html
+2025-05-24 10:31:19,046 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103102_55nhuy3a.html
+2025-05-24 10:31:19,046 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103102_55nhuy3a.html
+2025-05-24 10:31:19,046 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103102_55nhuy3a.html
+2025-05-24 10:31:19,046 - phase-viz - INFO - plot_metric:290 - Plot generation completed
+2025-05-24 10:37:12,194 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:37:45,638 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:38:10,008 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:38:10,008 - phase-viz - INFO - plot_metric:104 - Starting plot-metric command with device=cuda, parallel=False
+2025-05-24 10:38:10,008 - phase-viz - INFO - plot_metric:108 - State loaded successfully
+2025-05-24 10:38:10,008 - phase-viz - WARNING - plot_metric:117 - CUDA requested but not available, falling back to CPU
+2025-05-24 10:38:10,024 - phase-viz - INFO - plot_metric:128 - Running on CPU
+2025-05-24 10:38:11,562 - phase-viz - INFO - plot_metric:148 - User input: l2
+2025-05-24 10:38:11,562 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-24 10:38:12,088 - phase-viz - INFO - plot_metric:148 - User input: done
+2025-05-24 10:38:12,088 - phase-viz - INFO - plot_metric:210 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 10:38:12,095 - phase-viz - INFO - compute_metrics_over_checkpoints:279 - Processing checkpoints sequentially
+2025-05-24 10:38:12,254 - phase-viz - INFO - plot_metric:250 - Successfully computed all metrics
+2025-05-24 10:38:12,298 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-24 10:38:12,299 - phase-viz - INFO - plot_metric:268 - Saved metrics data to state
+2025-05-24 10:38:12,302 - phase-viz - INFO - plot_metric:284 - Generating interactive plot
+2025-05-24 10:38:12,302 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103812_qe3t819v.html
+2025-05-24 10:38:12,302 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103812_qe3t819v.html
+2025-05-24 10:38:12,302 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103812_qe3t819v.html
+2025-05-24 10:38:12,302 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103812_qe3t819v.html
+2025-05-24 10:38:21,146 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103812_qe3t819v.html
+2025-05-24 10:38:21,146 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103812_qe3t819v.html
+2025-05-24 10:38:21,146 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_103812_qe3t819v.html
+2025-05-24 10:38:21,146 - phase-viz - INFO - plot_metric:290 - Plot generation completed
+2025-05-24 10:40:11,121 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:40:11,121 - phase-viz - INFO - plot_metric:104 - Starting plot-metric command with device=cuda, parallel=False
+2025-05-24 10:40:11,137 - phase-viz - INFO - plot_metric:108 - State loaded successfully
+2025-05-24 10:40:11,137 - phase-viz - WARNING - plot_metric:117 - CUDA requested but not available, falling back to CPU
+2025-05-24 10:40:11,137 - phase-viz - INFO - plot_metric:128 - Running on CPU
+2025-05-24 10:40:32,017 - phase-viz - INFO - plot_metric:148 - User input: custom-metrics
+2025-05-24 10:40:32,017 - phase-viz - WARNING - plot_metric:205 - Unknown metric: custom-metrics
+2025-05-24 10:40:36,049 - phase-viz - INFO - plot_metric:148 - User input: custom-metrics.py
+2025-05-24 10:40:36,049 - phase-viz - WARNING - plot_metric:205 - Unknown metric: custom-metrics.py
+2025-05-24 10:40:43,195 - phase-viz - INFO - plot_metric:148 - User input: custom_metrics.py
+2025-05-24 10:40:43,207 - phase-viz - INFO - plot_metric:186 - Added metric: Parameter Variance
+2025-05-24 10:40:43,209 - phase-viz - INFO - plot_metric:186 - Added metric: Layer Wise Norm Ratio
+2025-05-24 10:40:43,209 - phase-viz - INFO - plot_metric:186 - Added metric: Activation Capacity
+2025-05-24 10:40:43,211 - phase-viz - INFO - plot_metric:186 - Added metric: Dead Neuron Percentage
+2025-05-24 10:40:43,211 - phase-viz - INFO - plot_metric:186 - Added metric: Weight Rank
+2025-05-24 10:40:43,212 - phase-viz - INFO - plot_metric:186 - Added metric: Gradient Flow Score
+2025-05-24 10:40:45,025 - phase-viz - INFO - plot_metric:148 - User input: done
+2025-05-24 10:40:45,026 - phase-viz - INFO - plot_metric:210 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 10:40:45,026 - phase-viz - INFO - compute_metrics_over_checkpoints:279 - Processing checkpoints sequentially
+2025-05-24 10:40:45,234 - phase-viz - INFO - plot_metric:250 - Successfully computed all metrics
+2025-05-24 10:40:45,331 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-24 10:40:45,333 - phase-viz - INFO - plot_metric:268 - Saved metrics data to state
+2025-05-24 10:40:45,333 - phase-viz - INFO - plot_metric:284 - Generating interactive plot
+2025-05-24 10:40:45,337 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104045_c3hg6f6z.html
+2025-05-24 10:40:45,338 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104045_c3hg6f6z.html
+2025-05-24 10:40:45,338 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104045_c3hg6f6z.html
+2025-05-24 10:40:45,338 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104045_c3hg6f6z.html
+2025-05-24 10:42:28,058 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104045_c3hg6f6z.html
+2025-05-24 10:42:28,058 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104045_c3hg6f6z.html
+2025-05-24 10:42:28,058 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104045_c3hg6f6z.html
+2025-05-24 10:42:28,058 - phase-viz - INFO - plot_metric:290 - Plot generation completed
+2025-05-24 10:43:44,787 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:43:44,787 - phase-viz - INFO - plot_metric:104 - Starting plot-metric command with device=cuda, parallel=False
+2025-05-24 10:43:44,803 - phase-viz - INFO - plot_metric:108 - State loaded successfully
+2025-05-24 10:43:44,803 - phase-viz - WARNING - plot_metric:117 - CUDA requested but not available, falling back to CPU
+2025-05-24 10:43:44,804 - phase-viz - INFO - plot_metric:128 - Running on CPU
+2025-05-24 10:43:51,015 - phase-viz - INFO - plot_metric:148 - User input: custom_metrics.py
+2025-05-24 10:43:51,015 - phase-viz - INFO - plot_metric:186 - Added metric: Parameter Variance
+2025-05-24 10:43:51,015 - phase-viz - INFO - plot_metric:186 - Added metric: Layer Wise Norm Ratio
+2025-05-24 10:43:51,015 - phase-viz - INFO - plot_metric:186 - Added metric: Activation Capacity
+2025-05-24 10:43:51,015 - phase-viz - INFO - plot_metric:186 - Added metric: Dead Neuron Percentage
+2025-05-24 10:43:51,015 - phase-viz - INFO - plot_metric:186 - Added metric: Weight Rank
+2025-05-24 10:43:51,024 - phase-viz - INFO - plot_metric:186 - Added metric: Gradient Flow Score
+2025-05-24 10:43:51,940 - phase-viz - INFO - plot_metric:148 - User input: done
+2025-05-24 10:43:51,940 - phase-viz - INFO - plot_metric:210 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 10:43:51,943 - phase-viz - INFO - compute_metrics_over_checkpoints:279 - Processing checkpoints sequentially
+2025-05-24 10:43:52,052 - phase-viz - INFO - plot_metric:250 - Successfully computed all metrics
+2025-05-24 10:43:52,145 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-24 10:43:52,145 - phase-viz - INFO - plot_metric:268 - Saved metrics data to state
+2025-05-24 10:43:52,151 - phase-viz - INFO - plot_metric:284 - Generating interactive plot
+2025-05-24 10:43:52,151 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104352_sz7xr3tb.html
+2025-05-24 10:43:52,157 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104352_sz7xr3tb.html
+2025-05-24 10:43:52,157 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104352_sz7xr3tb.html
+2025-05-24 10:43:52,157 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104352_sz7xr3tb.html
+2025-05-24 10:44:07,637 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104352_sz7xr3tb.html
+2025-05-24 10:44:07,637 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104352_sz7xr3tb.html
+2025-05-24 10:44:07,638 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_104352_sz7xr3tb.html
+2025-05-24 10:44:07,638 - phase-viz - INFO - plot_metric:290 - Plot generation completed
+2025-05-24 10:53:11,505 - phase-viz - INFO - <module>:304 - Starting phase-viz CLI
+2025-05-24 10:53:11,505 - phase-viz - INFO - plot_metric:104 - Starting plot-metric command with device=cuda, parallel=False
+2025-05-24 10:53:11,505 - phase-viz - INFO - plot_metric:108 - State loaded successfully
+2025-05-24 10:53:11,505 - phase-viz - WARNING - plot_metric:117 - CUDA requested but not available, falling back to CPU
+2025-05-24 10:53:11,505 - phase-viz - INFO - plot_metric:128 - Running on CPU
+2025-05-24 10:53:16,383 - phase-viz - INFO - plot_metric:148 - User input: custom_metrics.py
+2025-05-24 10:53:16,392 - phase-viz - INFO - plot_metric:186 - Added metric: Parameter Variance
+2025-05-24 10:53:16,392 - phase-viz - INFO - plot_metric:186 - Added metric: Layer Wise Norm Ratio
+2025-05-24 10:53:16,392 - phase-viz - INFO - plot_metric:186 - Added metric: Activation Capacity
+2025-05-24 10:53:16,392 - phase-viz - INFO - plot_metric:186 - Added metric: Dead Neuron Percentage
+2025-05-24 10:53:16,397 - phase-viz - INFO - plot_metric:186 - Added metric: Weight Rank
+2025-05-24 10:53:16,398 - phase-viz - INFO - plot_metric:186 - Added metric: Gradient Flow Score
+2025-05-24 10:53:18,606 - phase-viz - INFO - plot_metric:148 - User input: done
+2025-05-24 10:53:18,606 - phase-viz - INFO - plot_metric:210 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 10:53:18,606 - phase-viz - INFO - compute_metrics_over_checkpoints:279 - Processing checkpoints sequentially
+2025-05-24 10:53:18,724 - phase-viz - INFO - plot_metric:250 - Successfully computed all metrics
+2025-05-24 10:53:18,816 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-24 10:53:18,816 - phase-viz - INFO - plot_metric:268 - Saved metrics data to state
+2025-05-24 10:53:18,823 - phase-viz - INFO - plot_metric:284 - Generating interactive plot
+2025-05-24 10:53:18,823 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_105318_bicd4h04.html
+2025-05-24 10:53:18,824 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_105318_bicd4h04.html
+2025-05-24 10:53:18,824 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_105318_bicd4h04.html
+2025-05-24 10:53:18,826 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_105318_bicd4h04.html
+2025-05-24 10:54:12,670 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_105318_bicd4h04.html
+2025-05-24 10:54:12,670 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_105318_bicd4h04.html
+2025-05-24 10:54:12,670 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_105318_bicd4h04.html
+2025-05-24 10:54:12,670 - phase-viz - INFO - plot_metric:290 - Plot generation completed
+2025-05-24 11:18:37,844 - phase-viz - INFO - <module>:306 - Starting phase-viz CLI
+2025-05-24 11:18:37,850 - phase-viz - INFO - plot_metric:106 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:18:37,850 - phase-viz - INFO - plot_metric:110 - State loaded successfully
+2025-05-24 11:18:37,850 - phase-viz - WARNING - plot_metric:119 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:18:37,850 - phase-viz - INFO - plot_metric:130 - Running on CPU
+2025-05-24 11:18:48,467 - phase-viz - INFO - plot_metric:150 - User input: custom_metrics.py
+2025-05-24 11:18:48,467 - phase-viz - INFO - plot_metric:188 - Added metric: Parameter Variance
+2025-05-24 11:18:48,467 - phase-viz - INFO - plot_metric:188 - Added metric: Layer Wise Norm Ratio
+2025-05-24 11:18:48,482 - phase-viz - INFO - plot_metric:188 - Added metric: Activation Capacity
+2025-05-24 11:18:48,482 - phase-viz - INFO - plot_metric:188 - Added metric: Dead Neuron Percentage
+2025-05-24 11:18:48,484 - phase-viz - INFO - plot_metric:188 - Added metric: Weight Rank
+2025-05-24 11:18:48,485 - phase-viz - INFO - plot_metric:188 - Added metric: Gradient Flow Score
+2025-05-24 11:18:55,668 - phase-viz - INFO - plot_metric:150 - User input: done
+2025-05-24 11:18:55,668 - phase-viz - INFO - plot_metric:212 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 11:18:55,674 - phase-viz - INFO - compute_metrics_over_checkpoints:251 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:18:59,149 - phase-viz - ERROR - compute_metrics_over_checkpoints:283 - Error in parallel processing: too many values to unpack (expected 4)
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 127, in _process_checkpoint_cpu
+    idx, path, metric_names, device = args
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 4)
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 264, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+ValueError: too many values to unpack (expected 4)
+2025-05-24 11:18:59,166 - phase-viz - ERROR - compute_metrics_over_checkpoints:283 - Error in parallel processing: too many values to unpack (expected 4)
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 127, in _process_checkpoint_cpu
+    idx, path, metric_names, device = args
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 4)
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 264, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+ValueError: too many values to unpack (expected 4)
+2025-05-24 11:18:59,166 - phase-viz - ERROR - compute_metrics_over_checkpoints:283 - Error in parallel processing: too many values to unpack (expected 4)
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 127, in _process_checkpoint_cpu
+    idx, path, metric_names, device = args
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 4)
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 264, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+ValueError: too many values to unpack (expected 4)
+2025-05-24 11:18:59,166 - phase-viz - ERROR - compute_metrics_over_checkpoints:283 - Error in parallel processing: too many values to unpack (expected 4)
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 127, in _process_checkpoint_cpu
+    idx, path, metric_names, device = args
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 4)
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 264, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+ValueError: too many values to unpack (expected 4)
+2025-05-24 11:18:59,765 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-24 11:18:59,812 - phase-viz - INFO - plot_metric:265 - Cleared model and metric caches
+2025-05-24 11:18:59,812 - phase-viz - INFO - plot_metric:270 - Saved metrics data to state
+2025-05-24 11:18:59,815 - phase-viz - INFO - plot_metric:286 - Generating interactive plot
+2025-05-24 11:18:59,815 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_111859_lkzmzlqi.html
+2025-05-24 11:18:59,818 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_111859_lkzmzlqi.html
+2025-05-24 11:18:59,818 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_111859_lkzmzlqi.html
+2025-05-24 11:18:59,818 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_111859_lkzmzlqi.html
+2025-05-24 11:19:11,400 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_111859_lkzmzlqi.html
+2025-05-24 11:19:11,400 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_111859_lkzmzlqi.html
+2025-05-24 11:19:11,400 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_111859_lkzmzlqi.html
+2025-05-24 11:19:11,400 - phase-viz - INFO - plot_metric:292 - Plot generation completed
+2025-05-24 11:23:25,842 - phase-viz - INFO - <module>:306 - Starting phase-viz CLI
+2025-05-24 11:23:25,858 - phase-viz - INFO - plot_metric:106 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:23:25,870 - phase-viz - INFO - plot_metric:110 - State loaded successfully
+2025-05-24 11:23:25,870 - phase-viz - WARNING - plot_metric:119 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:23:25,874 - phase-viz - INFO - plot_metric:130 - Running on CPU
+2025-05-24 11:23:38,808 - phase-viz - INFO - plot_metric:150 - User input: custom_metrics.py
+2025-05-24 11:23:38,808 - phase-viz - INFO - plot_metric:188 - Added metric: Parameter Variance
+2025-05-24 11:23:38,808 - phase-viz - INFO - plot_metric:188 - Added metric: Layer Wise Norm Ratio
+2025-05-24 11:23:38,824 - phase-viz - INFO - plot_metric:188 - Added metric: Activation Capacity
+2025-05-24 11:23:38,826 - phase-viz - INFO - plot_metric:188 - Added metric: Dead Neuron Percentage
+2025-05-24 11:23:38,828 - phase-viz - INFO - plot_metric:188 - Added metric: Weight Rank
+2025-05-24 11:23:38,828 - phase-viz - INFO - plot_metric:188 - Added metric: Gradient Flow Score
+2025-05-24 11:23:40,829 - phase-viz - INFO - plot_metric:150 - User input: done
+2025-05-24 11:23:40,829 - phase-viz - INFO - plot_metric:212 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 11:23:40,841 - phase-viz - INFO - compute_metrics_over_checkpoints:251 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:23:43,932 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_0_base adam_results.pt: No metric functions resolved inside worker.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 138, in _process_checkpoint_cpu
+    raise RuntimeError("No metric functions resolved inside worker.")
+RuntimeError: No metric functions resolved inside worker.
+2025-05-24 11:23:43,932 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_2_pgd_results.pt: No metric functions resolved inside worker.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 138, in _process_checkpoint_cpu
+    raise RuntimeError("No metric functions resolved inside worker.")
+RuntimeError: No metric functions resolved inside worker.
+2025-05-24 11:23:43,932 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_1_base adam_results.pt: No metric functions resolved inside worker.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 138, in _process_checkpoint_cpu
+    raise RuntimeError("No metric functions resolved inside worker.")
+RuntimeError: No metric functions resolved inside worker.
+2025-05-24 11:23:43,932 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_3_pgd_results.pt: No metric functions resolved inside worker.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 138, in _process_checkpoint_cpu
+    raise RuntimeError("No metric functions resolved inside worker.")
+RuntimeError: No metric functions resolved inside worker.
+2025-05-24 11:23:44,375 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-24 11:23:44,470 - phase-viz - INFO - plot_metric:265 - Cleared model and metric caches
+2025-05-24 11:23:44,470 - phase-viz - INFO - plot_metric:270 - Saved metrics data to state
+2025-05-24 11:23:44,474 - phase-viz - INFO - plot_metric:286 - Generating interactive plot
+2025-05-24 11:23:44,476 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112344_61iqx48w.html
+2025-05-24 11:23:44,477 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112344_61iqx48w.html
+2025-05-24 11:23:44,477 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112344_61iqx48w.html
+2025-05-24 11:23:44,478 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112344_61iqx48w.html
+2025-05-24 11:23:48,491 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112344_61iqx48w.html
+2025-05-24 11:23:48,492 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112344_61iqx48w.html
+2025-05-24 11:23:48,492 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112344_61iqx48w.html
+2025-05-24 11:23:48,493 - phase-viz - INFO - plot_metric:292 - Plot generation completed
+2025-05-24 11:26:29,567 - phase-viz - INFO - <module>:306 - Starting phase-viz CLI
+2025-05-24 11:26:29,567 - phase-viz - INFO - plot_metric:106 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:26:29,583 - phase-viz - INFO - plot_metric:110 - State loaded successfully
+2025-05-24 11:26:29,583 - phase-viz - WARNING - plot_metric:119 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:26:29,583 - phase-viz - INFO - plot_metric:130 - Running on CPU
+2025-05-24 11:26:30,218 - phase-viz - INFO - plot_metric:150 - User input: l2
+2025-05-24 11:26:30,218 - phase-viz - INFO - plot_metric:202 - Added metric: L2 Norm
+2025-05-24 11:26:39,067 - phase-viz - INFO - plot_metric:150 - User input: done
+2025-05-24 11:26:39,067 - phase-viz - INFO - plot_metric:212 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 11:26:39,071 - phase-viz - INFO - compute_metrics_over_checkpoints:251 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:26:41,998 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_0_base adam_results.pt: name 'device' is not defined
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                                                                  ^^^^^^
+NameError: name 'device' is not defined. Did you mean: 'devic'?
+2025-05-24 11:26:41,998 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_1_base adam_results.pt: name 'device' is not defined
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                                                                  ^^^^^^
+NameError: name 'device' is not defined. Did you mean: 'devic'?
+2025-05-24 11:26:42,000 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_2_pgd_results.pt: name 'device' is not defined
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                                                                  ^^^^^^
+NameError: name 'device' is not defined. Did you mean: 'devic'?
+2025-05-24 11:26:42,000 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_3_pgd_results.pt: name 'device' is not defined
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                                                                  ^^^^^^
+NameError: name 'device' is not defined. Did you mean: 'devic'?
+2025-05-24 11:26:42,462 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-24 11:26:42,495 - phase-viz - INFO - plot_metric:265 - Cleared model and metric caches
+2025-05-24 11:26:42,495 - phase-viz - INFO - plot_metric:270 - Saved metrics data to state
+2025-05-24 11:26:42,495 - phase-viz - INFO - plot_metric:286 - Generating interactive plot
+2025-05-24 11:26:42,495 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112642_bd5ac8hq.html
+2025-05-24 11:26:42,499 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112642_bd5ac8hq.html
+2025-05-24 11:26:42,499 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112642_bd5ac8hq.html
+2025-05-24 11:26:42,499 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112642_bd5ac8hq.html
+2025-05-24 11:27:48,111 - phase-viz - INFO - <module>:306 - Starting phase-viz CLI
+2025-05-24 11:27:54,970 - phase-viz - INFO - <module>:306 - Starting phase-viz CLI
+2025-05-24 11:27:54,970 - phase-viz - INFO - plot_metric:106 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:27:54,980 - phase-viz - INFO - plot_metric:110 - State loaded successfully
+2025-05-24 11:27:54,980 - phase-viz - WARNING - plot_metric:119 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:27:54,980 - phase-viz - INFO - plot_metric:130 - Running on CPU
+2025-05-24 11:27:56,432 - phase-viz - INFO - plot_metric:150 - User input: l2
+2025-05-24 11:27:56,432 - phase-viz - INFO - plot_metric:202 - Added metric: L2 Norm
+2025-05-24 11:27:56,853 - phase-viz - INFO - plot_metric:150 - User input: done
+2025-05-24 11:27:56,853 - phase-viz - INFO - plot_metric:212 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 11:27:56,861 - phase-viz - INFO - compute_metrics_over_checkpoints:251 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:27:59,749 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_0_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:27:59,749 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_1_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:27:59,749 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_3_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:27:59,749 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_2_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:28:00,234 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-24 11:28:00,287 - phase-viz - INFO - plot_metric:265 - Cleared model and metric caches
+2025-05-24 11:28:00,287 - phase-viz - INFO - plot_metric:270 - Saved metrics data to state
+2025-05-24 11:28:00,293 - phase-viz - INFO - plot_metric:286 - Generating interactive plot
+2025-05-24 11:28:00,293 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112800_otlfeha5.html
+2025-05-24 11:28:00,293 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112800_otlfeha5.html
+2025-05-24 11:28:00,293 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112800_otlfeha5.html
+2025-05-24 11:28:00,295 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_112800_otlfeha5.html
+2025-05-24 11:31:19,775 - phase-viz - INFO - <module>:309 - Starting phase-viz CLI
+2025-05-24 11:31:19,775 - phase-viz - INFO - plot_metric:107 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:31:19,775 - phase-viz - INFO - plot_metric:111 - State loaded successfully
+2025-05-24 11:31:19,775 - phase-viz - WARNING - plot_metric:120 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:31:19,775 - phase-viz - INFO - plot_metric:131 - Running on CPU
+2025-05-24 11:31:20,802 - phase-viz - INFO - plot_metric:151 - User input: l2
+2025-05-24 11:31:20,802 - phase-viz - INFO - plot_metric:204 - Added metric: L2 Norm
+2025-05-24 11:31:21,444 - phase-viz - INFO - plot_metric:151 - User input: done
+2025-05-24 11:31:21,444 - phase-viz - INFO - plot_metric:214 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 11:31:21,447 - phase-viz - INFO - compute_metrics_over_checkpoints:251 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:31:24,307 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_0_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:31:24,307 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_2_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:31:24,307 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_1_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:31:24,307 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_3_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:31:24,796 - phase-viz - INFO - plot_metric:255 - Successfully computed all metrics
+2025-05-24 11:31:24,871 - phase-viz - INFO - plot_metric:268 - Cleared model and metric caches
+2025-05-24 11:31:24,873 - phase-viz - INFO - plot_metric:273 - Saved metrics data to state
+2025-05-24 11:31:24,878 - phase-viz - INFO - plot_metric:289 - Generating interactive plot
+2025-05-24 11:31:24,878 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113124_9n3pcz1v.html
+2025-05-24 11:31:24,879 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113124_9n3pcz1v.html
+2025-05-24 11:31:24,879 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113124_9n3pcz1v.html
+2025-05-24 11:31:24,880 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113124_9n3pcz1v.html
+2025-05-24 11:31:26,874 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113124_9n3pcz1v.html
+2025-05-24 11:31:26,874 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113124_9n3pcz1v.html
+2025-05-24 11:31:26,874 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113124_9n3pcz1v.html
+2025-05-24 11:31:26,874 - phase-viz - INFO - plot_metric:295 - Plot generation completed
+2025-05-24 11:39:49,079 - phase-viz - INFO - <module>:309 - Starting phase-viz CLI
+2025-05-24 11:39:49,079 - phase-viz - INFO - plot_metric:107 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:39:49,079 - phase-viz - INFO - plot_metric:111 - State loaded successfully
+2025-05-24 11:39:49,079 - phase-viz - WARNING - plot_metric:120 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:39:49,079 - phase-viz - INFO - plot_metric:131 - Running on CPU
+2025-05-24 11:39:53,621 - phase-viz - INFO - plot_metric:151 - User input: l2
+2025-05-24 11:39:53,621 - phase-viz - INFO - plot_metric:204 - Added metric: L2 Norm
+2025-05-24 11:39:54,176 - phase-viz - INFO - plot_metric:151 - User input: done
+2025-05-24 11:39:54,176 - phase-viz - INFO - plot_metric:214 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 11:39:54,179 - phase-viz - INFO - compute_metrics_over_checkpoints:251 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:39:57,104 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_0_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:39:57,105 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_2_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:39:57,105 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_3_pgd_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:39:57,105 - phase-viz - ERROR - _process_checkpoint_cpu:151 - Worker error on ../checkpoints\model_1_base adam_results.pt: Model class not loaded. Call load_model_class first.
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 141, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 102, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\load_models.py", line 169, in load_model_from_checkpoint
+    raise RuntimeError("Model class not loaded. Call load_model_class first.")
+RuntimeError: Model class not loaded. Call load_model_class first.
+2025-05-24 11:39:57,573 - phase-viz - INFO - plot_metric:255 - Successfully computed all metrics
+2025-05-24 11:39:57,602 - phase-viz - INFO - plot_metric:268 - Cleared model and metric caches
+2025-05-24 11:39:57,603 - phase-viz - INFO - plot_metric:273 - Saved metrics data to state
+2025-05-24 11:39:57,607 - phase-viz - INFO - plot_metric:289 - Generating interactive plot
+2025-05-24 11:39:57,608 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113957_ea5gdjb9.html
+2025-05-24 11:39:57,608 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113957_ea5gdjb9.html
+2025-05-24 11:39:57,608 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113957_ea5gdjb9.html
+2025-05-24 11:39:57,609 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113957_ea5gdjb9.html
+2025-05-24 11:39:59,811 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113957_ea5gdjb9.html
+2025-05-24 11:39:59,811 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113957_ea5gdjb9.html
+2025-05-24 11:39:59,811 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_113957_ea5gdjb9.html
+2025-05-24 11:39:59,811 - phase-viz - INFO - plot_metric:295 - Plot generation completed
+2025-05-24 11:49:37,034 - phase-viz - INFO - <module>:309 - Starting phase-viz CLI
+2025-05-24 11:49:37,036 - phase-viz - INFO - plot_metric:107 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:49:37,037 - phase-viz - INFO - plot_metric:111 - State loaded successfully
+2025-05-24 11:49:37,037 - phase-viz - WARNING - plot_metric:120 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:49:37,039 - phase-viz - INFO - plot_metric:131 - Running on CPU
+2025-05-24 11:49:38,711 - phase-viz - INFO - plot_metric:151 - User input: l2
+2025-05-24 11:49:38,711 - phase-viz - INFO - plot_metric:204 - Added metric: L2 Norm
+2025-05-24 11:49:39,250 - phase-viz - INFO - plot_metric:151 - User input: done
+2025-05-24 11:49:39,251 - phase-viz - INFO - plot_metric:214 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 11:49:39,252 - phase-viz - INFO - compute_metrics_over_checkpoints:254 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:49:42,557 - phase-viz - ERROR - compute_metrics_over_checkpoints:286 - Error in parallel processing: cannot access local variable '_model_class' where it is not associated with a value
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 129, in _process_checkpoint_cpu
+    if _model_class is None:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 267, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+2025-05-24 11:49:42,560 - phase-viz - ERROR - compute_metrics_over_checkpoints:286 - Error in parallel processing: cannot access local variable '_model_class' where it is not associated with a value
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 129, in _process_checkpoint_cpu
+    if _model_class is None:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 267, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+2025-05-24 11:49:42,561 - phase-viz - ERROR - compute_metrics_over_checkpoints:286 - Error in parallel processing: cannot access local variable '_model_class' where it is not associated with a value
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 129, in _process_checkpoint_cpu
+    if _model_class is None:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 267, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+2025-05-24 11:49:42,561 - phase-viz - ERROR - compute_metrics_over_checkpoints:286 - Error in parallel processing: cannot access local variable '_model_class' where it is not associated with a value
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 129, in _process_checkpoint_cpu
+    if _model_class is None:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 267, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+2025-05-24 11:49:43,169 - phase-viz - INFO - plot_metric:255 - Successfully computed all metrics
+2025-05-24 11:49:43,177 - phase-viz - INFO - plot_metric:268 - Cleared model and metric caches
+2025-05-24 11:49:43,178 - phase-viz - INFO - plot_metric:273 - Saved metrics data to state
+2025-05-24 11:49:43,181 - phase-viz - INFO - plot_metric:289 - Generating interactive plot
+2025-05-24 11:49:43,182 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_114943_5tramvx4.html
+2025-05-24 11:49:43,183 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_114943_5tramvx4.html
+2025-05-24 11:49:43,183 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_114943_5tramvx4.html
+2025-05-24 11:49:43,184 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_114943_5tramvx4.html
+2025-05-24 11:51:27,438 - phase-viz - INFO - <module>:309 - Starting phase-viz CLI
+2025-05-24 11:51:34,511 - phase-viz - INFO - <module>:309 - Starting phase-viz CLI
+2025-05-24 11:51:34,511 - phase-viz - INFO - plot_metric:107 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:51:34,527 - phase-viz - INFO - plot_metric:111 - State loaded successfully
+2025-05-24 11:51:34,527 - phase-viz - WARNING - plot_metric:120 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:51:34,527 - phase-viz - INFO - plot_metric:131 - Running on CPU
+2025-05-24 11:51:36,399 - phase-viz - INFO - plot_metric:151 - User input: l2
+2025-05-24 11:51:36,399 - phase-viz - INFO - plot_metric:204 - Added metric: L2 Norm
+2025-05-24 11:51:37,243 - phase-viz - INFO - plot_metric:151 - User input: done
+2025-05-24 11:51:37,243 - phase-viz - INFO - plot_metric:214 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 11:51:37,246 - phase-viz - INFO - compute_metrics_over_checkpoints:255 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:51:40,552 - phase-viz - ERROR - compute_metrics_over_checkpoints:287 - Error in parallel processing: cannot access local variable '_model_class' where it is not associated with a value
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 129, in _process_checkpoint_cpu
+    if _model_class is None:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 268, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+2025-05-24 11:51:40,554 - phase-viz - ERROR - compute_metrics_over_checkpoints:287 - Error in parallel processing: cannot access local variable '_model_class' where it is not associated with a value
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 129, in _process_checkpoint_cpu
+    if _model_class is None:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 268, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+2025-05-24 11:51:40,554 - phase-viz - ERROR - compute_metrics_over_checkpoints:287 - Error in parallel processing: cannot access local variable '_model_class' where it is not associated with a value
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 129, in _process_checkpoint_cpu
+    if _model_class is None:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 268, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+2025-05-24 11:51:40,555 - phase-viz - ERROR - compute_metrics_over_checkpoints:287 - Error in parallel processing: cannot access local variable '_model_class' where it is not associated with a value
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 129, in _process_checkpoint_cpu
+    if _model_class is None:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\samue\Documents\phase_viz\src\metrics.py", line 268, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\samue\AppData\Local\Programs\Python\Python312\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+UnboundLocalError: cannot access local variable '_model_class' where it is not associated with a value
+2025-05-24 11:51:41,071 - phase-viz - INFO - plot_metric:255 - Successfully computed all metrics
+2025-05-24 11:51:41,073 - phase-viz - INFO - plot_metric:268 - Cleared model and metric caches
+2025-05-24 11:51:41,075 - phase-viz - INFO - plot_metric:273 - Saved metrics data to state
+2025-05-24 11:51:41,079 - phase-viz - INFO - plot_metric:289 - Generating interactive plot
+2025-05-24 11:51:41,079 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115141_x3h7nb4k.html
+2025-05-24 11:51:41,080 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115141_x3h7nb4k.html
+2025-05-24 11:51:41,080 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115141_x3h7nb4k.html
+2025-05-24 11:51:41,081 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115141_x3h7nb4k.html
+2025-05-24 11:51:43,736 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115141_x3h7nb4k.html
+2025-05-24 11:51:43,736 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115141_x3h7nb4k.html
+2025-05-24 11:51:43,736 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115141_x3h7nb4k.html
+2025-05-24 11:51:43,736 - phase-viz - INFO - plot_metric:295 - Plot generation completed
+2025-05-24 11:53:39,099 - phase-viz - INFO - <module>:309 - Starting phase-viz CLI
+2025-05-24 11:53:39,099 - phase-viz - INFO - plot_metric:107 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:53:39,107 - phase-viz - INFO - plot_metric:111 - State loaded successfully
+2025-05-24 11:53:39,107 - phase-viz - WARNING - plot_metric:120 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:53:39,107 - phase-viz - INFO - plot_metric:131 - Running on CPU
+2025-05-24 11:53:39,767 - phase-viz - INFO - plot_metric:151 - User input: l2
+2025-05-24 11:53:39,767 - phase-viz - INFO - plot_metric:204 - Added metric: L2 Norm
+2025-05-24 11:53:40,611 - phase-viz - INFO - plot_metric:151 - User input: done
+2025-05-24 11:53:40,611 - phase-viz - INFO - plot_metric:214 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-24 11:53:40,611 - phase-viz - INFO - compute_metrics_over_checkpoints:258 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:53:44,660 - phase-viz - INFO - plot_metric:255 - Successfully computed all metrics
+2025-05-24 11:53:44,759 - phase-viz - INFO - plot_metric:268 - Cleared model and metric caches
+2025-05-24 11:53:44,760 - phase-viz - INFO - plot_metric:273 - Saved metrics data to state
+2025-05-24 11:53:44,764 - phase-viz - INFO - plot_metric:289 - Generating interactive plot
+2025-05-24 11:53:44,764 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115344_tk81xo8i.html
+2025-05-24 11:53:44,764 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115344_tk81xo8i.html
+2025-05-24 11:53:44,764 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115344_tk81xo8i.html
+2025-05-24 11:53:44,764 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115344_tk81xo8i.html
+2025-05-24 11:53:54,659 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115344_tk81xo8i.html
+2025-05-24 11:53:54,659 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115344_tk81xo8i.html
+2025-05-24 11:53:54,659 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115344_tk81xo8i.html
+2025-05-24 11:53:54,659 - phase-viz - INFO - plot_metric:295 - Plot generation completed
+2025-05-24 11:54:10,736 - phase-viz - INFO - <module>:309 - Starting phase-viz CLI
+2025-05-24 11:54:10,738 - phase-viz - INFO - plot_metric:107 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 11:54:10,750 - phase-viz - INFO - plot_metric:111 - State loaded successfully
+2025-05-24 11:54:10,750 - phase-viz - WARNING - plot_metric:120 - CUDA requested but not available, falling back to CPU
+2025-05-24 11:54:10,750 - phase-viz - INFO - plot_metric:131 - Running on CPU
+2025-05-24 11:54:13,660 - phase-viz - INFO - plot_metric:151 - User input: custom_metrics
+2025-05-24 11:54:13,660 - phase-viz - INFO - plot_metric:190 - Added metric: Parameter Variance
+2025-05-24 11:54:13,660 - phase-viz - INFO - plot_metric:190 - Added metric: Layer Wise Norm Ratio
+2025-05-24 11:54:13,660 - phase-viz - INFO - plot_metric:190 - Added metric: Activation Capacity
+2025-05-24 11:54:13,660 - phase-viz - INFO - plot_metric:190 - Added metric: Dead Neuron Percentage
+2025-05-24 11:54:13,660 - phase-viz - INFO - plot_metric:190 - Added metric: Weight Rank
+2025-05-24 11:54:13,668 - phase-viz - INFO - plot_metric:190 - Added metric: Gradient Flow Score
+2025-05-24 11:54:14,309 - phase-viz - INFO - plot_metric:151 - User input: done
+2025-05-24 11:54:14,309 - phase-viz - INFO - plot_metric:214 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 11:54:14,316 - phase-viz - INFO - compute_metrics_over_checkpoints:258 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 11:54:18,209 - phase-viz - INFO - plot_metric:255 - Successfully computed all metrics
+2025-05-24 11:54:18,245 - phase-viz - INFO - plot_metric:268 - Cleared model and metric caches
+2025-05-24 11:54:18,246 - phase-viz - INFO - plot_metric:273 - Saved metrics data to state
+2025-05-24 11:54:18,249 - phase-viz - INFO - plot_metric:289 - Generating interactive plot
+2025-05-24 11:54:18,251 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115418_sol2gr2g.html
+2025-05-24 11:54:18,252 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115418_sol2gr2g.html
+2025-05-24 11:54:18,252 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115418_sol2gr2g.html
+2025-05-24 11:54:18,254 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115418_sol2gr2g.html
+2025-05-24 11:54:33,531 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115418_sol2gr2g.html
+2025-05-24 11:54:33,531 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115418_sol2gr2g.html
+2025-05-24 11:54:33,531 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for C:\Users\samue\Documents\phase_viz\src\metrics_over_checkpoints_20250524_115418_sol2gr2g.html
+2025-05-24 11:54:33,533 - phase-viz - INFO - plot_metric:295 - Plot generation completed

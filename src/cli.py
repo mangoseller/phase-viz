@@ -5,6 +5,8 @@
 # get good models to test with 
 # bugtest, find good metrics to compute LLC and stuff, --help arg for metrics list metrics
 # readme
+
+# Legend for metric names still not working correctly, when viewing two metrics, the plots need to be clicked to resize - they need to resize automatically some how.
 # Stretch Goals - Metrics that require inference, multiple model direct comparison
 
 
@@ -94,13 +96,14 @@ def load_dir(
 @app.command()
 def plot_metric(
     device: str = t.Option("cuda", help="Device to use for calculations ('cuda', 'cpu', specific 'cuda:n')"),
-    parallel: bool = t.Option(True, help="Use parallel processing for calculations (default: True)")
+    parallel: bool = t.Option(True, help="Use parallel processing for calculations (default: True)") # This needs to go back to True
 ):
     """Compute and plot metrics over model checkpoints.
     
     This command allows you to select metrics to calculate over checkpoints,
     and then visualizes them in an interactive plot.
     """
+    metrics_file = ""
     logger.info(f"Starting plot-metric command with device={device}, parallel={parallel}")
     
     try:
@@ -165,6 +168,7 @@ def plot_metric(
                 raw = candidate
 
         if os.path.isfile(raw):
+            metrics_file = raw
             path = Path(raw).resolve()
             if path.suffix != ".py":
                 _err(f"Custom metrics must come from a .py file (got {path})")
@@ -245,7 +249,8 @@ def plot_metric(
             checkpoints,
             device=device,
             progress_callback=progress_callback,
-            parallel=parallel
+            parallel=parallel,
+            metrics_file=metrics_file
         )
         logger.info("Successfully computed all metrics")
     except Exception as e:

@@ -119,17 +119,30 @@ def compute_metric_batch(
     # No need to delete model explicitly - Python's garbage collection will handle it
     return results
 
-
-def _process_checkpoint_cpu(args):
+import load_models
+from state import load_state
+def _process_checkpoint_cpu(args):  
     """
-    args: (idx, path, metric_names, device)
+    args: (idx, path, metric_names, device, metrics_file)
     """
-    idx, path, metric_names, device = args
+    idx, path, metric_names, device, metrics_file = args
+    if load_models._model_class is None:      # ❷ check the live value
+        state = load_state()
+        load_models.load_model_class(         # ❸ sets load_models._model_class
+            state["model_path"],
+            state["class_name"],
+        )
 
     try:
         # Resolve metric functions inside the worker
         builtin = _get_builtin_metrics()          # {'L2 Norm': l2_norm_of_model, ...}
         metric_funcs = {n: builtin[n] for n in metric_names if n in builtin}
+
+        if metrics_file:
+            custom = import_metric_functions(metrics_file)
+            metric_funcs.update({n: custom[n] for n in metric_names if n in custom})
+        if not metric_funcs:
+            raise RuntimeError("No metric functions resolved inside worker.")
 
         checkpoint_name    = os.path.basename(path)
         checkpoint_results = compute_metric_batch(metric_funcs, path, device)
@@ -157,7 +170,8 @@ def compute_metrics_over_checkpoints(
     checkpoints: Sequence[str],
     device: str = "auto",
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
-    parallel: bool = True
+    parallel: bool = True,
+    metrics_file: str = None
 ) -> Dict[str, List[float]]:
     """Compute multiple metrics over multiple checkpoints efficiently.
     
@@ -184,6 +198,7 @@ def compute_metrics_over_checkpoints(
     metrics_progress = {
         name: {"completed": 0, "total": len(checkpoints)}
         for name in metric_functions
+        
     }
     
     def process_checkpoint(idx, path):
@@ -197,7 +212,7 @@ def compute_metrics_over_checkpoints(
                 results[name][idx] = value
                 metrics_progress[name]["completed"] += 1
             
-            # Report progress
+                
             if progress_callback:
                 progress_info = {
                     "current": idx + 1,
@@ -244,7 +259,7 @@ def compute_metrics_over_checkpoints(
             
             # Prepare arguments for multiprocessing
             args_list = [
-                (i, p, list(metric_functions.keys()), device)   # ❰ metric **names** only ❱
+                (i, p, list(metric_functions.keys()), device, metrics_file)  
                 for i, p in enumerate(checkpoints)
             ]
             
