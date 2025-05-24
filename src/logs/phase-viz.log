@@ -1572,3 +1572,460 @@ NameError: name 'np' is not defined
 2025-05-24 17:44:51,992 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_174451_bmmfl6gz.html
 2025-05-24 17:44:51,992 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_174451_bmmfl6gz.html
 2025-05-24 17:44:51,992 - phase-viz - INFO - plot_metric:323 - Plot generation completed
+2025-05-24 20:00:14,242 - phase-viz - INFO - <module>:337 - Starting phase-viz CLI
+2025-05-24 20:00:14,242 - phase-viz - INFO - plot_metric:109 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:00:14,243 - phase-viz - INFO - plot_metric:113 - State loaded successfully
+2025-05-24 20:00:14,385 - phase-viz - WARNING - plot_metric:122 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:00:14,386 - phase-viz - INFO - plot_metric:133 - Running on CPU
+2025-05-24 20:00:34,216 - phase-viz - INFO - plot_metric:153 - User input: custom_metrics.py
+2025-05-24 20:00:34,217 - phase-viz - INFO - plot_metric:192 - Added metric: Parameter Variance
+2025-05-24 20:00:34,217 - phase-viz - INFO - plot_metric:192 - Added metric: Layer Wise Norm Ratio
+2025-05-24 20:00:34,217 - phase-viz - INFO - plot_metric:192 - Added metric: Activation Capacity
+2025-05-24 20:00:34,217 - phase-viz - INFO - plot_metric:192 - Added metric: Dead Neuron Percentage
+2025-05-24 20:00:34,217 - phase-viz - INFO - plot_metric:192 - Added metric: Weight Rank
+2025-05-24 20:00:34,217 - phase-viz - INFO - plot_metric:192 - Added metric: Gradient Flow Score
+2025-05-24 20:00:35,341 - phase-viz - INFO - plot_metric:153 - User input: done
+2025-05-24 20:00:35,341 - phase-viz - INFO - plot_metric:242 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 20:00:35,341 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 20:00:36,136 - phase-viz - INFO - plot_metric:283 - Successfully computed all metrics
+2025-05-24 20:00:36,150 - phase-viz - INFO - plot_metric:296 - Cleared model and metric caches
+2025-05-24 20:00:36,150 - phase-viz - INFO - plot_metric:301 - Saved metrics data to state
+2025-05-24 20:00:36,150 - phase-viz - INFO - plot_metric:317 - Generating interactive plot
+2025-05-24 20:00:36,151 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200036_n37g9gwj.html
+2025-05-24 20:00:36,151 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200036_n37g9gwj.html
+2025-05-24 20:00:36,151 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200036_n37g9gwj.html
+2025-05-24 20:00:36,151 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200036_n37g9gwj.html
+2025-05-24 20:06:38,126 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200036_n37g9gwj.html
+2025-05-24 20:06:38,126 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200036_n37g9gwj.html
+2025-05-24 20:06:38,127 - phase-viz - INFO - plot_metric_interactive:1677 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200036_n37g9gwj.html
+2025-05-24 20:06:38,127 - phase-viz - INFO - plot_metric:323 - Plot generation completed
+2025-05-24 20:06:42,732 - phase-viz - INFO - <module>:337 - Starting phase-viz CLI
+2025-05-24 20:06:42,733 - phase-viz - INFO - plot_metric:109 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:06:42,733 - phase-viz - INFO - plot_metric:113 - State loaded successfully
+2025-05-24 20:06:42,874 - phase-viz - WARNING - plot_metric:122 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:06:42,874 - phase-viz - INFO - plot_metric:133 - Running on CPU
+2025-05-24 20:06:49,823 - phase-viz - INFO - plot_metric:153 - User input: custom-metrics.py
+2025-05-24 20:06:49,824 - phase-viz - WARNING - plot_metric:237 - Unknown metric: custom-metrics.py
+2025-05-24 20:06:55,767 - phase-viz - INFO - plot_metric:153 - User input: custom_metrics.py
+2025-05-24 20:06:55,767 - phase-viz - INFO - plot_metric:192 - Added metric: Parameter Variance
+2025-05-24 20:06:55,767 - phase-viz - INFO - plot_metric:192 - Added metric: Layer Wise Norm Ratio
+2025-05-24 20:06:55,767 - phase-viz - INFO - plot_metric:192 - Added metric: Activation Capacity
+2025-05-24 20:06:55,767 - phase-viz - INFO - plot_metric:192 - Added metric: Dead Neuron Percentage
+2025-05-24 20:06:55,767 - phase-viz - INFO - plot_metric:192 - Added metric: Weight Rank
+2025-05-24 20:06:55,767 - phase-viz - INFO - plot_metric:192 - Added metric: Gradient Flow Score
+2025-05-24 20:06:56,276 - phase-viz - INFO - plot_metric:153 - User input: done
+2025-05-24 20:06:56,276 - phase-viz - INFO - plot_metric:242 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 20:06:56,276 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 20:06:56,886 - phase-viz - INFO - plot_metric:283 - Successfully computed all metrics
+2025-05-24 20:06:56,888 - phase-viz - INFO - plot_metric:296 - Cleared model and metric caches
+2025-05-24 20:06:56,888 - phase-viz - INFO - plot_metric:301 - Saved metrics data to state
+2025-05-24 20:06:56,888 - phase-viz - INFO - plot_metric:317 - Generating interactive plot
+2025-05-24 20:06:56,888 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200656_7kmmj5jw.html
+2025-05-24 20:06:56,888 - phase-viz - INFO - start:236 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200656_7kmmj5jw.html
+2025-05-24 20:06:56,888 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200656_7kmmj5jw.html
+2025-05-24 20:06:56,889 - phase-viz - INFO - plot_metric_interactive:1668 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200656_7kmmj5jw.html
+2025-05-24 20:19:21,943 - phase-viz - INFO - _signal_handler:148 - Received signal 2, cleaning up...
+2025-05-24 20:19:21,943 - phase-viz - INFO - cleanup_all_html_files:139 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_200656_7kmmj5jw.html
+2025-05-24 20:19:24,858 - phase-viz - INFO - <module>:337 - Starting phase-viz CLI
+2025-05-24 20:19:24,859 - phase-viz - INFO - plot_metric:109 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:19:24,859 - phase-viz - INFO - plot_metric:113 - State loaded successfully
+2025-05-24 20:19:24,996 - phase-viz - WARNING - plot_metric:122 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:19:24,996 - phase-viz - INFO - plot_metric:133 - Running on CPU
+2025-05-24 20:19:32,902 - phase-viz - INFO - plot_metric:153 - User input: custom_metrics
+2025-05-24 20:19:32,902 - phase-viz - INFO - plot_metric:192 - Added metric: Parameter Variance
+2025-05-24 20:19:32,902 - phase-viz - INFO - plot_metric:192 - Added metric: Layer Wise Norm Ratio
+2025-05-24 20:19:32,902 - phase-viz - INFO - plot_metric:192 - Added metric: Activation Capacity
+2025-05-24 20:19:32,902 - phase-viz - INFO - plot_metric:192 - Added metric: Dead Neuron Percentage
+2025-05-24 20:19:32,902 - phase-viz - INFO - plot_metric:192 - Added metric: Weight Rank
+2025-05-24 20:19:32,902 - phase-viz - INFO - plot_metric:192 - Added metric: Gradient Flow Score
+2025-05-24 20:19:33,950 - phase-viz - INFO - plot_metric:153 - User input: done
+2025-05-24 20:19:33,950 - phase-viz - INFO - plot_metric:242 - Starting calculation of 6 metrics across 4 checkpoints
+2025-05-24 20:19:33,951 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 20:19:34,524 - phase-viz - INFO - plot_metric:283 - Successfully computed all metrics
+2025-05-24 20:19:34,558 - phase-viz - INFO - plot_metric:296 - Cleared model and metric caches
+2025-05-24 20:19:34,558 - phase-viz - INFO - plot_metric:301 - Saved metrics data to state
+2025-05-24 20:19:34,558 - phase-viz - INFO - plot_metric:317 - Generating interactive plot
+2025-05-24 20:19:34,559 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_201934_spc8vuv2.html
+2025-05-24 20:19:34,559 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_201934_spc8vuv2.html
+2025-05-24 20:19:34,559 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_201934_spc8vuv2.html
+2025-05-24 20:19:34,559 - phase-viz - INFO - plot_metric_interactive:1721 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_201934_spc8vuv2.html
+2025-05-24 20:41:45,256 - phase-viz - INFO - _signal_handler:148 - Received signal 2, cleaning up...
+2025-05-24 20:41:45,256 - phase-viz - INFO - cleanup_all_html_files:139 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_201934_spc8vuv2.html
+2025-05-24 20:41:49,052 - phase-viz - INFO - <module>:337 - Starting phase-viz CLI
+2025-05-24 20:41:49,053 - phase-viz - INFO - plot_metric:109 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:41:49,053 - phase-viz - INFO - plot_metric:113 - State loaded successfully
+2025-05-24 20:41:49,192 - phase-viz - WARNING - plot_metric:122 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:41:49,192 - phase-viz - INFO - plot_metric:133 - Running on CPU
+2025-05-24 20:41:55,364 - phase-viz - INFO - plot_metric:153 - User input: geo_met_test.py
+2025-05-24 20:41:55,365 - phase-viz - ERROR - _err:331 - Fatal error: Failed importing metric functions from /home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py: Failed importing /home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py: name 'torch' is not defined
+2025-05-24 20:42:18,428 - phase-viz - INFO - <module>:337 - Starting phase-viz CLI
+2025-05-24 20:42:18,429 - phase-viz - INFO - plot_metric:109 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:42:18,429 - phase-viz - INFO - plot_metric:113 - State loaded successfully
+2025-05-24 20:42:18,568 - phase-viz - WARNING - plot_metric:122 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:42:18,568 - phase-viz - INFO - plot_metric:133 - Running on CPU
+2025-05-24 20:42:24,678 - phase-viz - INFO - plot_metric:153 - User input: geo_met_test.py
+2025-05-24 20:42:25,060 - phase-viz - INFO - plot_metric:192 - Added metric: Effective Rank
+2025-05-24 20:42:25,060 - phase-viz - INFO - plot_metric:192 - Added metric: Avg Condition Number
+2025-05-24 20:42:25,060 - phase-viz - INFO - plot_metric:192 - Added metric: Mean Weight
+2025-05-24 20:42:25,060 - phase-viz - INFO - plot_metric:192 - Added metric: Isotropy
+2025-05-24 20:42:26,755 - phase-viz - INFO - plot_metric:153 - User input: done
+2025-05-24 20:42:26,755 - phase-viz - INFO - plot_metric:242 - Starting calculation of 4 metrics across 4 checkpoints
+2025-05-24 20:42:26,755 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 20:42:27,694 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 20, in effective_rank_of_model
+    return np.mean(ranks) if ranks else 0.0
+           ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:27,701 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Effective Rank: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 20, in effective_rank_of_model
+    return np.mean(ranks) if ranks else 0.0
+           ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:27,805 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 20, in effective_rank_of_model
+    return np.mean(ranks) if ranks else 0.0
+           ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:27,807 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Effective Rank: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 20, in effective_rank_of_model
+    return np.mean(ranks) if ranks else 0.0
+           ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:27,860 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 20, in effective_rank_of_model
+    return np.mean(ranks) if ranks else 0.0
+           ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:27,862 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Effective Rank: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 20, in effective_rank_of_model
+    return np.mean(ranks) if ranks else 0.0
+           ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:27,874 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 20, in effective_rank_of_model
+    return np.mean(ranks) if ranks else 0.0
+           ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:27,876 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Effective Rank: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 20, in effective_rank_of_model
+    return np.mean(ranks) if ranks else 0.0
+           ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,518 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 33, in avg_condition_number_of_model
+    return float(np.mean(condition_numbers)) if condition_numbers else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,519 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Avg Condition Number: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 33, in avg_condition_number_of_model
+    return float(np.mean(condition_numbers)) if condition_numbers else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,596 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 58, in isotropy_of_model
+    return float(np.mean(isotropies)) if isotropies else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,596 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Isotropy: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 58, in isotropy_of_model
+    return float(np.mean(isotropies)) if isotropies else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,707 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 33, in avg_condition_number_of_model
+    return float(np.mean(condition_numbers)) if condition_numbers else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,708 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Avg Condition Number: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 33, in avg_condition_number_of_model
+    return float(np.mean(condition_numbers)) if condition_numbers else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,780 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 58, in isotropy_of_model
+    return float(np.mean(isotropies)) if isotropies else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,781 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Isotropy: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 58, in isotropy_of_model
+    return float(np.mean(isotropies)) if isotropies else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,818 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 33, in avg_condition_number_of_model
+    return float(np.mean(condition_numbers)) if condition_numbers else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,820 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Avg Condition Number: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 33, in avg_condition_number_of_model
+    return float(np.mean(condition_numbers)) if condition_numbers else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,829 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 58, in isotropy_of_model
+    return float(np.mean(isotropies)) if isotropies else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,830 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Isotropy: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 58, in isotropy_of_model
+    return float(np.mean(isotropies)) if isotropies else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,834 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 33, in avg_condition_number_of_model
+    return float(np.mean(condition_numbers)) if condition_numbers else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,835 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Avg Condition Number: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 33, in avg_condition_number_of_model
+    return float(np.mean(condition_numbers)) if condition_numbers else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,836 - phase-viz - ERROR - wrapper:45 - Error calculating metric: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 58, in isotropy_of_model
+    return float(np.mean(isotropies)) if isotropies else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,836 - phase-viz - ERROR - compute_metric_batch:186 - Error calculating Isotropy: name 'np' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 178, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 36, in wrapper
+    result = func(model, *args, **kw)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/geo_met_test.py", line 58, in isotropy_of_model
+    return float(np.mean(isotropies)) if isotropies else 0.0
+                 ^^
+NameError: name 'np' is not defined
+2025-05-24 20:42:28,848 - phase-viz - INFO - plot_metric:283 - Successfully computed all metrics
+2025-05-24 20:42:28,867 - phase-viz - INFO - plot_metric:296 - Cleared model and metric caches
+2025-05-24 20:42:28,868 - phase-viz - INFO - plot_metric:301 - Saved metrics data to state
+2025-05-24 20:42:28,868 - phase-viz - INFO - plot_metric:317 - Generating interactive plot
+2025-05-24 20:42:28,868 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204228_gsbovvy4.html
+2025-05-24 20:42:28,868 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204228_gsbovvy4.html
+2025-05-24 20:42:28,868 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204228_gsbovvy4.html
+2025-05-24 20:42:28,868 - phase-viz - INFO - plot_metric_interactive:1721 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204228_gsbovvy4.html
+2025-05-24 20:43:08,302 - phase-viz - INFO - _signal_handler:148 - Received signal 2, cleaning up...
+2025-05-24 20:43:08,302 - phase-viz - INFO - cleanup_all_html_files:139 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204228_gsbovvy4.html
+2025-05-24 20:43:10,793 - phase-viz - INFO - <module>:337 - Starting phase-viz CLI
+2025-05-24 20:43:10,794 - phase-viz - INFO - plot_metric:109 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:43:10,794 - phase-viz - INFO - plot_metric:113 - State loaded successfully
+2025-05-24 20:43:10,934 - phase-viz - WARNING - plot_metric:122 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:43:10,934 - phase-viz - INFO - plot_metric:133 - Running on CPU
+2025-05-24 20:43:26,940 - phase-viz - INFO - plot_metric:153 - User input: geo_met_test.py
+2025-05-24 20:43:27,139 - phase-viz - INFO - plot_metric:192 - Added metric: Effective Rank
+2025-05-24 20:43:27,139 - phase-viz - INFO - plot_metric:192 - Added metric: Avg Condition Number
+2025-05-24 20:43:27,139 - phase-viz - INFO - plot_metric:192 - Added metric: Mean Weight
+2025-05-24 20:43:27,139 - phase-viz - INFO - plot_metric:192 - Added metric: Isotropy
+2025-05-24 20:43:29,241 - phase-viz - INFO - plot_metric:153 - User input: done
+2025-05-24 20:43:29,241 - phase-viz - INFO - plot_metric:242 - Starting calculation of 4 metrics across 4 checkpoints
+2025-05-24 20:43:29,242 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 20:43:31,115 - phase-viz - INFO - plot_metric:283 - Successfully computed all metrics
+2025-05-24 20:43:31,154 - phase-viz - INFO - plot_metric:296 - Cleared model and metric caches
+2025-05-24 20:43:31,155 - phase-viz - INFO - plot_metric:301 - Saved metrics data to state
+2025-05-24 20:43:31,155 - phase-viz - INFO - plot_metric:317 - Generating interactive plot
+2025-05-24 20:43:31,155 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204331_nwkzz7er.html
+2025-05-24 20:43:31,155 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204331_nwkzz7er.html
+2025-05-24 20:43:31,155 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204331_nwkzz7er.html
+2025-05-24 20:43:31,155 - phase-viz - INFO - plot_metric_interactive:1721 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204331_nwkzz7er.html
+2025-05-24 20:43:31,998 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204331_nwkzz7er.html
+2025-05-24 20:43:31,998 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204331_nwkzz7er.html
+2025-05-24 20:43:31,998 - phase-viz - INFO - plot_metric_interactive:1730 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204331_nwkzz7er.html
+2025-05-24 20:43:31,998 - phase-viz - INFO - plot_metric:323 - Plot generation completed
+2025-05-24 20:48:18,948 - phase-viz - INFO - <module>:339 - Starting phase-viz CLI
+2025-05-24 20:48:18,949 - phase-viz - INFO - plot_metric:111 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:48:18,950 - phase-viz - INFO - plot_metric:115 - State loaded successfully
+2025-05-24 20:48:19,087 - phase-viz - WARNING - plot_metric:124 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:48:19,087 - phase-viz - INFO - plot_metric:135 - Running on CPU
+2025-05-24 20:48:25,911 - phase-viz - INFO - plot_metric:155 - User input: geo_met_test.py
+2025-05-24 20:48:26,110 - phase-viz - INFO - plot_metric:194 - Added metric: Effective Rank
+2025-05-24 20:48:26,111 - phase-viz - INFO - plot_metric:194 - Added metric: Avg Condition Number
+2025-05-24 20:48:26,111 - phase-viz - INFO - plot_metric:194 - Added metric: Mean Weight
+2025-05-24 20:48:26,111 - phase-viz - INFO - plot_metric:194 - Added metric: Isotropy
+2025-05-24 20:48:26,775 - phase-viz - INFO - plot_metric:155 - User input: done
+2025-05-24 20:48:26,775 - phase-viz - INFO - plot_metric:244 - Starting calculation of 4 metrics across 4 checkpoints
+2025-05-24 20:48:26,775 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 20:48:28,072 - phase-viz - INFO - plot_metric:285 - Successfully computed all metrics
+2025-05-24 20:48:28,090 - phase-viz - INFO - plot_metric:298 - Cleared model and metric caches
+2025-05-24 20:48:28,090 - phase-viz - INFO - plot_metric:303 - Saved metrics data to state
+2025-05-24 20:48:28,090 - phase-viz - INFO - plot_metric:319 - Generating interactive plot
+2025-05-24 20:48:28,091 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204828_p1q6rhnc.html
+2025-05-24 20:48:28,091 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204828_p1q6rhnc.html
+2025-05-24 20:48:28,091 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204828_p1q6rhnc.html
+2025-05-24 20:48:28,091 - phase-viz - INFO - plot_metric_interactive:1720 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204828_p1q6rhnc.html
+2025-05-24 20:48:53,752 - phase-viz - INFO - unregister_html_from_cleanup:129 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204828_p1q6rhnc.html
+2025-05-24 20:48:53,752 - phase-viz - INFO - do_POST:187 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204828_p1q6rhnc.html
+2025-05-24 20:48:53,752 - phase-viz - INFO - plot_metric_interactive:1729 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204828_p1q6rhnc.html
+2025-05-24 20:48:53,752 - phase-viz - INFO - plot_metric:325 - Plot generation completed
+2025-05-24 20:49:13,938 - phase-viz - INFO - <module>:339 - Starting phase-viz CLI
+2025-05-24 20:49:13,939 - phase-viz - INFO - plot_metric:111 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:49:13,939 - phase-viz - INFO - plot_metric:115 - State loaded successfully
+2025-05-24 20:49:14,080 - phase-viz - WARNING - plot_metric:124 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:49:14,080 - phase-viz - INFO - plot_metric:135 - Running on CPU
+2025-05-24 20:49:20,148 - phase-viz - INFO - plot_metric:155 - User input: geo_met_test.py
+2025-05-24 20:49:20,347 - phase-viz - INFO - plot_metric:194 - Added metric: Effective Rank
+2025-05-24 20:49:20,347 - phase-viz - INFO - plot_metric:194 - Added metric: Avg Condition Number
+2025-05-24 20:49:20,347 - phase-viz - INFO - plot_metric:194 - Added metric: Mean Weight
+2025-05-24 20:49:20,347 - phase-viz - INFO - plot_metric:194 - Added metric: Isotropy
+2025-05-24 20:49:21,615 - phase-viz - INFO - plot_metric:155 - User input: done
+2025-05-24 20:49:21,615 - phase-viz - INFO - plot_metric:244 - Starting calculation of 4 metrics across 4 checkpoints
+2025-05-24 20:49:21,615 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 20:49:22,912 - phase-viz - INFO - plot_metric:285 - Successfully computed all metrics
+2025-05-24 20:49:22,923 - phase-viz - INFO - plot_metric:298 - Cleared model and metric caches
+2025-05-24 20:49:22,923 - phase-viz - INFO - plot_metric:303 - Saved metrics data to state
+2025-05-24 20:49:22,923 - phase-viz - INFO - plot_metric:319 - Generating interactive plot
+2025-05-24 20:49:22,923 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204922_dd5q3aqi.html
+2025-05-24 20:49:22,923 - phase-viz - INFO - start:236 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204922_dd5q3aqi.html
+2025-05-24 20:49:22,923 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204922_dd5q3aqi.html
+2025-05-24 20:49:22,924 - phase-viz - INFO - plot_metric_interactive:1722 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204922_dd5q3aqi.html
+2025-05-24 20:49:54,798 - phase-viz - INFO - _signal_handler:148 - Received signal 2, cleaning up...
+2025-05-24 20:49:54,798 - phase-viz - INFO - cleanup_all_html_files:139 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_204922_dd5q3aqi.html
+2025-05-24 20:49:57,178 - phase-viz - INFO - <module>:339 - Starting phase-viz CLI
+2025-05-24 20:49:57,179 - phase-viz - INFO - plot_metric:111 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-24 20:49:57,179 - phase-viz - INFO - plot_metric:115 - State loaded successfully
+2025-05-24 20:49:57,317 - phase-viz - WARNING - plot_metric:124 - CUDA requested but not available, falling back to CPU
+2025-05-24 20:49:57,317 - phase-viz - INFO - plot_metric:135 - Running on CPU
+2025-05-24 20:50:01,126 - phase-viz - INFO - plot_metric:155 - User input: geo_met_test.py
+2025-05-24 20:50:01,326 - phase-viz - INFO - plot_metric:194 - Added metric: Effective Rank
+2025-05-24 20:50:01,326 - phase-viz - INFO - plot_metric:194 - Added metric: Avg Condition Number
+2025-05-24 20:50:01,326 - phase-viz - INFO - plot_metric:194 - Added metric: Mean Weight
+2025-05-24 20:50:01,326 - phase-viz - INFO - plot_metric:194 - Added metric: Isotropy
+2025-05-24 20:50:02,588 - phase-viz - INFO - plot_metric:155 - User input: done
+2025-05-24 20:50:02,588 - phase-viz - INFO - plot_metric:244 - Starting calculation of 4 metrics across 4 checkpoints
+2025-05-24 20:50:02,589 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-24 20:50:03,991 - phase-viz - INFO - plot_metric:285 - Successfully computed all metrics
+2025-05-24 20:50:04,004 - phase-viz - INFO - plot_metric:298 - Cleared model and metric caches
+2025-05-24 20:50:04,004 - phase-viz - INFO - plot_metric:303 - Saved metrics data to state
+2025-05-24 20:50:04,004 - phase-viz - INFO - plot_metric:319 - Generating interactive plot
+2025-05-24 20:50:04,005 - phase-viz - INFO - register_html_for_cleanup:122 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_205004_7kv311ft.html
+2025-05-24 20:50:04,005 - phase-viz - INFO - start:236 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_205004_7kv311ft.html
+2025-05-24 20:50:04,005 - phase-viz - INFO - plot_metric_interactive:77 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_205004_7kv311ft.html
+2025-05-24 20:50:04,005 - phase-viz - INFO - plot_metric_interactive:1722 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_205004_7kv311ft.html
+2025-05-24 20:50:14,146 - phase-viz - INFO - _signal_handler:148 - Received signal 2, cleaning up...
+2025-05-24 20:50:14,146 - phase-viz - INFO - cleanup_all_html_files:139 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250524_205004_7kv311ft.html

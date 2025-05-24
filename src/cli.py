@@ -1,12 +1,11 @@
 # TODO:
-# fix x-axis cut off
-# ensure differing architectures can be loaded, test cuda on vast or something
+# There are some nice metrics here in geo_met_test - should move them, along with those in custom_metrics.py to another file and import them for cleanliness
+# need to also clean up slop
+# fix x-axis cut off, maybe think about width/margin
+# ensure differing architectures can be loaded
 # get good models to test with 
-# bugtest, find good metrics to compute LLC and stuff, 
-# readme - still to be improved but draft is ok
-
-# Legend for metric names still not working correctly, when viewing two metrics, the plots need to be clicked to resize - they need to resize automatically some how.
-# Stretch Goals - Metrics that require inference, multiple model direct comparison
+# bughunt
+# readme - still to be improved but draft is ok, screenshots, fix math rendering
 
 
 import os

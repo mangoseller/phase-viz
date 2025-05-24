@@ -77,7 +77,7 @@ def plot_metric_interactive(
     logger.info(f"Started cleanup server on port {port} for {output_html}")
     
     # Generate the React-based HTML
-    html_content = f"""<!DOCTYPE html>
+    html_content = fr"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -325,7 +325,7 @@ def plot_metric_interactive(
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
-            min-height: 500px; /* Ensure minimum height */
+            min-height: 550px; /* Ensure minimum height */
         }}
         
         .chart-wrapper:hover {{
@@ -546,7 +546,8 @@ def plot_metric_interactive(
         .charts-grid.single {{ grid-template-columns: 1fr; }}
         .charts-grid.double {{ 
             grid-template-columns: 1fr; 
-            grid-template-rows: repeat(2, minmax(450px, 1fr));
+            grid-template-rows: repeat(2, minmax(500px, 1fr));
+            gap: 2rem;
         }}
         .charts-grid.triple {{ grid-template-columns: repeat(3, 1fr); }}
         .charts-grid.quad {{ grid-template-columns: repeat(2, 1fr); }}
@@ -594,6 +595,28 @@ def plot_metric_interactive(
             const svgRef = useRef(null);
             const containerRef = useRef(null);
             const [hoveredPoint, setHoveredPoint] = useState(null);
+            const [dimensions, setDimensions] = useState({{ width: 0, height: 0 }});
+            
+            // Handle resize
+            useEffect(() => {{
+                const handleResize = () => {{
+                    if (containerRef.current) {{
+                        const {{ clientWidth, clientHeight }} = containerRef.current;
+                        setDimensions({{ width: clientWidth, height: clientHeight }});
+                    }}
+                }};
+                
+                handleResize();
+                window.addEventListener('resize', handleResize);
+                
+                // Small delay to ensure DOM is ready
+                const timer = setTimeout(handleResize, 100);
+                
+                return () => {{
+                    window.removeEventListener('resize', handleResize);
+                    clearTimeout(timer);
+                }};
+            }}, [isExpanded]);
             
             // Calculate statistics
             const stats = useMemo(() => {{
@@ -653,12 +676,13 @@ def plot_metric_interactive(
                 }} else if (numMetrics === 1) {{
                     height = Math.max(500, baseHeight * 0.8);
                 }} else if (numMetrics === 2) {{
-                    height = Math.max(400, baseHeight * 0.4);
+                    // Special handling for 2 metrics side by side
+                    height = Math.max(450, Math.min(600, (baseHeight - 100) * 0.45));
                 }} else {{
                     height = 350;
                 }}
                 
-                const margin = {{ top: 20, right: 40, bottom: 80, left: 80 }};
+                const margin = {{ top: 20, right: 40, bottom: 120, left: 80 }};
                 const innerWidth = width - margin.left - margin.right;
                 const innerHeight = height - margin.top - margin.bottom;
                 
@@ -729,28 +753,32 @@ def plot_metric_interactive(
                             const checkpoint = DATA.checkpoints[i];
                             if (!checkpoint) return '';
                             
-                            // Smart label handling based on number of checkpoints and available space
-                            const maxLabelLength = Math.max(10, Math.floor(innerWidth / DATA.checkpoints.length / 6));
+                            // Calculate available width per label
+                            const labelWidth = innerWidth / DATA.checkpoints.length;
+                            const maxChars = Math.max(8, Math.floor(labelWidth / 8)); // Approx 8px per char
                             
-                            if (DATA.checkpoints.length > 20) {{
-                                // Show every 5th label for many checkpoints
-                                if (i % 5 !== 0) return '';
-                                // Truncate if needed
-                                return checkpoint.length > maxLabelLength 
-                                    ? checkpoint.substring(0, maxLabelLength - 3) + '...' 
-                                    : checkpoint;
-                            }} else if (DATA.checkpoints.length > 10) {{
-                                // Show every other label for moderate number of checkpoints
+                            // Smart display based on number of checkpoints
+                            if (DATA.checkpoints.length > 15) {{
+                                // For many checkpoints, show every 3rd or 5th
+                                const interval = DATA.checkpoints.length > 30 ? 5 : 3;
+                                if (i % interval !== 0) return '';
+                            }} else if (DATA.checkpoints.length > 8) {{
+                                // Show every other label
                                 if (i % 2 !== 0) return '';
-                                return checkpoint.length > maxLabelLength 
-                                    ? checkpoint.substring(0, maxLabelLength - 3) + '...' 
-                                    : checkpoint;
-                            }} else {{
-                                // Show all labels for few checkpoints, but truncate if needed
-                                return checkpoint.length > 12 
-                                    ? checkpoint.substring(0, 12) + '...' 
-                                    : checkpoint;
                             }}
+                            
+                            // Truncate long names intelligently
+                            if (checkpoint.length > maxChars) {{
+                                // Try to keep important parts (numbers at end)
+                                const numMatch = checkpoint.match(/\d+$/);
+                                if (numMatch) {{
+                                    const prefix = checkpoint.substring(0, maxChars - numMatch[0].length - 3);
+                                    return prefix + '...' + numMatch[0];
+                                }} else {{
+                                    return checkpoint.substring(0, maxChars - 3) + '...';
+                                }}
+                            }}
+                            return checkpoint;
                         }}));
                 
                 xAxis.selectAll('text')
@@ -759,7 +787,8 @@ def plot_metric_interactive(
                     .attr('dy', '.15em')
                     .attr('transform', 'rotate(-45)')
                     .style('fill', '#9ca3af')
-                    .style('font-size', isExpanded ? '11px' : '10px');
+                    .style('font-size', DATA.checkpoints.length > 20 ? '9px' : '11px')
+                    .style('overflow', 'visible');
                 
                 xAxis.select('.domain').style('stroke', '#333');
                 xAxis.selectAll('.tick line').style('stroke', '#333');
@@ -913,7 +942,7 @@ def plot_metric_interactive(
                             .attr('r', 3);
                     }});
                     
-            }}, [data, metric, stats, isExpanded, showPhaseTransitions, phaseTransitions]);
+            }}, [data, metric, stats, isExpanded, showPhaseTransitions, phaseTransitions, dimensions]);
             
             return (
                 <div 
@@ -990,7 +1019,7 @@ def plot_metric_interactive(
                 // Use most of the available screen height
                 const baseHeight = window.innerHeight - 400;
                 const height = Math.max(600, baseHeight * 0.8);
-                const margin = {{ top: 20, right: 180, bottom: 80, left: 80 }};
+                const margin = {{ top: 20, right: 250, bottom: 120, left: 80 }};
                 const innerWidth = width - margin.left - margin.right;
                 const innerHeight = height - margin.top - margin.bottom;
                 
@@ -1090,23 +1119,27 @@ def plot_metric_interactive(
                             const checkpoint = DATA.checkpoints[i];
                             if (!checkpoint) return '';
                             
-                            const maxLabelLength = Math.max(8, Math.floor(innerWidth / DATA.checkpoints.length / 8));
+                            // Calculate available width per label
+                            const labelWidth = innerWidth / DATA.checkpoints.length;
+                            const maxChars = Math.max(8, Math.floor(labelWidth / 8));
                             
-                            if (DATA.checkpoints.length > 20) {{
-                                if (i % 5 !== 0) return '';
-                                return checkpoint.length > maxLabelLength 
-                                    ? checkpoint.substring(0, maxLabelLength - 2) + '...' 
-                                    : checkpoint;
-                            }} else if (DATA.checkpoints.length > 10) {{
+                            if (DATA.checkpoints.length > 15) {{
+                                const interval = DATA.checkpoints.length > 30 ? 5 : 3;
+                                if (i % interval !== 0) return '';
+                            }} else if (DATA.checkpoints.length > 8) {{
                                 if (i % 2 !== 0) return '';
-                                return checkpoint.length > maxLabelLength 
-                                    ? checkpoint.substring(0, maxLabelLength - 2) + '...' 
-                                    : checkpoint;
-                            }} else {{
-                                return checkpoint.length > 8
-                                    ? checkpoint.substring(0, 6) + '...' 
-                                    : checkpoint;
                             }}
+                            
+                            if (checkpoint.length > maxChars) {{
+                                const numMatch = checkpoint.match(/\d+$/);
+                                if (numMatch) {{
+                                    const prefix = checkpoint.substring(0, maxChars - numMatch[0].length - 3);
+                                    return prefix + '...' + numMatch[0];
+                                }} else {{
+                                    return checkpoint.substring(0, maxChars - 3) + '...';
+                                }}
+                            }}
+                            return checkpoint;
                         }}));
                 
                 xAxis.selectAll('text')
@@ -1115,7 +1148,8 @@ def plot_metric_interactive(
                     .attr('dy', '.15em')
                     .attr('transform', 'rotate(-45)')
                     .style('fill', '#9ca3af')
-                    .style('font-size', '10px');
+                    .style('font-size', DATA.checkpoints.length > 20 ? '9px' : '10px')
+                    .style('overflow', 'visible');
                 
                 xAxis.select('.domain').style('stroke', '#333');
                 xAxis.selectAll('.tick line').style('stroke', '#333');
@@ -1123,7 +1157,7 @@ def plot_metric_interactive(
                 // Add x-axis label
                 g.append('text')
                     .attr('x', innerWidth / 2)
-                    .attr('y', innerHeight + margin.bottom - 5)
+                    .attr('y', innerHeight + margin.bottom - 10)
                     .style('text-anchor', 'middle')
                     .style('fill', '#9ca3af')
                     .style('font-size', '12px')
@@ -1131,8 +1165,9 @@ def plot_metric_interactive(
                 
                 const yAxis = g.append('g')
                     .call(d3.axisLeft(yScale)
-                        .tickFormat(d => d3.format('.0%')(d)));
-                
+                    .ticks(5)
+                    .tickFormat(d3.format('.2f'))
+                    );              
                 yAxis.selectAll('text')
                     .style('fill', '#9ca3af')
                     .style('font-size', '11px');
@@ -1293,8 +1328,17 @@ def plot_metric_interactive(
                         .attr('x', 12)
                         .attr('y', 4)
                         .style('fill', '#9ca3af')
-                        .style('font-size', '12px')
-                        .text(metric);
+                        .style('font-size', '11px')
+                        .text(() => {{
+                            // Truncate long metric names
+                            const maxLength = 25;
+                            if (metric.length > maxLength) {{
+                                return metric.substring(0, maxLength - 3) + '...';
+                            }}
+                            return metric;
+                        }})
+                        .append('title')
+                        .text(metric); // Full name on hover
                 }});
                 
             }}, [metrics, data, showPhaseTransitions]);
@@ -1376,6 +1420,11 @@ def plot_metric_interactive(
                     }}
                 }});
                 setOverlayMode(false); // Switch to separate view when manually selecting
+                
+                // Force a re-render of charts after a small delay
+                setTimeout(() => {{
+                    window.dispatchEvent(new Event('resize'));
+                }}, 100);
             }};
             
             const handleSelectAll = () => {{
@@ -1383,6 +1432,11 @@ def plot_metric_interactive(
                 setOverlayMode(true);
                 setDropdownOpen(false);
                 setSubtitle('Visualizing training dynamics across checkpoints');
+                
+                // Force a re-render of charts
+                setTimeout(() => {{
+                    window.dispatchEvent(new Event('resize'));
+                }}, 100);
             }};
             
             // Close dropdown when clicking outside
@@ -1542,7 +1596,7 @@ def plot_metric_interactive(
                         <div className={{`charts-grid ${{getGridClass()}}`}}>
                             {{selectedMetrics.map(metric => (
                                 <Chart
-                                    key={{metric}}
+                                    key={{`${{metric}}-${{selectedMetrics.length}}`}}
                                     metric={{metric}}
                                     data={{DATA.metrics[metric]}}
                                     isExpanded={{expandedMetric === metric}}
