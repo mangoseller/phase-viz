@@ -26,6 +26,7 @@ def plot_metric_interactive(
     values: Sequence[float] = None,
     metric_name: str = None,
     metrics_data: Dict[str, List[float]] = None,
+    all_metrics: bool = False
 ) -> None:
     """Render an interactive line-plot using React and D3.js.
     
@@ -64,7 +65,8 @@ def plot_metric_interactive(
     react_data = {
         "checkpoints": list(checkpoint_names),
         "metrics": metrics_data,
-        "metricsList": list(metrics_data.keys())
+        "metricsList": list(metrics_data.keys()),
+        "startSeparate": all_metrics
     }
     
     # Create output filename
@@ -574,6 +576,7 @@ def plot_metric_interactive(
         
         // Data passed from Python
         const DATA = {json.dumps(react_data)};
+        const START_SEPARATE = DATA.startSeparate; 
         const CLEANUP_PORT = {port};
         
         // Color palette for metrics
@@ -1380,7 +1383,7 @@ def plot_metric_interactive(
             const [expandedMetric, setExpandedMetric] = useState(null);
             const [subtitle, setSubtitle] = useState('Visualizing training dynamics across checkpoints');
             const [dropdownOpen, setDropdownOpen] = useState(false);
-            const [overlayMode, setOverlayMode] = useState(true); // Start with overlay for "All"
+            const [overlayMode, setOverlayMode] = useState(!START_SEPARATE);
             const [showPhaseTransitions, setShowPhaseTransitions] = useState(false);
             
             // Calculate statistics for all metrics

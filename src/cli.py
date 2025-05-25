@@ -7,7 +7,7 @@
 # readme - still to be improved but draft is ok, screenshots, fix math rendering
 # update requirements.txt
 # package it together nicely
-
+# if all don't display all metrics overlayed
 import os
 import typer as t 
 import typing
@@ -99,6 +99,7 @@ def plot_metric(
     This command allows you to select metrics to calculate over checkpoints,
     and then visualizes them in an interactive plot.
     """
+    all_metrics = False
     metrics_file = ""
     logger.info(f"Starting plot-metric command with device={device}, parallel={parallel}")
     
@@ -219,6 +220,7 @@ def plot_metric(
                 # 2)  Add **all** metrics at once
                 # ------------------------------------------------------------------
                 case "all":
+                    all_metrics = True
                     for pretty_name, fn in BUILTIN_METRICS.values():
                         if pretty_name in metrics_to_calculate:
                             logger.info(f"Metric '{pretty_name}' already added, skipping")
@@ -226,6 +228,7 @@ def plot_metric(
                         logger.info(f"Added metric: {pretty_name}")
                         t.secho(f"Added metric: {pretty_name}", fg=t.colors.GREEN)
                         metrics_to_calculate[pretty_name] = fn
+                    break
             
                 # ------------------------------------------------------------------
                 # 3)  Single built-in metric (key matches BUILTIN_METRICS)
@@ -289,7 +292,7 @@ def plot_metric(
             device=device,
             progress_callback=progress_callback,
             parallel=parallel,
-            metrics_file=metrics_file
+            metrics_file=metrics_file,
         )
         logger.info("Successfully computed all metrics")
     except Exception as e:
@@ -329,7 +332,8 @@ def plot_metric(
         with suppress_stdout_stderr():
             plot_metric_interactive(
                 checkpoint_names=checkpoint_names,
-                metrics_data=metrics_data
+                metrics_data=metrics_data,
+                all_metrics=all_metrics
             )
         logger.info("Plot generation completed")
     except Exception as e:
