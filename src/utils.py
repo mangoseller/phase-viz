@@ -12,6 +12,30 @@ import logging
 import logging.handlers
 from pathlib import Path
 from typing import Optional, Set, Tuple
+from inbuilt_metrics import (
+    l2_norm_of_model,
+    weight_entropy_of_model,
+    layer_connectivity_of_model,
+    parameter_variance_of_model,
+    layer_wise_norm_ratio_of_model,
+    activation_capacity_of_model,
+    dead_neuron_percentage_of_model,
+    weight_rank_of_model,
+    gradient_flow_score_of_model,
+    effective_rank_of_model,
+    avg_condition_number_of_model,
+    flatness_proxy_of_model,
+    mean_weight_of_model,
+    weight_skew_of_model,
+    weight_kurtosis_of_model,
+    isotropy_of_model,
+    weight_norm_of_model,
+    spectral_norm_of_model,
+    participation_ratio_of_model,
+    sparsity_of_model,
+    max_activation_of_model
+)
+
 
 # Global set to track HTML files for cleanup
 _temp_html_files: Set[Path] = set()
@@ -320,3 +344,27 @@ def find_interesting_points(values, x_numeric):
             }
             
     return interesting
+
+BUILTIN_METRICS = {
+    "l2":             ("L2 Norm",                 l2_norm_of_model),
+    "entropy":        ("Weight Entropy",          weight_entropy_of_model),
+    "connectivity":   ("Layer Connectivity",      layer_connectivity_of_model),
+    "variance":       ("Parameter Variance",      parameter_variance_of_model),
+    "norm_ratio":     ("Layer Wise Norm Ratio",   layer_wise_norm_ratio_of_model),
+    "capacity":       ("Activation Capacity",     activation_capacity_of_model),
+    "dead_neurons":   ("Dead Neuron Percentage",  dead_neuron_percentage_of_model),
+    "rank":           ("Weight Rank",             weight_rank_of_model),
+    "gradient_flow":  ("Gradient Flow Score",     gradient_flow_score_of_model),
+    "effective_rank": ("Effective Rank",          effective_rank_of_model),
+    "condition":      ("Avg Condition Number",    avg_condition_number_of_model),
+    "flatness":       ("Flatness Proxy",          flatness_proxy_of_model),
+    "mean":           ("Mean Weight",             mean_weight_of_model),
+    "skew":           ("Weight Skew",             weight_skew_of_model),
+    "kurtosis":       ("Weight Kurtosis",         weight_kurtosis_of_model),
+    "isotropy":       ("Isotropy",                isotropy_of_model),
+    "weight_norm":    ("Weight Norm",             weight_norm_of_model),
+    "spectral":       ("Spectral Norm",           spectral_norm_of_model),
+    "participation":  ("Participation Ratio",     participation_ratio_of_model),
+    "sparsity":       ("Sparsity",                sparsity_of_model),
+    "max_activation": ("Max Activation",          max_activation_of_model),
+}

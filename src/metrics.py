@@ -13,17 +13,34 @@ from utils import logger
 import typer as t
 import functools
 import numpy as np
+
+# Import all built-in metrics
+from inbuilt_metrics import (
+    l2_norm_of_model as _l2_norm,
+    weight_entropy_of_model as _weight_entropy,
+    layer_connectivity_of_model as _layer_connectivity,
+    parameter_variance_of_model as _parameter_variance,
+    layer_wise_norm_ratio_of_model as _layer_wise_norm_ratio,
+    activation_capacity_of_model as _activation_capacity,
+    dead_neuron_percentage_of_model as _dead_neuron_percentage,
+    weight_rank_of_model as _weight_rank,
+    gradient_flow_score_of_model as _gradient_flow_score,
+    effective_rank_of_model as _effective_rank,
+    avg_condition_number_of_model as _avg_condition_number,
+    flatness_proxy_of_model as _flatness_proxy,
+    mean_weight_of_model as _mean_weight,
+    weight_skew_of_model as _weight_skew,
+    weight_kurtosis_of_model as _weight_kurtosis,
+    isotropy_of_model as _isotropy,
+    weight_norm_of_model as _weight_norm,
+    spectral_norm_of_model as _spectral_norm,
+    participation_ratio_of_model as _participation_ratio,
+    sparsity_of_model as _sparsity,
+    max_activation_of_model as _max_activation
+)
+
 # Global metric cache for memoization
 _metric_cache = {}
-
-# Import built-in metrics at module level for ProcessPoolExecutor
-def _get_builtin_metrics():
-    """Get built-in metrics that are always available."""
-    return {
-        "L2 Norm": l2_norm_of_model,
-        "Weight Entropy": weight_entropy_of_model,
-        "Layer Connectivity": layer_connectivity_of_model
-    }
 
 def with_memory_optimization(func):
     """
@@ -33,6 +50,12 @@ def with_memory_optimization(func):
     @functools.wraps(func)          # <--- gives the wrapper the *same*
     def wrapper(model, *args, **kw):#      __name__/__qualname__/__module__
         try:
+            # Create cache key for memoization
+            if hasattr(func, '_cache_key_func'):
+                cache_key = func._cache_key_func(model)
+                if cache_key in _metric_cache:
+                    return _metric_cache[cache_key]
+            
             result = func(model, *args, **kw)
 
             # Sync if first param is on CUDA
@@ -40,6 +63,10 @@ def with_memory_optimization(func):
             if first is not None and first.is_cuda:
                 torch.cuda.synchronize()
 
+            # Cache result if cache key exists
+            if hasattr(func, '_cache_key_func'):
+                _metric_cache[cache_key] = result
+                
             return result
         except Exception as e:
             logger.exception("Error calculating metric: %s", e)
@@ -54,101 +81,71 @@ def with_memory_optimization(func):
 
     return wrapper
 
-@with_memory_optimization
-def l2_norm_of_model(model: torch.nn.Module) -> float:
-    """Compute the L2 norm of all *trainable* parameters in a model."""
-    # Gather trainable parameters just once
+# Apply decorator to all imported metrics
+l2_norm_of_model = with_memory_optimization(_l2_norm)
+weight_entropy_of_model = with_memory_optimization(_weight_entropy)
+layer_connectivity_of_model = with_memory_optimization(_layer_connectivity)
+parameter_variance_of_model = with_memory_optimization(_parameter_variance)
+layer_wise_norm_ratio_of_model = with_memory_optimization(_layer_wise_norm_ratio)
+activation_capacity_of_model = with_memory_optimization(_activation_capacity)
+dead_neuron_percentage_of_model = with_memory_optimization(_dead_neuron_percentage)
+weight_rank_of_model = with_memory_optimization(_weight_rank)
+gradient_flow_score_of_model = with_memory_optimization(_gradient_flow_score)
+effective_rank_of_model = with_memory_optimization(_effective_rank)
+avg_condition_number_of_model = with_memory_optimization(_avg_condition_number)
+flatness_proxy_of_model = with_memory_optimization(_flatness_proxy)
+mean_weight_of_model = with_memory_optimization(_mean_weight)
+weight_skew_of_model = with_memory_optimization(_weight_skew)
+weight_kurtosis_of_model = with_memory_optimization(_weight_kurtosis)
+isotropy_of_model = with_memory_optimization(_isotropy)
+weight_norm_of_model = with_memory_optimization(_weight_norm)
+spectral_norm_of_model = with_memory_optimization(_spectral_norm)
+participation_ratio_of_model = with_memory_optimization(_participation_ratio)
+sparsity_of_model = with_memory_optimization(_sparsity)
+max_activation_of_model = with_memory_optimization(_max_activation)
+
+# Add cache key functions for metrics that use caching
+def _l2_cache_key(model):
     trainable_params = [p for p in model.parameters() if p.requires_grad]
-
-    # 1. Handle models with **no** trainable parameters
     if not trainable_params:
-        return 0.0
+        return "l2_norm_empty"
+    return "l2_norm_" + str(hash(tuple(p.sum().item() for p in trainable_params)))
 
-    # 2. Build a stable cache key
-    cache_key = "l2_norm_" + str(
-        hash(tuple(p.sum().item() for p in trainable_params))
-    )
-    if cache_key in _metric_cache:
-        return _metric_cache[cache_key]
-
-    # 3. Compute on the same device as the first parameter
-    device = trainable_params[0].device
-    with torch.no_grad():
-        squared_sum = torch.tensor(0.0, device=device)
-        for p in trainable_params:
-            squared_sum += p.norm(2).pow(2)
-        result = torch.sqrt(squared_sum).item()
-
-    _metric_cache[cache_key] = result
-    return result
-
-
-@with_memory_optimization
-def weight_entropy_of_model(model: torch.nn.Module) -> float:
-    """
-    Compute the Shannon entropy of weight distribution.
-    
-    Higher entropy indicates more uniform weight distribution,
-    lower entropy indicates weights concentrated around specific values.
-    """
+def _entropy_cache_key(model):
     trainable_params = [p for p in model.parameters() if p.requires_grad]
-    
     if not trainable_params:
-        return 0.0
-    
-    # Build cache key
-    cache_key = "weight_entropy_" + str(
-        hash(tuple(p.sum().item() for p in trainable_params))
-    )
-    if cache_key in _metric_cache:
-        return _metric_cache[cache_key]
-    
-    # Collect all weights
-    device = trainable_params[0].device
-    with torch.no_grad():
-        all_weights = torch.cat([p.data.flatten() for p in trainable_params])
-        
-        # Create histogram of weight values
-        num_bins = 100
-        hist, bin_edges = torch.histogram(all_weights, bins=num_bins)
-        
-        # Convert to probabilities
-        hist = hist.float()
-        hist = hist / hist.sum()
-        
-        # Calculate entropy (avoid log(0))
-        epsilon = 1e-10
-        entropy = -(hist * torch.log(hist + epsilon)).sum().item()
-        
-        # Normalize by log(num_bins) to get value between 0 and 1
-        normalized_entropy = entropy / np.log(num_bins)
-    
-    _metric_cache[cache_key] = normalized_entropy
-    return normalized_entropy
+        return "weight_entropy_empty"
+    return "weight_entropy_" + str(hash(tuple(p.sum().item() for p in trainable_params)))
 
+l2_norm_of_model._cache_key_func = _l2_cache_key
+weight_entropy_of_model._cache_key_func = _entropy_cache_key
 
-@with_memory_optimization  
-def layer_connectivity_of_model(model: torch.nn.Module) -> float:
-    """
-    Compute average absolute weight per layer.
-    
-    This metric indicates the average strength of connections in the network.
-    Higher values suggest stronger connections between neurons.
-    """
-    layer_weights = []
-    
-    for name, module in model.named_modules():
-        if isinstance(module, (torch.nn.Linear, torch.nn.Conv2d, torch.nn.Conv1d)):
-            if hasattr(module, 'weight') and module.weight is not None:
-                with torch.no_grad():
-                    avg_weight = module.weight.data.abs().mean().item()
-                    layer_weights.append(avg_weight)
-    
-    if not layer_weights:
-        return 0.0
-    
-    return float(np.mean(layer_weights))
-
+# Import built-in metrics at module level for ProcessPoolExecutor
+def _get_builtin_metrics():
+    """Get built-in metrics that are always available."""
+    return {
+        "L2 Norm": l2_norm_of_model,
+        "Weight Entropy": weight_entropy_of_model,
+        "Layer Connectivity": layer_connectivity_of_model,
+        "Parameter Variance": parameter_variance_of_model,
+        "Layer Wise Norm Ratio": layer_wise_norm_ratio_of_model,
+        "Activation Capacity": activation_capacity_of_model,
+        "Dead Neuron Percentage": dead_neuron_percentage_of_model,
+        "Weight Rank": weight_rank_of_model,
+        "Gradient Flow Score": gradient_flow_score_of_model,
+        "Effective Rank": effective_rank_of_model,
+        "Avg Condition Number": avg_condition_number_of_model,
+        "Flatness Proxy": flatness_proxy_of_model,
+        "Mean Weight": mean_weight_of_model,
+        "Weight Skew": weight_skew_of_model,
+        "Weight Kurtosis": weight_kurtosis_of_model,
+        "Isotropy": isotropy_of_model,
+        "Weight Norm": weight_norm_of_model,
+        "Spectral Norm": spectral_norm_of_model,
+        "Participation Ratio": participation_ratio_of_model,
+        "Sparsity": sparsity_of_model,
+        "Max Activation": max_activation_of_model
+    }
 
 
 def compute_metric_batch(

@@ -95,9 +95,167 @@ where $p_i$ is the probability of weights falling in bin $i$. Higher entropy ind
 
 Measures the average absolute weight per layer:
 
-$$C = \frac{1}{L} \sum_{l=1}^{L} \frac{1}{N_l} \sum_{i,j} |w_{ij}^{(l)}|$$
+$$C = \frac{1}{L} \sum_{l=1}^{L} \text{mean}(|W^{(l)}|)$$
 
-where $L$ is the number of layers and $N_l$ is the number of parameters in layer $l$. This metric indicates the average strength of connections in the network.
+where $L$ is the number of layers and $W^{(l)}$ represents the weights in layer $l$. This metric indicates the average strength of connections in the network.
+
+### Parameter Variance
+**Command:** `variance`
+
+Computes the variance of all trainable parameters:
+
+$$\text{Var}(W) = \frac{1}{N} \sum_{i=1}^{N} (w_i - \bar{w})^2$$
+
+where $\bar{w}$ is the mean weight. This metric helps track how spread out the parameter values are.
+
+### Layer Wise Norm Ratio
+**Command:** `norm_ratio`
+
+Computes the ratio of norms between first and last layers:
+
+$$R = \frac{\|W_{\text{last}}\|_2}{\|W_{\text{first}}\|_2}$$
+
+This can help identify gradient vanishing/exploding issues. Values much larger or smaller than 1 may indicate problems.
+
+### Activation Capacity
+**Command:** `capacity`
+
+Estimates the model's activation capacity based on layer dimensions:
+
+$$C = \sum_{\text{layers}} \log(d_{\text{out}} + 1)$$
+
+where $d_{\text{out}}$ is the output dimension of each layer. This is a proxy for the model's representational capacity.
+
+### Dead Neuron Percentage
+**Command:** `dead_neurons`
+
+Estimates percentage of "dead" neurons (near-zero weights):
+
+$$D = \frac{|\{w : |w| < \epsilon\}|}{|W|} \times 100\%$$
+
+where $\epsilon = 10^{-6}$. This can indicate over-regularization or training issues.
+
+### Weight Rank
+**Command:** `rank`
+
+Computes average effective rank of weight matrices using entropy:
+
+$$\text{EffRank}(W) = \exp\left(-\sum_{i} \frac{s_i}{\sum_j s_j} \log\left(\frac{s_i}{\sum_j s_j}\right)\right)$$
+
+where $s_i$ are the singular values. Lower rank might indicate redundancy in the model.
+
+### Gradient Flow Score
+**Command:** `gradient_flow`
+
+Computes a score representing potential gradient flow quality:
+
+$$\text{GFS} = \frac{1}{N} \sum_{i=1}^{N} \frac{1}{1 + |\sigma_i - \sigma_{\text{expected}}|}$$
+
+where $\sigma_i$ is the standard deviation of layer $i$ and $\sigma_{\text{expected}}$ is based on Xavier/He initialization.
+
+### Effective Rank
+**Command:** `effective_rank`
+
+Computes the average effective rank of all weight matrices using entropy of singular values:
+
+$$\text{EffRank}(W) = \exp(H(s))$$
+
+where $H(s)$ is the entropy of normalized singular values.
+
+### Average Condition Number
+**Command:** `condition`
+
+Computes the average condition number of weight matrices:
+
+$$\kappa = \frac{\sigma_{\max}}{\sigma_{\min}}$$
+
+High condition numbers indicate potential numerical instability.
+
+### Flatness Proxy
+**Command:** `flatness`
+
+Computes a proxy for loss landscape flatness:
+
+$$F = \|W\|_F \times \|W\|_2$$
+
+where $\|W\|_F$ is the Frobenius norm and $\|W\|_2$ is the spectral norm.
+
+### Mean Weight
+**Command:** `mean`
+
+Computes the mean of all trainable weights:
+
+$$\bar{w} = \frac{1}{N} \sum_{i=1}^{N} w_i$$
+
+Useful for detecting weight drift or bias.
+
+### Weight Skew
+**Command:** `skew`
+
+Computes the skewness of weight distribution:
+
+$$\text{Skew}(W) = \frac{\mathbb{E}\left[(W - \mu)^3\right]}{\sigma^3}$$
+
+Measures asymmetry of weight distribution.
+
+### Weight Kurtosis
+**Command:** `kurtosis`
+
+Computes the kurtosis of weight distribution:
+
+$$\text{Kurt}(W) = \frac{\mathbb{E}\left[(W - \mu)^4\right]}{\sigma^4}$$
+
+Measures the "tailedness" of weight distribution.
+
+### Isotropy
+**Command:** `isotropy`
+
+Computes the isotropy of weight matrices:
+
+$$I = \frac{\text{tr}(W W^\top)^2}{\|W W^\top\|_F^2}$$
+
+Values closer to 1 indicate more isotropic (uniform) distributions.
+
+### Weight Norm
+**Command:** `weight_norm`
+
+Computes the Frobenius norm of all trainable parameters:
+
+$$\|W\|_F = \sqrt{\sum_{i,j} w_{ij}^2}$$
+
+### Spectral Norm
+**Command:** `spectral`
+
+Computes the maximum singular value across all weight matrices:
+
+$$\|W\|_2 = \sigma_{\max}(W)$$
+
+### Participation Ratio
+**Command:** `participation`
+
+Computes the participation ratio of all trainable parameters:
+
+$$PR = \frac{\left(\sum_i w_i^2\right)^2}{\sum_i w_i^4}$$
+
+Higher values indicate more even distribution of weights.
+
+### Sparsity
+**Command:** `sparsity`
+
+Computes the fraction of near-zero parameters:
+
+$$S = \frac{|\{w : |w| < \epsilon\}|}{|W|}$$
+
+where $\epsilon = 10^{-3}$.
+
+### Max Activation
+**Command:** `max_activation`
+
+Estimates the maximum potential activation:
+
+$$A_{\max} = \max_{l} \max_{i,j} |w_{ij}^{(l)}|$$
+
+This is a proxy that looks at weight magnitudes across all layers.
 
 ## Custom Metrics
 

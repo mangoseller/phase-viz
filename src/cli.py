@@ -1,12 +1,12 @@
 # TODO:
-# There are some nice metrics here in geo_met_test - should move them, along with those in custom_metrics.py to another file and import them for cleanliness
 # need to also clean up slop
-# fix x-axis cut off, maybe think about width/margin
+# fix x-axis cut off, maybe think about width/margin, click plot - full screen just that metric
 # ensure differing architectures can be loaded
 # get good models to test with 
 # bughunt
 # readme - still to be improved but draft is ok, screenshots, fix math rendering
-
+# update requirements.txt
+# package it together nicely
 
 import os
 import typer as t 
@@ -18,22 +18,17 @@ import inspect
 import threading
 from pathlib import Path
 import torch
-
+from metrics import (import_metric_functions, compute_metrics_over_checkpoints, clear_metric_cache)
 sys.path.append(os.path.dirname(__file__))
 from load_models import load_model_class, contains_checkpoints, clear_model_cache
 from state import load_state, save_state
-from metrics import (
-    l2_norm_of_model,
-    compute_metrics_over_checkpoints,
-    import_metric_functions,
-    clear_metric_cache,
-    weight_entropy_of_model,
-    layer_connectivity_of_model,
-    
-)
+
+
+
+
 from generate_plot import plot_metric_interactive
 from loading import SimpleLoadingAnimation
-from utils import suppress_stdout_stderr, logger
+from utils import suppress_stdout_stderr, logger, BUILTIN_METRICS
 
 # Initialize typer app
 app = t.Typer(no_args_is_help=False)
@@ -195,48 +190,65 @@ def plot_metric(
                 _err(f"Failed importing metric functions from {path}: {e}")
         else:
             # Look for built-in metrics
-            match raw.lower():
+            match raw.lower(): #TODO: Add all flag
                 case "metrics":
                     t.secho("\nAvailable built-in metrics:", fg=t.colors.CYAN, bold=True)
                     t.secho("• L2 Norm (l2) - L2 norm of all trainable parameters", fg=t.colors.CYAN)
                     t.secho("• Weight Entropy (entropy) - Shannon entropy of weight distribution", fg=t.colors.CYAN)
                     t.secho("• Layer Connectivity (connectivity) - Average absolute weight per layer", fg=t.colors.CYAN)
+                    t.secho("• Parameter Variance (variance) - Variance of all trainable parameters", fg=t.colors.CYAN)
+                    t.secho("• Layer Wise Norm Ratio (norm_ratio) - Ratio of norms between first and last layers", fg=t.colors.CYAN)
+                    t.secho("• Activation Capacity (capacity) - Model's representational capacity", fg=t.colors.CYAN)
+                    t.secho("• Dead Neuron Percentage (dead_neurons) - Percentage of near-zero weights", fg=t.colors.CYAN)
+                    t.secho("• Weight Rank (rank) - Average effective rank of weight matrices", fg=t.colors.CYAN)
+                    t.secho("• Gradient Flow Score (gradient_flow) - Gradient flow quality score", fg=t.colors.CYAN)
+                    t.secho("• Effective Rank (effective_rank) - Effective rank using entropy of singular values", fg=t.colors.CYAN)
+                    t.secho("• Avg Condition Number (condition) - Average condition number of weight matrices", fg=t.colors.CYAN)
+                    t.secho("• Flatness Proxy (flatness) - Proxy for loss landscape flatness", fg=t.colors.CYAN)
+                    t.secho("• Mean Weight (mean) - Mean of all trainable weights", fg=t.colors.CYAN)
+                    t.secho("• Weight Skew (skew) - Skewness of weight distribution", fg=t.colors.CYAN)
+                    t.secho("• Weight Kurtosis (kurtosis) - Kurtosis of weight distribution", fg=t.colors.CYAN)
+                    t.secho("• Isotropy (isotropy) - Isotropy of weight matrices", fg=t.colors.CYAN)
+                    t.secho("• Weight Norm (weight_norm) - Frobenius norm of all trainable parameters", fg=t.colors.CYAN)
+                    t.secho("• Spectral Norm (spectral) - Maximum singular value across weight matrices", fg=t.colors.CYAN)
+                    t.secho("• Participation Ratio (participation) - How evenly distributed weight values are", fg=t.colors.CYAN)
+                    t.secho("• Sparsity (sparsity) - Fraction of near-zero parameters", fg=t.colors.CYAN)
+                    t.secho("• Max Activation (max_activation) - Maximum potential activation", fg=t.colors.CYAN)
                     t.secho("\nYou can also provide a .py file with custom metrics ending in '_of_model'", fg=t.colors.YELLOW)
-                case "l2":
-                    if "L2 Norm" in metrics_to_calculate:
-                        logger.info("L2 Norm already added, skipping")
-                        t.secho("Metric 'L2 Norm' already added. Skipping.", fg=t.colors.YELLOW)
+                # ------------------------------------------------------------------
+                # 2)  Add **all** metrics at once
+                # ------------------------------------------------------------------
+                case "all":
+                    for pretty_name, fn in BUILTIN_METRICS.values():
+                        if pretty_name in metrics_to_calculate:
+                            logger.info(f"Metric '{pretty_name}' already added, skipping")
+                            continue
+                        logger.info(f"Added metric: {pretty_name}")
+                        t.secho(f"Added metric: {pretty_name}", fg=t.colors.GREEN)
+                        metrics_to_calculate[pretty_name] = fn
+            
+                # ------------------------------------------------------------------
+                # 3)  Single built-in metric (key matches BUILTIN_METRICS)
+                # ------------------------------------------------------------------
+                case key if key in BUILTIN_METRICS:
+                    pretty_name, fn = BUILTIN_METRICS[key]
+                    if pretty_name in metrics_to_calculate:
+                        logger.info(f"Metric '{pretty_name}' already added, skipping")
+                        t.secho(f"Metric '{pretty_name}' already added. Skipping.",
+                                fg=t.colors.YELLOW)
                         continue
-                    
-                    logger.info("Added metric: L2 Norm")
-                    t.secho("Added metric: {0}".format(
-                        "L2 Norm"), fg=t.colors.GREEN)
-                    metrics_to_calculate["L2 Norm"] = l2_norm_of_model
-                case "entropy":
-                    if "Weight Entropy" in metrics_to_calculate:
-                        logger.info("Weight Entropy already added, skipping")
-                        t.secho("Metric 'Weight Entropy' already added. Skipping.", fg=t.colors.YELLOW)
-                        continue
-                    
-                    logger.info("Added metric: Weight Entropy")
-                    t.secho("Added metric: {0}".format(
-                        "Weight Entropy"), fg=t.colors.GREEN)
-                    metrics_to_calculate["Weight Entropy"] = weight_entropy_of_model
-                case "connectivity":
-                    if "Layer Connectivity" in metrics_to_calculate:
-                        logger.info("Layer Connectivity already added, skipping")
-                        t.secho("Metric 'Layer Connectivity' already added. Skipping.", fg=t.colors.YELLOW)
-                        continue
-                    
-                    logger.info("Added metric: Layer Connectivity")
-                    t.secho("Added metric: {0}".format(
-                        "Layer Connectivity"), fg=t.colors.GREEN)
-                    metrics_to_calculate["Layer Connectivity"] = layer_connectivity_of_model
+                    logger.info(f"Added metric: {pretty_name}")
+                    t.secho(f"Added metric: {pretty_name}", fg=t.colors.GREEN)
+                    metrics_to_calculate[pretty_name] = fn
+            
+                # ------------------------------------------------------------------
+                # 4)  Fallback: unknown keyword
+                # ------------------------------------------------------------------
                 case _:
                     logger.warning(f"Unknown metric: {raw}")
-                    t.secho(f"{raw} is not an inbuilt metric. For a list of available metrics, enter 'metrics'.", fg=t.colors.RED)
-                    continue
-    
+                    t.secho(f"{raw} is not an in-built metric. For a list of available "
+                            "metrics, enter 'metrics'.", fg=t.colors.RED)
+                
     
     logger.info(f"Starting calculation of {len(metrics_to_calculate)} metrics across {len(checkpoints)} checkpoints")
     t.secho(f"\nCalculating {len(metrics_to_calculate)} metrics across {len(checkpoints)} checkpoints...", 
