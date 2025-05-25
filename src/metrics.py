@@ -8,7 +8,8 @@ import inspect
 import sys
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 import multiprocessing as mp
-from load_models import load_model_from_checkpoint, clear_model_cache
+import load_models
+from load_models import *
 from utils import logger
 import typer as t
 import functools
@@ -49,7 +50,7 @@ def with_memory_optimization(func):
     breaking picklability.
     """
     @functools.wraps(func)         
-    def wrapper(model, *args, **kw):#      
+    def wrapper(model, *args, **kw):  
         try:
             # Create cache key for memoization
             if hasattr(func, '_cache_key_func'):

@@ -3405,3 +3405,604 @@ NameError: name 'np' is not defined
 2025-05-25 16:51:12,598 - phase-viz - INFO - plot_metric_interactive:1827 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_165112_wx664pnb.html
 2025-05-25 16:52:27,485 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
 2025-05-25 16:52:27,485 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_165112_wx664pnb.html
+2025-05-25 17:19:01,073 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-25 17:19:01,073 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-25 17:19:01,073 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-25 17:19:01,215 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-25 17:19:01,215 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-25 17:19:02,341 - phase-viz - INFO - plot_metric:130 - User input: allall
+2025-05-25 17:19:02,341 - phase-viz - WARNING - plot_metric:218 - Unknown metric: allall
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-25 17:19:03,643 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-25 17:19:03,644 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-25 17:19:03,644 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-25 17:19:03,644 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-25 17:19:03,644 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-25 17:19:03,644 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-25 17:19:03,644 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-25 17:19:03,644 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-25 17:19:03,644 - phase-viz - INFO - compute_metrics_over_checkpoints:318 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-25 17:19:03,690 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_models' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_models._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^^
+NameError: name 'load_models' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_models' is not defined
+2025-05-25 17:19:03,691 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_models' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_models._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^^
+NameError: name 'load_models' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_models' is not defined
+2025-05-25 17:19:03,692 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_models' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_models._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^^
+NameError: name 'load_models' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_models' is not defined
+2025-05-25 17:19:03,692 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_models' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_models._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^^
+NameError: name 'load_models' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_models' is not defined
+2025-05-25 17:19:03,702 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-25 17:19:03,744 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-25 17:19:03,745 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-25 17:19:03,745 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-25 17:19:03,745 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_171903_d7f52xdl.html
+2025-05-25 17:19:03,745 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_171903_d7f52xdl.html
+2025-05-25 17:19:03,745 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_171903_d7f52xdl.html
+2025-05-25 17:19:03,746 - phase-viz - INFO - plot_metric_interactive:1827 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_171903_d7f52xdl.html
+2025-05-25 17:20:31,535 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
+2025-05-25 17:20:31,536 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_171903_d7f52xdl.html
+2025-05-25 17:20:34,762 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-25 17:20:34,763 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-25 17:20:34,763 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-25 17:20:34,903 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-25 17:20:34,904 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-25 17:20:37,169 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-25 17:20:37,169 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-25 17:20:37,169 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-25 17:20:37,169 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-25 17:20:37,169 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-25 17:20:37,169 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-25 17:20:37,169 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-25 17:20:37,170 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-25 17:20:37,170 - phase-viz - INFO - compute_metrics_over_checkpoints:318 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-25 17:20:37,210 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_model' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_model._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^
+NameError: name 'load_model' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_model' is not defined
+2025-05-25 17:20:37,211 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_model' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_model._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^
+NameError: name 'load_model' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_model' is not defined
+2025-05-25 17:20:37,211 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_model' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_model._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^
+NameError: name 'load_model' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_model' is not defined
+2025-05-25 17:20:37,211 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_model' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_model._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^
+NameError: name 'load_model' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_model' is not defined
+2025-05-25 17:20:37,222 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-25 17:20:37,271 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-25 17:20:37,276 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-25 17:20:37,277 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-25 17:20:37,277 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172037_qm6jwu9x.html
+2025-05-25 17:20:37,277 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172037_qm6jwu9x.html
+2025-05-25 17:20:37,277 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172037_qm6jwu9x.html
+2025-05-25 17:20:37,278 - phase-viz - INFO - plot_metric_interactive:1827 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172037_qm6jwu9x.html
+2025-05-25 17:20:38,157 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172037_qm6jwu9x.html
+2025-05-25 17:20:38,157 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172037_qm6jwu9x.html
+2025-05-25 17:20:38,158 - phase-viz - INFO - plot_metric_interactive:1836 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172037_qm6jwu9x.html
+2025-05-25 17:20:38,158 - phase-viz - INFO - plot_metric:284 - Plot generation completed
+2025-05-25 17:23:49,111 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-25 17:23:49,112 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-25 17:23:49,112 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-25 17:23:49,250 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-25 17:23:49,250 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-25 17:23:50,110 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-25 17:23:50,111 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-25 17:23:50,111 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-25 17:23:50,111 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-25 17:23:50,111 - phase-viz - INFO - compute_metrics_over_checkpoints:318 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-25 17:23:50,149 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_model' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_model._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^
+NameError: name 'load_model' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_model' is not defined
+2025-05-25 17:23:50,149 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_model' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_model._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^
+NameError: name 'load_model' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_model' is not defined
+2025-05-25 17:23:50,150 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_model' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_model._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^
+NameError: name 'load_model' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_model' is not defined
+2025-05-25 17:23:50,150 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_model' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_model._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^
+NameError: name 'load_model' is not defined
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_model' is not defined
+2025-05-25 17:23:50,160 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-25 17:23:50,211 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-25 17:23:50,211 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-25 17:23:50,211 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-25 17:23:50,212 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172350_z4oobshr.html
+2025-05-25 17:23:50,212 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172350_z4oobshr.html
+2025-05-25 17:23:50,212 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172350_z4oobshr.html
+2025-05-25 17:23:50,212 - phase-viz - INFO - plot_metric_interactive:1827 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172350_z4oobshr.html
+2025-05-25 17:24:18,771 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
+2025-05-25 17:24:18,772 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172350_z4oobshr.html
+2025-05-25 17:24:22,446 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-25 17:24:22,447 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-25 17:24:22,447 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-25 17:24:22,589 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-25 17:24:22,589 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-25 17:24:24,315 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-25 17:24:24,316 - phase-viz - INFO - compute_metrics_over_checkpoints:318 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-25 17:24:24,355 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_models' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_models._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^^
+NameError: name 'load_models' is not defined. Did you mean: 'load_model_class'?
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_models' is not defined
+2025-05-25 17:24:24,356 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_models' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_models._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^^
+NameError: name 'load_models' is not defined. Did you mean: 'load_model_class'?
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_models' is not defined
+2025-05-25 17:24:24,356 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_models' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_models._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^^
+NameError: name 'load_models' is not defined. Did you mean: 'load_model_class'?
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_models' is not defined
+2025-05-25 17:24:24,356 - phase-viz - ERROR - compute_metrics_over_checkpoints:347 - Error in parallel processing: name 'load_models' is not defined
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 193, in _process_checkpoint_cpu
+    if load_models._model_class is None:      # ❷ check the live value
+       ^^^^^^^^^^^
+NameError: name 'load_models' is not defined. Did you mean: 'load_model_class'?
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 330, in compute_metrics_over_checkpoints
+    result = future.result()
+             ^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/anaconda3/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+NameError: name 'load_models' is not defined
+2025-05-25 17:24:24,366 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-25 17:24:24,416 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-25 17:24:24,416 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-25 17:24:24,416 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-25 17:24:24,416 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172424_xqz2dm3b.html
+2025-05-25 17:24:24,417 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172424_xqz2dm3b.html
+2025-05-25 17:24:24,417 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172424_xqz2dm3b.html
+2025-05-25 17:24:24,417 - phase-viz - INFO - plot_metric_interactive:1827 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172424_xqz2dm3b.html
+2025-05-25 17:24:25,144 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172424_xqz2dm3b.html
+2025-05-25 17:24:25,144 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172424_xqz2dm3b.html
+2025-05-25 17:24:25,145 - phase-viz - INFO - plot_metric_interactive:1836 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172424_xqz2dm3b.html
+2025-05-25 17:24:25,145 - phase-viz - INFO - plot_metric:284 - Plot generation completed
+2025-05-25 17:24:59,283 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-25 17:24:59,284 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-25 17:24:59,284 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-25 17:24:59,423 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-25 17:24:59,423 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-25 17:25:00,603 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-25 17:25:00,603 - phase-viz - INFO - compute_metrics_over_checkpoints:319 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-25 17:25:06,817 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-25 17:25:06,843 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-25 17:25:06,844 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-25 17:25:06,844 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-25 17:25:06,844 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172506_ntuw762y.html
+2025-05-25 17:25:06,844 - phase-viz - INFO - start:240 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172506_ntuw762y.html
+2025-05-25 17:25:06,844 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172506_ntuw762y.html
+2025-05-25 17:25:06,845 - phase-viz - INFO - plot_metric_interactive:1827 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172506_ntuw762y.html
+2025-05-25 17:26:19,499 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
+2025-05-25 17:26:19,500 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_172506_ntuw762y.html
