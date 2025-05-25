@@ -13,6 +13,7 @@ from utils import logger
 import typer as t
 import functools
 import numpy as np
+from state import load_state
 
 # Import all built-in metrics
 from inbuilt_metrics import (
@@ -47,8 +48,8 @@ def with_memory_optimization(func):
     Decorator that adds GPU-sync / cache-clear without
     breaking picklability.
     """
-    @functools.wraps(func)          # <--- gives the wrapper the *same*
-    def wrapper(model, *args, **kw):#      __name__/__qualname__/__module__
+    @functools.wraps(func)         
+    def wrapper(model, *args, **kw):#      
         try:
             # Create cache key for memoization
             if hasattr(func, '_cache_key_func'):
@@ -182,12 +183,8 @@ def compute_metric_batch(
         except Exception as e:
             logger.exception(f"Error calculating {name}: {e}")
             results[name] = float('nan')
-    
-    # No need to delete model explicitly - Python's garbage collection will handle it
     return results
 
-import load_models
-from state import load_state
 def _process_checkpoint_cpu(args):  
     """
     args: (idx, path, metric_names, device, metrics_file)
@@ -258,7 +255,6 @@ def compute_metrics_over_checkpoints(
     
     # Determine if we're using GPU
     using_gpu = device.startswith("cuda")
-    
     results = {name: [None] * len(checkpoints) for name in metric_functions}
     
     # Track progress
@@ -274,12 +270,10 @@ def compute_metrics_over_checkpoints(
             checkpoint_name = os.path.basename(path)
             checkpoint_results = compute_metric_batch(metric_functions, path, device)
             
-            # Store results and update progress info
             for name, value in checkpoint_results.items():
                 results[name][idx] = value
                 metrics_progress[name]["completed"] += 1
             
-                
             if progress_callback:
                 progress_info = {
                     "current": idx + 1,
@@ -297,8 +291,8 @@ def compute_metrics_over_checkpoints(
     
     if parallel and len(checkpoints) > 1:
         if using_gpu:
-            # Use ThreadPoolExecutor for GPU
-            max_workers = min(len(checkpoints), 4)  # Limit threads on GPU
+            # ThreadPoolExecutor for GPU
+            max_workers = min(len(checkpoints), 4)  
             executor_type = "threads"
             
             # Print info about execution
@@ -320,11 +314,9 @@ def compute_metrics_over_checkpoints(
             # Use ProcessPoolExecutor for CPU
             max_workers = min(len(checkpoints), mp.cpu_count() or 4)
             
-            # Print info about execution
             t.secho(f"\nCreated {max_workers} processes on CPU", fg=t.colors.BLUE)
             logger.info(f"Using ProcessPoolExecutor with {max_workers} processes on CPU")
             
-            # Prepare arguments for multiprocessing
             args_list = [
                 (i, p, list(metric_functions.keys()), device, metrics_file)  
                 for i, p in enumerate(checkpoints)
@@ -337,13 +329,11 @@ def compute_metrics_over_checkpoints(
                     try:
                         result = future.result()
                         idx = result['idx']
-                        
-                        # Store results
+
                         for name, value in result['results'].items():
                             results[name][idx] = value
                             metrics_progress[name]["completed"] += 1
-                        
-                        # Report progress
+
                         if progress_callback:
                             progress_info = {
                                 "current": idx + 1,
@@ -356,7 +346,7 @@ def compute_metrics_over_checkpoints(
                     except Exception as e:
                         logger.exception(f"Error in parallel processing: {e}")
     else:
-        # Sequential processing
+        
         t.secho("Processing checkpoints sequentially", fg=t.colors.BLUE)
         logger.info("Processing checkpoints sequentially")
         
@@ -387,10 +377,8 @@ def compute_metrics_over_checkpoints(
             except Exception as e:
                 logger.exception(f"Error processing checkpoint {path}: {e}")
                 # Continue with other checkpoints even if one fails
-    
     # Clean up the model cache to free memory
-    clear_model_cache()
-    
+    clear_model_cache()  
     return results
 
 
@@ -443,7 +431,6 @@ def clear_metric_cache():
     """Clear the metric cache to free memory."""
     global _metric_cache
     _metric_cache = {}
-
 
 __all__ = ["compute_metrics_over_checkpoints", "l2_norm_of_model", 
            "import_metric_functions", "clear_metric_cache"]

@@ -26,7 +26,7 @@ def plot_metric_interactive(
     values: Sequence[float] = None,
     metric_name: str = None,
     metrics_data: Dict[str, List[float]] = None,
-    all_metrics: bool = False
+    many_metrics=False
 ) -> None:
     """Render an interactive line-plot using React and D3.js.
     
@@ -66,7 +66,7 @@ def plot_metric_interactive(
         "checkpoints": list(checkpoint_names),
         "metrics": metrics_data,
         "metricsList": list(metrics_data.keys()),
-        "startSeparate": all_metrics
+        "startSeparate": many_metrics
     }
     
     # Create output filename
@@ -352,6 +352,8 @@ def plot_metric_interactive(
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }}
         
         .chart-title {{
@@ -518,6 +520,13 @@ def plot_metric_interactive(
             gap: 0.5rem;
             font-size: 0.875rem;
             color: #9ca3af;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }}
+        
+        .legend-item:hover {{
+            background: rgba(255, 255, 255, 0.05);
         }}
         
         .legend-color {{
@@ -576,7 +585,7 @@ def plot_metric_interactive(
         
         // Data passed from Python
         const DATA = {json.dumps(react_data)};
-        const START_SEPARATE = DATA.startSeparate; 
+        const START_SEPARATE= DATA.startSeparate;
         const CLEANUP_PORT = {port};
         
         // Color palette for metrics
@@ -756,42 +765,48 @@ def plot_metric_interactive(
                             const checkpoint = DATA.checkpoints[i];
                             if (!checkpoint) return '';
                             
-                            // Calculate available width per label
-                            const labelWidth = innerWidth / DATA.checkpoints.length;
-                            const maxChars = Math.max(8, Math.floor(labelWidth / 8)); // Approx 8px per char
-                            
-                            // Smart display based on number of checkpoints
-                            if (DATA.checkpoints.length > 15) {{
-                                // For many checkpoints, show every 3rd or 5th
-                                const interval = DATA.checkpoints.length > 30 ? 5 : 3;
-                                if (i % interval !== 0) return '';
-                            }} else if (DATA.checkpoints.length > 8) {{
-                                // Show every other label
-                                if (i % 2 !== 0) return '';
-                            }}
-                            
-                            // Truncate long names intelligently
-                            if (checkpoint.length > maxChars) {{
-                                // Try to keep important parts (numbers at end)
-                                const numMatch = checkpoint.match(/\d+$/);
-                                if (numMatch) {{
-                                    const prefix = checkpoint.substring(0, maxChars - numMatch[0].length - 3);
-                                    return prefix + '...' + numMatch[0];
-                                }} else {{
-                                    return checkpoint.substring(0, maxChars - 3) + '...';
-                                }}
-                            }}
-                            return checkpoint;
+                            // Use simple checkpoint numbers
+                            return `CP${{i + 1}}`;
                         }}));
                 
                 xAxis.selectAll('text')
-                    .style('text-anchor', 'end')
-                    .attr('dx', '-.8em')
-                    .attr('dy', '.15em')
-                    .attr('transform', 'rotate(-45)')
+                    .style('text-anchor', 'middle')
                     .style('fill', '#9ca3af')
-                    .style('font-size', DATA.checkpoints.length > 20 ? '9px' : '11px')
-                    .style('overflow', 'visible');
+                    .style('font-size', '11px')
+                    .style('cursor', 'pointer')
+                    .each(function(d, i) {{
+                        const text = d3.select(this);
+                        const checkpointName = DATA.checkpoints[d];
+                        if (checkpointName) {{
+                            // Add hover effect to show full name
+                            text.on('mouseenter', function() {{
+                                text.text(checkpointName)
+                                    .style('font-weight', '600')
+                                    .style('fill', '#f3f4f6');
+                                
+                                // Adjust position if text is too long
+                                const bbox = this.getBBox();
+                                if (bbox.width > 100) {{
+                                    text.style('text-anchor', 'end')
+                                        .attr('dx', '-.8em')
+                                        .attr('dy', '.15em')
+                                        .attr('transform', 'rotate(-45)');
+                                }}
+                            }})
+                            .on('mouseleave', function() {{
+                                text.text(`CP${{d + 1}}`)
+                                    .style('font-weight', 'normal')
+                                    .style('fill', '#9ca3af')
+                                    .style('text-anchor', 'middle')
+                                    .attr('dx', null)
+                                    .attr('dy', null)
+                                    .attr('transform', null);
+                            }});
+                            
+                            // Add title for tooltip
+                            text.append('title').text(checkpointName);
+                        }}
+                    }});
                 
                 xAxis.select('.domain').style('stroke', '#333');
                 xAxis.selectAll('.tick line').style('stroke', '#333');
@@ -950,7 +965,11 @@ def plot_metric_interactive(
             return (
                 <div 
                     className={{`chart-wrapper ${{isExpanded ? 'expanded' : ''}}`}}
-                    onClick={{() => !isExpanded && onToggleExpand()}}
+                    onClick={{() => {{
+                        if (!isExpanded && onToggleExpand) {{
+                            onToggleExpand();
+                        }}
+                    }}}}
                 >
                     <div className="chart-header">
                         <h3 className="chart-title">{{metric}}</h3>
@@ -1001,14 +1020,19 @@ def plot_metric_interactive(
                             }}}}
                         >
                             <div className="tooltip-title">{{hoveredPoint.checkpoint}}</div>
-                            <div className="tooltip-value">Value: {{hoveredPoint.value.toFixed(6)}}</div>
+                            <div className="tooltip-value">
+                                Value: {{hoveredPoint.value.toFixed(6)}}
+                            </div>
+                            <div className="tooltip-value" style={{{{ fontSize: '0.75rem', marginTop: '0.25rem', color: '#9ca3af' }}}}>
+                                (Checkpoint {{DATA.checkpoints.indexOf(hoveredPoint.checkpoint) + 1}})
+                            </div>
                         </div>
                     )}}
                 </div>
             );
         }}
         
-        function OverlayChart({{ metrics, data, showPhaseTransitions }}) {{
+        function OverlayChart({{ metrics, data, showPhaseTransitions, onMetricClick }}) {{
             const svgRef = useRef(null);
             const containerRef = useRef(null);
             const [hoveredLine, setHoveredLine] = useState(null);
@@ -1121,38 +1145,47 @@ def plot_metric_interactive(
                         .tickFormat(i => {{
                             const checkpoint = DATA.checkpoints[i];
                             if (!checkpoint) return '';
-                            
-                            // Calculate available width per label
-                            const labelWidth = innerWidth / DATA.checkpoints.length;
-                            const maxChars = Math.max(8, Math.floor(labelWidth / 8));
-                            
-                            if (DATA.checkpoints.length > 15) {{
-                                const interval = DATA.checkpoints.length > 30 ? 5 : 3;
-                                if (i % interval !== 0) return '';
-                            }} else if (DATA.checkpoints.length > 8) {{
-                                if (i % 2 !== 0) return '';
-                            }}
-                            
-                            if (checkpoint.length > maxChars) {{
-                                const numMatch = checkpoint.match(/\d+$/);
-                                if (numMatch) {{
-                                    const prefix = checkpoint.substring(0, maxChars - numMatch[0].length - 3);
-                                    return prefix + '...' + numMatch[0];
-                                }} else {{
-                                    return checkpoint.substring(0, maxChars - 3) + '...';
-                                }}
-                            }}
-                            return checkpoint;
+                            return `CP${{i + 1}}`;
                         }}));
                 
                 xAxis.selectAll('text')
-                    .style('text-anchor', 'end')
-                    .attr('dx', '-.8em')
-                    .attr('dy', '.15em')
-                    .attr('transform', 'rotate(-45)')
+                    .style('text-anchor', 'middle')
                     .style('fill', '#9ca3af')
-                    .style('font-size', DATA.checkpoints.length > 20 ? '9px' : '10px')
-                    .style('overflow', 'visible');
+                    .style('font-size', '10px')
+                    .style('cursor', 'pointer')
+                    .each(function(d, i) {{
+                        const text = d3.select(this);
+                        const checkpointName = DATA.checkpoints[d];
+                        if (checkpointName) {{
+                            // Add hover effect to show full name
+                            text.on('mouseenter', function() {{
+                                text.text(checkpointName)
+                                    .style('font-weight', '600')
+                                    .style('fill', '#f3f4f6');
+                                
+                                // Adjust position if text is too long
+                                const bbox = this.getBBox();
+                                if (bbox.width > 100) {{
+                                    text.style('text-anchor', 'end')
+                                        .attr('dx', '-.8em')
+                                        .attr('dy', '.15em')
+                                        .attr('transform', 'rotate(-45)');
+                                }}
+                            }})
+                            .on('mouseleave', function() {{
+                                text.text(`CP${{d + 1}}`)
+                                    .style('font-weight', 'normal')
+                                    .style('fill', '#9ca3af')
+                                    .style('text-anchor', 'middle')
+                                    .attr('dx', null)
+                                    .attr('dy', null)
+                                    .attr('transform', null);
+                            }});
+                            
+                            // Add title for tooltip
+                            text.append('title').text(checkpointName);
+                        }}
+                    }});
                 
                 xAxis.select('.domain').style('stroke', '#333');
                 xAxis.selectAll('.tick line').style('stroke', '#333');
@@ -1225,6 +1258,12 @@ def plot_metric_interactive(
                         .attr('stroke-width', 20)
                         .attr('d', line)
                         .style('cursor', 'pointer')
+                        .on('click', function(event) {{
+                            event.stopPropagation();
+                            if (onMetricClick) {{
+                                onMetricClick(metric);
+                            }}
+                        }})
                         .on('mouseenter', function() {{
                             setHoveredLine(metric);
                             // Update all line opacities
@@ -1303,6 +1342,12 @@ def plot_metric_interactive(
                     const legendItem = legend.append('g')
                         .attr('transform', `translate(0, ${{i * 25}})`)
                         .style('cursor', 'pointer')
+                        .on('click', function(event) {{
+                            event.stopPropagation();
+                            if (onMetricClick) {{
+                                onMetricClick(metric);
+                            }}
+                        }})
                         .on('mouseenter', function() {{
                             setHoveredLine(metric);
                             g.selectAll('path')
@@ -1352,6 +1397,9 @@ def plot_metric_interactive(
                         <h3 className="chart-title"> {{metrics.length === DATA.metricsList.length 
                 ? 'All Metrics (Normalized)' 
                 : `Viewing ${{metrics.length}} Normalized Metrics`}}</h3>
+                        <span style={{{{ fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}}}>
+                            Click any line to view details
+                        </span>
                     </div>
                     <div className="chart-container" ref={{containerRef}}>
                         <svg ref={{svgRef}} className="chart"></svg>
@@ -1372,6 +1420,9 @@ def plot_metric_interactive(
                                     Normalized: {{hoveredPoint.normalizedValue.toFixed(3)}}
                                 </span>
                             </div>
+                            <div className="tooltip-value" style={{{{ fontSize: '0.75rem', marginTop: '0.25rem', color: '#9ca3af' }}}}>
+                                (Checkpoint {{DATA.checkpoints.indexOf(hoveredPoint.checkpoint) + 1}})
+                            </div>
                         </div>
                     )}}
                 </div>
@@ -1383,8 +1434,10 @@ def plot_metric_interactive(
             const [expandedMetric, setExpandedMetric] = useState(null);
             const [subtitle, setSubtitle] = useState('Visualizing training dynamics across checkpoints');
             const [dropdownOpen, setDropdownOpen] = useState(false);
-            const [overlayMode, setOverlayMode] = useState(!START_SEPARATE);
+            const [overlayMode, setOverlayMode] = useState(!START_SEPARATE); // Start with overlay for "All"
             const [showPhaseTransitions, setShowPhaseTransitions] = useState(false);
+            const [fullscreenFromOverlay, setFullscreenFromOverlay] = useState(null); // Track fullscreen from overlay
+            const [previousOverlayMetrics, setPreviousOverlayMetrics] = useState(null); // Remember overlay state
             
             // Calculate statistics for all metrics
             const allStats = useMemo(() => {{
@@ -1423,6 +1476,7 @@ def plot_metric_interactive(
                     }}
                 }});
                 setOverlayMode(false); // Switch to separate view when manually selecting
+                setFullscreenFromOverlay(null); // Clear fullscreen state
                 
                 // Force a re-render of charts after a small delay
                 setTimeout(() => {{
@@ -1434,6 +1488,8 @@ def plot_metric_interactive(
                 setSelectedMetrics(DATA.metricsList);
                 setOverlayMode(true);
                 setDropdownOpen(false);
+                setFullscreenFromOverlay(null); // Clear fullscreen state
+                setPreviousOverlayMetrics(null); // Clear previous state
                 setSubtitle('Visualizing training dynamics across checkpoints');
                 
                 // Force a re-render of charts
@@ -1456,7 +1512,9 @@ def plot_metric_interactive(
             
             // Update subtitle based on selection
             useEffect(() => {{
-                if (selectedMetrics.length === DATA.metricsList.length && overlayMode) {{
+                if (fullscreenFromOverlay) {{
+                    setSubtitle(`Viewing ${{fullscreenFromOverlay}} (click outside to return to overlay)`);
+                }} else if (selectedMetrics.length === DATA.metricsList.length && overlayMode) {{
                     setSubtitle('Visualizing training dynamics across checkpoints');
                 }} else if (selectedMetrics.length === 1) {{
                     setSubtitle(`Displaying change in ${{selectedMetrics[0]}}`);
@@ -1465,7 +1523,7 @@ def plot_metric_interactive(
                 }} else {{
                     setSubtitle(`Viewing ${{selectedMetrics.length}} metrics`);
                 }}
-            }}, [selectedMetrics, overlayMode]);
+            }}, [selectedMetrics, overlayMode, fullscreenFromOverlay]);
             
             // Export data as CSV
             const exportCSV = () => {{
@@ -1593,8 +1651,42 @@ def plot_metric_interactive(
                                 metrics={{selectedMetrics}}
                                 data={{DATA.metrics}}
                                 showPhaseTransitions={{showPhaseTransitions}}
+                                onMetricClick={{(metric) => {{
+                                    // Save current state and show fullscreen
+                                    setPreviousOverlayMetrics(selectedMetrics);
+                                    setFullscreenFromOverlay(metric);
+                                    setSelectedMetrics([metric]);
+                                    setOverlayMode(false);
+                                }}}}
                             />
                         </div>
+                    ) : fullscreenFromOverlay ? (
+                        // Show fullscreen view from overlay click
+                        <>
+                            <div className="charts-grid single">
+                                <Chart
+                                    metric={{fullscreenFromOverlay}}
+                                    data={{DATA.metrics[fullscreenFromOverlay]}}
+                                    isExpanded={{false}}
+                                    onToggleExpand={{() => {{}}}}
+                                    showPhaseTransitions={{showPhaseTransitions}}
+                                />
+                            </div>
+                            <div style={{{{ textAlign: 'center', marginTop: '1rem' }}}}>
+                                <button 
+                                    className="action-button"
+                                    onClick={{() => {{
+                                        // Return to overlay view
+                                        setFullscreenFromOverlay(null);
+                                        setSelectedMetrics(previousOverlayMetrics || DATA.metricsList);
+                                        setOverlayMode(true);
+                                        setPreviousOverlayMetrics(null);
+                                    }}}}
+                                >
+                                    ← Back to Overlay View
+                                </button>
+                            </div>
+                        </>
                     ) : (
                         <div className={{`charts-grid ${{getGridClass()}}`}}>
                             {{selectedMetrics.map(metric => (
@@ -1612,10 +1704,20 @@ def plot_metric_interactive(
                         </div>
                     )}}
                     
-                    {{expandedMetric && (
+                    {{(expandedMetric || fullscreenFromOverlay) && (
                         <div 
                             className="overlay visible"
-                            onClick={{() => setExpandedMetric(null)}}
+                            onClick={{() => {{
+                                if (fullscreenFromOverlay) {{
+                                    // Return to overlay view
+                                    setFullscreenFromOverlay(null);
+                                    setSelectedMetrics(previousOverlayMetrics || DATA.metricsList);
+                                    setOverlayMode(true);
+                                    setPreviousOverlayMetrics(null);
+                                }} else {{
+                                    setExpandedMetric(null);
+                                }}
+                            }}}}
                         />
                     )}}
                     

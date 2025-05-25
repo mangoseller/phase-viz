@@ -1,13 +1,14 @@
 # TODO:
-# need to also clean up slop
-# fix x-axis cut off, maybe think about width/margin, click plot - full screen just that metric
+# fix dark screen and cut off screen
 # ensure differing architectures can be loaded
+# fix scipy test issues
 # get good models to test with 
 # bughunt
 # readme - still to be improved but draft is ok, screenshots, fix math rendering
 # update requirements.txt
 # package it together nicely
-# if all don't display all metrics overlayed
+# test end to end and do slides
+
 import os
 import typer as t 
 import typing
@@ -22,15 +23,10 @@ from metrics import (import_metric_functions, compute_metrics_over_checkpoints, 
 sys.path.append(os.path.dirname(__file__))
 from load_models import load_model_class, contains_checkpoints, clear_model_cache
 from state import load_state, save_state
-
-
-
-
 from generate_plot import plot_metric_interactive
 from loading import SimpleLoadingAnimation
 from utils import suppress_stdout_stderr, logger, BUILTIN_METRICS
 
-# Initialize typer app
 app = t.Typer(no_args_is_help=False)
 
 
@@ -48,7 +44,6 @@ def welcome():
     t.echo(f"{help_hint}")
     t.secho("=" * 60, fg="white")
     t.echo()
-
 
 @app.command()
 def load_dir(
@@ -94,24 +89,17 @@ def plot_metric(
     device: str = t.Option("cuda", help="Device to use for calculations ('cuda', 'cpu', specific 'cuda:n')"),
     parallel: bool = t.Option(True, help="Use parallel processing for calculations (default: True)") # This needs to go back to True
 ):
-    """Compute and plot metrics over model checkpoints.
-    
-    This command allows you to select metrics to calculate over checkpoints,
-    and then visualizes them in an interactive plot.
-    """
-    all_metrics = False
+    """Compute and plot metrics over model checkpoints."""
     metrics_file = ""
-    logger.info(f"Starting plot-metric command with device={device}, parallel={parallel}")
-    
+    logger.info(f"Starting plot-metric command with device={device}, parallel={parallel}")   
     try:
-        state = load_state() # Try to load state file
+        state = load_state() 
         logger.info("State loaded successfully")
     except RuntimeError as e:
         logger.error(f"Failed to load state: {str(e)}")
         t.secho(str(e), fg=t.colors.RED, bold=True)
         raise t.Exit(code=1)
     
-
     using_cpu = False
     if device == "cuda" and not torch.cuda.is_available():
         logger.warning("CUDA requested but not available, falling back to CPU")
@@ -123,7 +111,6 @@ def plot_metric(
     elif device == "cpu":
         using_cpu = True
     
-    # Display warning if using CPU
     if using_cpu:
         logger.info("Running on CPU")
         t.secho("WARNING: Running on CPU. Consider using GPU for large models or many checkpoints.", 
@@ -133,20 +120,14 @@ def plot_metric(
     
     with suppress_stdout_stderr():
         load_model_class(state["model_path"], state["class_name"])
-    
+
     checkpoints = state["checkpoints"]
-    
-    # Dict to store metrics to be calculated: {metric_name: metric_function}
     metrics_to_calculate = {}
-    
-    # Loop to collect multiple metrics (but without calculating them yet)
     while True:
         raw = t.prompt(
             "Enter a metric name, a path to a custom .py file, 'metrics' or 'done' to finish selecting metrics"
         ).strip()
-        
         logger.info(f"User input: {raw}")
-        
         if raw.lower() == 'done':
             if not metrics_to_calculate:
                 logger.warning("User tried to continue without selecting metrics")
@@ -169,29 +150,23 @@ def plot_metric(
             path = Path(raw).resolve()
             if path.suffix != ".py":
                 _err(f"Custom metrics must come from a .py file (got {path})")
-            # Import all metric functions from the file
             try:
                 with suppress_stdout_stderr():
-                    metric_functions = import_metric_functions(str(path))
-                
+                    metric_functions = import_metric_functions(str(path))           
                 if not metric_functions:
                     _err(f"No valid metric functions found in {path}")
-                
-                # Add each metric to the to-calculate list
                 for metric_name, metric_fn in metric_functions.items():
                     if metric_name in metrics_to_calculate:
                         logger.info(f"Metric '{metric_name}' already added, skipping")
                         t.secho(f"Metric '{metric_name}' already added. Skipping.", fg=t.colors.YELLOW)
                         continue
-                    
                     logger.info(f"Added metric: {metric_name}")
                     t.secho(f"Added metric: {metric_name}", fg=t.colors.GREEN)
                     metrics_to_calculate[metric_name] = metric_fn
-            except Exception as e: # Check this, we should import valid functions and not break
+            except Exception as e: 
                 _err(f"Failed importing metric functions from {path}: {e}")
         else:
-            # Look for built-in metrics
-            match raw.lower(): #TODO: Add all flag
+            match raw.lower(): 
                 case "metrics":
                     t.secho("\nAvailable built-in metrics:", fg=t.colors.CYAN, bold=True)
                     t.secho("• L2 Norm (l2) - L2 norm of all trainable parameters", fg=t.colors.CYAN)
@@ -216,9 +191,7 @@ def plot_metric(
                     t.secho("• Sparsity (sparsity) - Fraction of near-zero parameters", fg=t.colors.CYAN)
                     t.secho("• Max Activation (max_activation) - Maximum potential activation", fg=t.colors.CYAN)
                     t.secho("\nYou can also provide a .py file with custom metrics ending in '_of_model'", fg=t.colors.YELLOW)
-                # ------------------------------------------------------------------
-                # 2)  Add **all** metrics at once
-                # ------------------------------------------------------------------
+
                 case "all":
                     all_metrics = True
                     for pretty_name, fn in BUILTIN_METRICS.values():
@@ -229,10 +202,7 @@ def plot_metric(
                         t.secho(f"Added metric: {pretty_name}", fg=t.colors.GREEN)
                         metrics_to_calculate[pretty_name] = fn
                     break
-            
-                # ------------------------------------------------------------------
-                # 3)  Single built-in metric (key matches BUILTIN_METRICS)
-                # ------------------------------------------------------------------
+
                 case key if key in BUILTIN_METRICS:
                     pretty_name, fn = BUILTIN_METRICS[key]
                     if pretty_name in metrics_to_calculate:
@@ -244,47 +214,34 @@ def plot_metric(
                     t.secho(f"Added metric: {pretty_name}", fg=t.colors.GREEN)
                     metrics_to_calculate[pretty_name] = fn
             
-                # ------------------------------------------------------------------
-                # 4)  Fallback: unknown keyword
-                # ------------------------------------------------------------------
                 case _:
                     logger.warning(f"Unknown metric: {raw}")
                     t.secho(f"{raw} is not an in-built metric. For a list of available "
                             "metrics, enter 'metrics'.", fg=t.colors.RED)
-                
-    
+                  
     logger.info(f"Starting calculation of {len(metrics_to_calculate)} metrics across {len(checkpoints)} checkpoints")
     t.secho(f"\nCalculating {len(metrics_to_calculate)} metrics across {len(checkpoints)} checkpoints...", 
            fg=t.colors.BLUE, bold=True)
     
-    # Create the loading animation
     loading_animation = SimpleLoadingAnimation(
         base_text="Calculating metrics",
         color="blue"
     )
     loading_animation.start(total_metrics=len(metrics_to_calculate))
-    
-    # Thread-safe progress tracking
     progress_lock = threading.Lock()
     completed_metrics = {name: 0 for name in metrics_to_calculate}
     
-    
     def progress_callback(progress_info):
-        with progress_lock:
-            
+        with progress_lock: 
             for name, progress in progress_info["metrics_progress"].items():
                 completed = progress["completed"]
                 if completed > completed_metrics.get(name, 0):
                     completed_metrics[name] = completed
-            
-            # Count metrics that are 100% complete
             fully_completed = sum(1 for name, count in completed_metrics.items()
                                if count >= len(checkpoints))
-            
-            # Update the loading animation
+        
             loading_animation.update(current=fully_completed, total=len(metrics_to_calculate))
     
-    # Calculate all metrics
     try:
         metrics_data = compute_metrics_over_checkpoints(
             metrics_to_calculate,
@@ -299,41 +256,30 @@ def plot_metric(
         logger.error(f"Error calculating metrics: {str(e)}")
         loading_animation.stop(f"Error calculating metrics: {str(e)}")
         _err(f"Error calculating metrics: {str(e)}")
-    
-    # Stop the loading animation
     loading_animation.stop(f"Successfully computed {len(completed_metrics.keys())} metrics.")
     
-    # Clear caches to free memory
     with suppress_stdout_stderr():
         clear_model_cache()
         clear_metric_cache()
     logger.info("Cleared model and metric caches")
-    
-    # Save all metrics data for later use
     state["metrics_data"] = metrics_data
     save_state(state)
     logger.info("Saved metrics data to state")
-    
-    # Get checkpoint names for display
+
     checkpoint_names = [os.path.basename(p) for p in checkpoints]
-    
-    # Show usage instructions 
     t.secho("\nOpening interactive visualization. In the plot, you can:", fg=t.colors.CYAN)
     t.secho("- Use the dropdown menu to toggle between metrics or show all at once", fg=t.colors.CYAN)
     t.secho("- Interact with the data points for detailed information", fg=t.colors.CYAN)
     t.secho("- Download the plot as PNG using the button in the top-right", fg=t.colors.CYAN)
     t.secho("- Export the data as a CSV for further analysis", fg=t.colors.CYAN)
     
-    
-    
     try:
-        # Generate the plot
         logger.info("Generating interactive plot")
         with suppress_stdout_stderr():
             plot_metric_interactive(
                 checkpoint_names=checkpoint_names,
                 metrics_data=metrics_data,
-                all_metrics=all_metrics
+                many_metrics=len(metrics_to_calculate) > 7
             )
         logger.info("Plot generation completed")
     except Exception as e:
@@ -346,7 +292,6 @@ def _err(msg: str) -> None:
     logger.error(f"Fatal error: {msg}")
     t.secho(msg, fg=t.colors.RED, bold=True)
     raise t.Exit(code=1)
-
 
 if __name__ == "__main__":
     logger.info("Starting phase-viz CLI")

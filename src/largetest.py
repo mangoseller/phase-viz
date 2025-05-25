@@ -10,7 +10,6 @@ class LargeNet(nn.Module):
     def __init__(self, hidden_size=512, num_blocks=4, input_dim=10):
         super().__init__()
         
-        # Store configuration parameters
         self.hidden_size = hidden_size
         self.num_blocks = num_blocks
         self.input_dim = input_dim

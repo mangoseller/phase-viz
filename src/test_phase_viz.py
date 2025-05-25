@@ -1,5 +1,3 @@
-"""Comprehensive test suite for phase-viz tool."""
-
 import pytest
 import torch
 import torch.nn as nn
@@ -12,6 +10,8 @@ import shutil
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 
+
+
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 sys.path.append(os.path.dirname(__file__))
@@ -21,8 +21,9 @@ from load_models import (
     initialize_model_with_config, load_model_from_checkpoint,
     contains_checkpoints, clear_model_cache
 )
+from inbuilt_metrics import l2_norm_of_model
 from metrics import (
-    l2_norm_of_model, compute_metric_batch, 
+    compute_metric_batch, 
     compute_metrics_over_checkpoints, import_metric_functions
 )
 from state import save_state, load_state
@@ -156,7 +157,6 @@ class TestModelLoading:
                         pytest.fail(f"Failed to load checkpoint format {i}: {e}")
                 
                 os.unlink(tmp.name)
-
 
 class TestMetrics:
     """Test metric computation functionality."""
@@ -385,14 +385,9 @@ class TestStateManagement:
             with pytest.raises(RuntimeError, match="No state found"):
                 load_state()
 
-
 class TestIntegration:
-    """Integration tests for the full workflow."""
-    
+    """Integration tests for the full workflow."""    
     def test_end_to_end_workflow(self):
-        from pathlib import Path
-
-     #   print(Path.cwd())
         """Test complete workflow from loading to metric computation."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create model file
@@ -444,8 +439,7 @@ class TestIntegration:
                 with patch('load_models._model_class', model_class):
                     loaded_model = load_model_from_checkpoint(tmp.name)
                     assert isinstance(loaded_model, model_class)
-                    
-                    # Compute metric
+
                     norm = l2_norm_of_model(loaded_model)
                     assert isinstance(norm, float)
                 
@@ -461,8 +455,6 @@ class TestEdgeCases:
             with pytest.raises(Exception, match="could not find any valid model checkpoints"):
                 contains_checkpoints(tmpdir)
     
-
-    
     def test_model_with_no_trainable_params(self):
         """Test metrics on model with no trainable parameters."""
         model = NoParamsModel()
@@ -473,5 +465,4 @@ class TestEdgeCases:
 
 
 if __name__ == "__main__":
-    # Run tests
     pytest.main([__file__, "-v"])
