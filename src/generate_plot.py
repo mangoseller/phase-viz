@@ -694,7 +694,7 @@ def plot_metric_interactive(
                     height = 350;
                 }}
                 
-                const margin = {{ top: 20, right: 40, bottom: 120, left: 80 }};
+                const margin = {{ top: 20, right: 80, bottom: 140, left: 100 }};
                 const innerWidth = width - margin.left - margin.right;
                 const innerHeight = height - margin.top - margin.bottom;
                 
@@ -1046,7 +1046,7 @@ def plot_metric_interactive(
                 // Use most of the available screen height
                 const baseHeight = window.innerHeight - 400;
                 const height = Math.max(600, baseHeight * 0.8);
-                const margin = {{ top: 20, right: 250, bottom: 120, left: 80 }};
+                const margin = {{ top: 20, right: 250, bottom: 140, left: 100 }};
                 const innerWidth = width - margin.left - margin.right;
                 const innerHeight = height - margin.top - margin.bottom;
                 
@@ -1704,20 +1704,10 @@ def plot_metric_interactive(
                         </div>
                     )}}
                     
-                    {{(expandedMetric || fullscreenFromOverlay) && (
+                    {{expandedMetric && (
                         <div 
                             className="overlay visible"
-                            onClick={{() => {{
-                                if (fullscreenFromOverlay) {{
-                                    // Return to overlay view
-                                    setFullscreenFromOverlay(null);
-                                    setSelectedMetrics(previousOverlayMetrics || DATA.metricsList);
-                                    setOverlayMode(true);
-                                    setPreviousOverlayMetrics(null);
-                                }} else {{
-                                    setExpandedMetric(null);
-                                }}
-                            }}}}
+                            onClick={{() => setExpandedMetric(null)}}
                         />
                     )}}
                     

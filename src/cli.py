@@ -1,9 +1,7 @@
 # TODO:
-# fix dark screen and cut off screen
-# ensure differing architectures can be loaded
-# fix scipy test issues
+# fix failing test
 # get good models to test with 
-# bughunt
+# clean up in general
 # readme - still to be improved but draft is ok, screenshots, fix math rendering
 # update requirements.txt
 # package it together nicely
