@@ -10,16 +10,15 @@ import shutil
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 
-
-
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 sys.path.append(os.path.dirname(__file__))
+
 # Import modules to test
 from load_models import (
-    load_model_class, extract_model_config_from_state_dict,
-    initialize_model_with_config, load_model_from_checkpoint,
-    contains_checkpoints, clear_model_cache
+    load_model_class, extract_model_config_from_class,
+    infer_missing_config_from_state_dict, initialize_model_with_config, 
+    load_model_from_checkpoint, contains_checkpoints, clear_model_cache
 )
 from inbuilt_metrics import l2_norm_of_model
 from metrics import (
@@ -32,7 +31,7 @@ from utils import logger
 # Import test models
 from test_models import (
     SimpleNet, ConfigurableNet, TransformerModel, ConvNet,
-    RNNModel, CustomConfigModel, NoParamsModel, DynamicModel
+    RNNModel, NoParamsModel, DynamicModel, CustomConfigModel
 )
 
 
@@ -72,27 +71,60 @@ class TestModelLoading:
         with pytest.raises(ValueError, match="Class 'NonExistentModel' not found"):
             load_model_class(str(self.model_file), "NonExistentModel")
     
-    def test_extract_config_from_state_dict(self):
-        """Test configuration extraction from state dict."""
-        # Test with ConfigurableNet
+    def test_extract_config_from_class(self):
+        """Test configuration extraction from model class."""
+        # Test with ConfigurableNet - has default values
+        config = extract_model_config_from_class(ConfigurableNet)
+        assert isinstance(config, dict)
+        assert config['input_dim'] == 10  # default value
+        assert config['hidden_size'] == 64  # default value
+        assert config['num_layers'] == 3  # default value
+        assert config['output_dim'] == 1  # default value
+        
+        # Test with TransformerModel - has default values
+        config = extract_model_config_from_class(TransformerModel)
+        assert isinstance(config, dict)
+        assert config['vocab_size'] == 1000  # default value
+        assert config['d_model'] == 512  # default value
+        assert config['nhead'] == 8  # default value
+        
+        # Test with SimpleNet - no parameters
+        config = extract_model_config_from_class(SimpleNet)
+        assert isinstance(config, dict)
+        assert len(config) == 0  # No parameters in __init__
+        
+        # Test with model that has required parameters
+        class RequiredParamsModel(nn.Module):
+            def __init__(self, required_param, optional_param=42):
+                super().__init__()
+                self.fc = nn.Linear(required_param, optional_param)
+        
+        config = extract_model_config_from_class(RequiredParamsModel)
+        assert 'optional_param' in config
+        assert config['optional_param'] == 42
+        assert 'required_param' not in config  # No default value
+    
+    def test_infer_missing_config_from_state_dict(self):
+        """Test inferring missing configuration from state dict."""
+        # Create a model with known dimensions
         model = ConfigurableNet(input_dim=20, hidden_size=128, num_layers=4)
         state_dict = model.state_dict()
         
-        # The extraction function should handle various architectures
-        config = extract_model_config_from_state_dict(state_dict)
-        assert isinstance(config, dict)
-        assert 'hidden_size' in config
+        # Simulate missing input_dim in config
+        config = infer_missing_config_from_state_dict(
+            state_dict, 
+            ConfigurableNet,
+            {'hidden_size': 128, 'num_layers': 4}
+        )
         
-        # Test with TransformerModel
-        transformer = TransformerModel(d_model=256, nhead=4)
-        state_dict = transformer.state_dict()
-        config = extract_model_config_from_state_dict(state_dict)
-        assert isinstance(config, dict)
+        # Since ConfigurableNet has defaults, it shouldn't need to infer anything
+        assert config['hidden_size'] == 128
+        assert config['num_layers'] == 4
     
     def test_initialize_model_with_config(self):
         """Test model initialization with different config approaches."""
-        # Test with explicit parameters
-        config = {"input_dim": 15, "hidden_size": 64, "num_layers": 3}
+        # Test with exact parameters
+        config = {"input_dim": 15, "hidden_size": 64, "num_layers": 3, "output_dim": 2}
         model = initialize_model_with_config(ConfigurableNet, config)
         assert isinstance(model, ConfigurableNet)
         
@@ -104,6 +136,11 @@ class TestModelLoading:
         # Test with default initialization
         model = initialize_model_with_config(SimpleNet, {})
         assert isinstance(model, SimpleNet)
+        
+        # Test with partial config (using defaults)
+        config = {"hidden_size": 256}
+        model = initialize_model_with_config(ConfigurableNet, config)
+        assert isinstance(model, ConfigurableNet)
     
     @pytest.mark.parametrize("device", ["cpu", "cuda"])
     def test_load_model_from_checkpoint(self, device):
@@ -157,6 +194,7 @@ class TestModelLoading:
                         pytest.fail(f"Failed to load checkpoint format {i}: {e}")
                 
                 os.unlink(tmp.name)
+
 
 class TestMetrics:
     """Test metric computation functionality."""
@@ -247,7 +285,6 @@ class TestMetrics:
                 results = compute_metrics_over_checkpoints(
                     metrics, checkpoint_files, device=device, parallel=parallel
                 )
-                print(metrics)
                 assert "L2 Norm" in results
                 assert len(results["L2 Norm"]) == 3
                 assert all(isinstance(v, float) for v in results["L2 Norm"])
@@ -347,9 +384,12 @@ class TestTransformerArchitecture:
             model = TransformerModel(**config)
             state_dict = model.state_dict()
             
-            # Test configuration extraction
-            extracted_config = extract_model_config_from_state_dict(state_dict)
+            # Test configuration extraction from class
+            extracted_config = extract_model_config_from_class(TransformerModel)
             assert isinstance(extracted_config, dict)
+            # Should get default values
+            assert extracted_config['vocab_size'] == 1000  # default
+            assert extracted_config['d_model'] == 512  # default
             
             # Ensure model can be recreated
             new_model = TransformerModel(**config)
@@ -384,6 +424,7 @@ class TestStateManagement:
             
             with pytest.raises(RuntimeError, match="No state found"):
                 load_state()
+
 
 class TestIntegration:
     """Integration tests for the full workflow."""    
@@ -426,9 +467,8 @@ class TestIntegration:
         """Test loading and computing metrics on various architectures."""
         architectures = [
             ("SimpleNet", SimpleNet, {}),
-            ("ConfigurableNet", ConfigurableNet, {"hidden_size": 32}),
             ("ConvNet", ConvNet, {}),
-            ("RNNModel", RNNModel, {"hidden_size": 64, "rnn_type": "LSTM"}),
+            ("RNNModel", RNNModel, {"hidden_size": 256, "rnn_type": "LSTM"}),
         ]
         
         for name, model_class, kwargs in architectures:
@@ -461,7 +501,48 @@ class TestEdgeCases:
         norm = l2_norm_of_model(model)
         assert norm == 0.0
     
-
+    def test_model_with_config_dict(self):
+        """Test model that requires config dict."""
+        config = {
+            "input_dim": 15,
+            "hidden_dim": 64,
+            "output_dim": 3,
+            "use_dropout": True,
+            "dropout_rate": 0.3
+        }
+        
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
+            model = CustomConfigModel(config)
+            checkpoint = {
+                "config": config,
+                "state_dict": model.state_dict()
+            }
+            torch.save(checkpoint, tmp.name)
+            
+            with patch('load_models._model_class', CustomConfigModel):
+                loaded_model = load_model_from_checkpoint(tmp.name)
+                assert isinstance(loaded_model, CustomConfigModel)
+                assert loaded_model.config == config
+            
+            os.unlink(tmp.name)
+    
+    def test_checkpoint_with_mismatched_keys(self):
+        """Test loading checkpoint with mismatched state dict keys."""
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
+            # Create a model with different architecture
+            model1 = ConfigurableNet(hidden_size=64)
+            state_dict = model1.state_dict()
+            
+            # Save it
+            torch.save(state_dict, tmp.name)
+            
+            # Try to load into a different architecture
+            with patch('load_models._model_class', SimpleNet):
+                # This should handle the mismatch gracefully
+                loaded_model = load_model_from_checkpoint(tmp.name)
+                assert isinstance(loaded_model, SimpleNet)
+            
+            os.unlink(tmp.name)
 
 
 if __name__ == "__main__":

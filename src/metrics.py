@@ -188,28 +188,34 @@ def compute_metric_batch(
 
 def _process_checkpoint_cpu(args):  
     """
+    Process a checkpoint in a separate process (for CPU parallel processing).
+    
     args: (idx, path, metric_names, device, metrics_file)
     """
     idx, path, metric_names, device, metrics_file = args
-    if load_models._model_class is None:      # ❷ check the live value
+    
+    # In a new process, we need to reload the model class
+    if load_models._model_class is None:
         state = load_state()
-        load_models.load_model_class(         # ❸ sets load_models._model_class
+        load_models.load_model_class(
             state["model_path"],
             state["class_name"],
         )
 
     try:
         # Resolve metric functions inside the worker
-        builtin = _get_builtin_metrics()          # {'L2 Norm': l2_norm_of_model, ...}
+        builtin = _get_builtin_metrics()
         metric_funcs = {n: builtin[n] for n in metric_names if n in builtin}
 
+        # Load custom metrics if provided
         if metrics_file:
             custom = import_metric_functions(metrics_file)
             metric_funcs.update({n: custom[n] for n in metric_names if n in custom})
+        
         if not metric_funcs:
             raise RuntimeError("No metric functions resolved inside worker.")
 
-        checkpoint_name    = os.path.basename(path)
+        checkpoint_name = os.path.basename(path)
         checkpoint_results = compute_metric_batch(metric_funcs, path, device)
 
         return {
@@ -229,7 +235,6 @@ def _process_checkpoint_cpu(args):
         }
 
 
-
 def compute_metrics_over_checkpoints(
     metric_functions: Dict[str, Callable[[torch.nn.Module], float]],
     checkpoints: Sequence[str],
@@ -246,6 +251,7 @@ def compute_metrics_over_checkpoints(
         device: Device to load models on ('auto', 'cpu', 'cuda')
         progress_callback: Callback for progress updates
         parallel: If True, uses parallel processing for checkpoints
+        metrics_file: Path to custom metrics file (for multiprocessing)
         
     Returns:
         Dict mapping metric names to lists of values for each checkpoint
@@ -262,7 +268,6 @@ def compute_metrics_over_checkpoints(
     metrics_progress = {
         name: {"completed": 0, "total": len(checkpoints)}
         for name in metric_functions
-        
     }
     
     def process_checkpoint(idx, path):
@@ -347,7 +352,7 @@ def compute_metrics_over_checkpoints(
                     except Exception as e:
                         logger.exception(f"Error in parallel processing: {e}")
     else:
-        
+        # Sequential processing
         t.secho("Processing checkpoints sequentially", fg=t.colors.BLUE)
         logger.info("Processing checkpoints sequentially")
         
@@ -378,6 +383,7 @@ def compute_metrics_over_checkpoints(
             except Exception as e:
                 logger.exception(f"Error processing checkpoint {path}: {e}")
                 # Continue with other checkpoints even if one fails
+    
     # Clean up the model cache to free memory
     clear_model_cache()  
     return results

@@ -151,8 +151,6 @@ class RNNModel(nn.Module):
         out = out[:, -1, :]
         out = self.fc(out)
         return out
-
-
 class CustomConfigModel(nn.Module):
     """Model that requires a config dict for initialization."""
     def __init__(self, config):
@@ -166,13 +164,6 @@ class CustomConfigModel(nn.Module):
             self.dropout = nn.Dropout(config.get('dropout_rate', 0.5))
         else:
             self.dropout = None
-    
-    def forward(self, x):
-        x = F.relu(self.fc1(x))
-        if self.dropout:
-            x = self.dropout(x)
-        return self.fc2(x)
-
 
 class NoParamsModel(nn.Module):
     """Model with no parameters for edge case testing."""

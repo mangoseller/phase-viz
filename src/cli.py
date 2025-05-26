@@ -1,6 +1,5 @@
 # TODO:
-# fix failing test
-# get good models to test with 
+# get good models to test with (+ test with actual models)
 # clean up in general
 # readme - still to be improved but draft is ok, screenshots, fix math rendering
 # update requirements.txt

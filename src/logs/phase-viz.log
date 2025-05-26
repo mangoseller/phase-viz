@@ -4189,3 +4189,479 @@ ValueError: could not convert string to float: 'not a number'
 2025-05-25 21:15:54,477 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_211554_ke68p4gg.html
 2025-05-25 21:16:32,836 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
 2025-05-25 21:16:32,836 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250525_211554_ke68p4gg.html
+2025-05-26 06:11:00,430 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 198, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 06:11:00,430 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 06:11:00,430 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 06:11:00,432 - phase-viz - INFO - compute_metrics_over_checkpoints:319 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 06:11:00,471 - phase-viz - INFO - compute_metrics_over_checkpoints:352 - Processing checkpoints sequentially
+2025-05-26 06:11:00,475 - phase-viz - WARNING - import_metric_functions:419 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 06:11:00,636 - phase-viz - INFO - compute_metrics_over_checkpoints:352 - Processing checkpoints sequentially
+2025-05-26 06:30:46,867 - phase-viz - INFO - compute_metrics_over_checkpoints:319 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 06:30:46,894 - phase-viz - ERROR - _process_checkpoint_cpu:223 - Worker error on /tmp/tmpaj3h6lp0.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 213, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 06:30:46,894 - phase-viz - ERROR - _process_checkpoint_cpu:223 - Worker error on /tmp/tmpf1m9z_0n.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 213, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 06:30:46,894 - phase-viz - ERROR - _process_checkpoint_cpu:223 - Worker error on /tmp/tmpj8k2xddd.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 213, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 06:30:46,907 - phase-viz - INFO - compute_metrics_over_checkpoints:352 - Processing checkpoints sequentially
+2025-05-26 06:30:46,908 - phase-viz - ERROR - compute_metrics_over_checkpoints:379 - Error processing checkpoint /tmp/tmpav7nad9z.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 361, in compute_metrics_over_checkpoints
+    checkpoint_results = compute_metric_batch(metric_functions, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 06:30:46,909 - phase-viz - ERROR - compute_metrics_over_checkpoints:379 - Error processing checkpoint /tmp/tmp1aedp7i6.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 361, in compute_metrics_over_checkpoints
+    checkpoint_results = compute_metric_batch(metric_functions, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 06:30:46,910 - phase-viz - ERROR - compute_metrics_over_checkpoints:379 - Error processing checkpoint /tmp/tmpn2_4nyc0.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 361, in compute_metrics_over_checkpoints
+    checkpoint_results = compute_metric_batch(metric_functions, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 06:30:46,917 - phase-viz - WARNING - import_metric_functions:419 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 06:30:46,985 - phase-viz - INFO - compute_metrics_over_checkpoints:352 - Processing checkpoints sequentially
+2025-05-26 06:30:46,986 - phase-viz - ERROR - compute_metrics_over_checkpoints:379 - Error processing checkpoint /tmp/tmpq5qnn7sz/checkpoints/checkpoint_000.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 361, in compute_metrics_over_checkpoints
+    checkpoint_results = compute_metric_batch(metric_functions, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 06:30:46,987 - phase-viz - ERROR - compute_metrics_over_checkpoints:379 - Error processing checkpoint /tmp/tmpq5qnn7sz/checkpoints/checkpoint_002.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 361, in compute_metrics_over_checkpoints
+    checkpoint_results = compute_metric_batch(metric_functions, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 06:30:46,988 - phase-viz - ERROR - compute_metrics_over_checkpoints:379 - Error processing checkpoint /tmp/tmpq5qnn7sz/checkpoints/checkpoint_001.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 361, in compute_metrics_over_checkpoints
+    checkpoint_results = compute_metric_batch(metric_functions, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state_dict'?
+2025-05-26 20:39:26,643 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-26 20:39:26,644 - phase-viz - INFO - plot_metric:92 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-26 20:39:26,644 - phase-viz - INFO - plot_metric:95 - State loaded successfully
+2025-05-26 20:39:26,787 - phase-viz - WARNING - plot_metric:103 - CUDA requested but not available, falling back to CPU
+2025-05-26 20:39:26,787 - phase-viz - INFO - plot_metric:113 - Running on CPU
+2025-05-26 20:39:28,845 - phase-viz - INFO - plot_metric:128 - User input: all
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: L2 Norm
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Entropy
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Layer Connectivity
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Parameter Variance
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Layer Wise Norm Ratio
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Activation Capacity
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Dead Neuron Percentage
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Rank
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Gradient Flow Score
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Effective Rank
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Avg Condition Number
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Flatness Proxy
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Mean Weight
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Skew
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Kurtosis
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Isotropy
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Norm
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Spectral Norm
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Participation Ratio
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Sparsity
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:199 - Added metric: Max Activation
+2025-05-26 20:39:28,846 - phase-viz - INFO - plot_metric:220 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-26 20:39:28,846 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-26 20:39:28,876 - phase-viz - ERROR - _process_checkpoint_cpu:229 - Worker error on ../checkpoints/model_3_pgd_results.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 219, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state'?
+2025-05-26 20:39:28,876 - phase-viz - ERROR - _process_checkpoint_cpu:229 - Worker error on ../checkpoints/model_2_pgd_results.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 219, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state'?
+2025-05-26 20:39:28,876 - phase-viz - ERROR - _process_checkpoint_cpu:229 - Worker error on ../checkpoints/model_0_base adam_results.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 219, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state'?
+2025-05-26 20:39:28,876 - phase-viz - ERROR - _process_checkpoint_cpu:229 - Worker error on ../checkpoints/model_1_base adam_results.pt: name 'extract_model_config_from_class' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 219, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 171, in compute_metric_batch
+    model = load_model_from_checkpoint(checkpoint_path, device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/load_models.py", line 294, in load_model_from_checkpoint
+    config = extract_model_config_from_class(_model_class)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'extract_model_config_from_class' is not defined. Did you mean: 'extract_model_config_from_state'?
+2025-05-26 20:39:28,885 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-26 20:39:28,946 - phase-viz - INFO - plot_metric:262 - Cleared model and metric caches
+2025-05-26 20:39:28,947 - phase-viz - INFO - plot_metric:265 - Saved metrics data to state
+2025-05-26 20:39:28,947 - phase-viz - INFO - plot_metric:275 - Generating interactive plot
+2025-05-26 20:39:28,947 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_203928_817wifhw.html
+2025-05-26 20:39:28,947 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_203928_817wifhw.html
+2025-05-26 20:39:28,947 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_203928_817wifhw.html
+2025-05-26 20:39:28,948 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_203928_817wifhw.html
+2025-05-26 20:39:35,805 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_203928_817wifhw.html
+2025-05-26 20:39:35,805 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_203928_817wifhw.html
+2025-05-26 20:39:35,805 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_203928_817wifhw.html
+2025-05-26 20:39:35,805 - phase-viz - INFO - plot_metric:282 - Plot generation completed
+2025-05-26 20:49:02,335 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-26 20:49:02,336 - phase-viz - INFO - plot_metric:92 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-26 20:49:02,336 - phase-viz - INFO - plot_metric:95 - State loaded successfully
+2025-05-26 20:49:02,478 - phase-viz - WARNING - plot_metric:103 - CUDA requested but not available, falling back to CPU
+2025-05-26 20:49:02,478 - phase-viz - INFO - plot_metric:113 - Running on CPU
+2025-05-26 20:49:03,556 - phase-viz - INFO - plot_metric:128 - User input: l2
+2025-05-26 20:49:03,556 - phase-viz - INFO - plot_metric:211 - Added metric: L2 Norm
+2025-05-26 20:49:04,077 - phase-viz - INFO - plot_metric:128 - User input: done
+2025-05-26 20:49:04,078 - phase-viz - INFO - plot_metric:220 - Starting calculation of 1 metrics across 4 checkpoints
+2025-05-26 20:49:04,078 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-26 20:49:04,126 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-26 20:49:04,179 - phase-viz - INFO - plot_metric:262 - Cleared model and metric caches
+2025-05-26 20:49:04,179 - phase-viz - INFO - plot_metric:265 - Saved metrics data to state
+2025-05-26 20:49:04,179 - phase-viz - INFO - plot_metric:275 - Generating interactive plot
+2025-05-26 20:49:04,179 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_204904_q2r9drk3.html
+2025-05-26 20:49:04,179 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_204904_q2r9drk3.html
+2025-05-26 20:49:04,180 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_204904_q2r9drk3.html
+2025-05-26 20:49:04,180 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_204904_q2r9drk3.html
+2025-05-26 20:49:07,100 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_204904_q2r9drk3.html
+2025-05-26 20:49:07,100 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_204904_q2r9drk3.html
+2025-05-26 20:49:07,100 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_204904_q2r9drk3.html
+2025-05-26 20:49:07,100 - phase-viz - INFO - plot_metric:282 - Plot generation completed
+2025-05-26 20:49:28,184 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 236, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 20:49:28,185 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 20:49:28,185 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 20:49:28,187 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 20:49:28,220 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 20:49:28,224 - phase-viz - WARNING - import_metric_functions:425 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 20:49:28,392 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 20:51:11,618 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-26 20:51:11,618 - phase-viz - INFO - plot_metric:92 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-26 20:51:11,618 - phase-viz - INFO - plot_metric:95 - State loaded successfully
+2025-05-26 20:51:11,761 - phase-viz - WARNING - plot_metric:103 - CUDA requested but not available, falling back to CPU
+2025-05-26 20:51:11,761 - phase-viz - INFO - plot_metric:113 - Running on CPU
+2025-05-26 20:51:13,105 - phase-viz - INFO - plot_metric:128 - User input: all
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: L2 Norm
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Entropy
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Layer Connectivity
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Parameter Variance
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Layer Wise Norm Ratio
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Activation Capacity
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Dead Neuron Percentage
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Rank
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Gradient Flow Score
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Effective Rank
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Avg Condition Number
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Flatness Proxy
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Mean Weight
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Skew
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Kurtosis
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Isotropy
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Norm
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Spectral Norm
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Participation Ratio
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Sparsity
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:199 - Added metric: Max Activation
+2025-05-26 20:51:13,106 - phase-viz - INFO - plot_metric:220 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-26 20:51:13,106 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-26 20:51:17,250 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-26 20:51:17,328 - phase-viz - INFO - plot_metric:262 - Cleared model and metric caches
+2025-05-26 20:51:17,328 - phase-viz - INFO - plot_metric:265 - Saved metrics data to state
+2025-05-26 20:51:17,329 - phase-viz - INFO - plot_metric:275 - Generating interactive plot
+2025-05-26 20:51:17,329 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_205117_yylvm3zl.html
+2025-05-26 20:51:17,329 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_205117_yylvm3zl.html
+2025-05-26 20:51:17,329 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_205117_yylvm3zl.html
+2025-05-26 20:51:17,329 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_205117_yylvm3zl.html
+2025-05-26 20:51:37,887 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_205117_yylvm3zl.html
+2025-05-26 20:51:37,887 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_205117_yylvm3zl.html
+2025-05-26 20:51:37,887 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_205117_yylvm3zl.html
+2025-05-26 20:51:37,887 - phase-viz - INFO - plot_metric:282 - Plot generation completed
+2025-05-26 21:01:07,681 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 236, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 21:01:07,681 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 21:01:07,681 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 21:01:07,683 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 21:01:07,721 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:01:07,725 - phase-viz - WARNING - import_metric_functions:425 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 21:01:07,893 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:02:00,080 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 236, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 21:02:00,080 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 21:02:00,080 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 21:02:00,082 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 21:02:00,122 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:02:00,125 - phase-viz - WARNING - import_metric_functions:425 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 21:02:00,282 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:02:27,411 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 236, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 21:02:27,411 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 21:02:27,411 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 21:02:27,413 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 21:02:27,455 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:02:27,459 - phase-viz - WARNING - import_metric_functions:425 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 21:02:27,624 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:03:43,733 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 236, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 21:03:43,733 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 21:03:43,733 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 21:03:43,735 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 21:03:43,777 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:03:43,780 - phase-viz - WARNING - import_metric_functions:425 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 21:03:43,951 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:07:39,990 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 236, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 21:07:39,990 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 21:07:39,990 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 21:07:39,991 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 21:07:40,030 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:07:40,033 - phase-viz - WARNING - import_metric_functions:425 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 21:07:40,193 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:09:38,823 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 236, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 21:09:38,824 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 21:09:38,824 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 21:09:38,826 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 21:09:38,864 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:09:38,869 - phase-viz - WARNING - import_metric_functions:425 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 21:09:39,016 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:10:37,701 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating Failing: Metric computation failed
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 177, in compute_metric_batch
+    value = func(model)
+            ^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/test_phase_viz.py", line 236, in failing_metric
+    raise ValueError("Metric computation failed")
+ValueError: Metric computation failed
+2025-05-26 21:10:37,701 - phase-viz - WARNING - compute_metric_batch:180 - Metric None returned None, converting to NaN
+2025-05-26 21:10:37,701 - phase-viz - ERROR - compute_metric_batch:185 - Error calculating String: could not convert string to float: 'not a number'
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 183, in compute_metric_batch
+    results[name] = float(value)
+                    ^^^^^^^^^^^^
+ValueError: could not convert string to float: 'not a number'
+2025-05-26 21:10:37,703 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 3 processes on CPU
+2025-05-26 21:10:37,739 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:10:37,743 - phase-viz - WARNING - import_metric_functions:425 - Function wrong_args_of_model does not take exactly one argument. Skipping.
+2025-05-26 21:10:37,887 - phase-viz - INFO - compute_metrics_over_checkpoints:357 - Processing checkpoints sequentially
+2025-05-26 21:11:02,692 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-26 21:11:02,693 - phase-viz - INFO - plot_metric:92 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-26 21:11:02,693 - phase-viz - INFO - plot_metric:95 - State loaded successfully
+2025-05-26 21:11:02,834 - phase-viz - WARNING - plot_metric:103 - CUDA requested but not available, falling back to CPU
+2025-05-26 21:11:02,834 - phase-viz - INFO - plot_metric:113 - Running on CPU
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:128 - User input: all
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: L2 Norm
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Entropy
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Layer Connectivity
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Parameter Variance
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Layer Wise Norm Ratio
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Activation Capacity
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Dead Neuron Percentage
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Rank
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Gradient Flow Score
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Effective Rank
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Avg Condition Number
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Flatness Proxy
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Mean Weight
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Skew
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Kurtosis
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Isotropy
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Norm
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Spectral Norm
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Participation Ratio
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Sparsity
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:199 - Added metric: Max Activation
+2025-05-26 21:11:04,376 - phase-viz - INFO - plot_metric:220 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-26 21:11:04,377 - phase-viz - INFO - compute_metrics_over_checkpoints:324 - Using ProcessPoolExecutor with 4 processes on CPU
+2025-05-26 21:11:08,237 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-26 21:11:08,299 - phase-viz - INFO - plot_metric:262 - Cleared model and metric caches
+2025-05-26 21:11:08,300 - phase-viz - INFO - plot_metric:265 - Saved metrics data to state
+2025-05-26 21:11:08,300 - phase-viz - INFO - plot_metric:275 - Generating interactive plot
+2025-05-26 21:11:08,300 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_211108_n2d8dvwi.html
+2025-05-26 21:11:08,300 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_211108_n2d8dvwi.html
+2025-05-26 21:11:08,300 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_211108_n2d8dvwi.html
+2025-05-26 21:11:08,301 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_211108_n2d8dvwi.html
+2025-05-26 21:12:07,935 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_211108_n2d8dvwi.html
+2025-05-26 21:12:07,935 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_211108_n2d8dvwi.html
+2025-05-26 21:12:07,935 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250526_211108_n2d8dvwi.html
+2025-05-26 21:12:07,935 - phase-viz - INFO - plot_metric:282 - Plot generation completed
