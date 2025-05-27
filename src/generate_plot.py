@@ -1525,36 +1525,191 @@ def plot_metric_interactive(
                 }}
             }}, [selectedMetrics, overlayMode, fullscreenFromOverlay]);
             
-            // Export data as CSV
-            const exportCSV = () => {{
-                let csv = 'Checkpoint';
-                DATA.metricsList.forEach(metric => {{
-                    csv += ',' + metric;
-                }});
-                csv += '\\n';
-                
-                DATA.checkpoints.forEach((checkpoint, i) => {{
-                    csv += checkpoint;
-                    DATA.metricsList.forEach(metric => {{
-                        csv += ',' + DATA.metrics[metric][i];
-                    }});
-                    csv += '\\n';
-                }});
-                
-                const blob = new Blob([csv], {{ type: 'text/csv' }});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'metrics_data.csv';
-                a.click();
-                URL.revokeObjectURL(url);
-            }};
+const exportCSV = () => {{
+    let csvContent = [];
+    
+    // Create header row
+    let headerRow = ['Metric', ...DATA.checkpoints];
+    csvContent.push(headerRow.join(','));
+    
+    // Create data rows
+    DATA.metricsList.forEach(metric => {{
+        let row = [metric, ...DATA.metrics[metric]];
+        csvContent.push(row.join(','));
+    }});
+    
+    // Use String.fromCharCode(10) for actual newline instead of \\n
+    let csv = csvContent.join(String.fromCharCode(10));
+    
+    // Download the CSV
+    downloadCSV(csv, 'metrics.csv');
+}};
+
+const downloadCSV = (csvString, filename) => {{
+    const blob = new Blob([csvString], {{ type: 'text/csv;charset=utf-8;' }});
+    const link = document.createElement('a');
+    if (link.download !== undefined) {{
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }}
+}};
             
             // Download all charts as PNG
-            const downloadPNG = () => {{
-                // For simplicity, we'll download the current view
-                alert('PNG download would capture the current visualization');
-            }};
+const downloadPNG = () => {{
+    // Find all SVG charts
+    const svgs = document.querySelectorAll('.chart');
+    if (svgs.length === 0) {{
+        alert('No charts to download');
+        return;
+    }}
+    
+    // Get the container to determine total size
+    const container = document.querySelector('.charts-grid');
+    if (!container) {{
+        alert('No chart container found');
+        return;
+    }}
+    
+    const containerRect = container.getBoundingClientRect();
+    
+    // Create canvas with container dimensions plus space for title
+    const titleHeight = 80; // Space for title at top
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = containerRect.width;
+    canvas.height = containerRect.height + titleHeight;
+    
+    // Fill background
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw title
+    ctx.fillStyle = '#f3f4f6';
+    ctx.font = 'bold 28px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Get the current title based on selected metrics
+    let title = '';
+    if (selectedMetrics.length === 1) {{
+        title = selectedMetrics[0];
+    }} else if (selectedMetrics.length === DATA.metricsList.length) {{
+        title = 'All Metrics';
+    }} else {{
+        title = `Viewing ${{selectedMetrics.length}} Metrics`;
+    }}
+    
+    ctx.fillText(title, canvas.width / 2, titleHeight / 2);
+    
+    // Draw subtitle
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '16px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    ctx.fillText(subtitle, canvas.width / 2, titleHeight / 2 + 25);
+    
+    // Process each SVG
+    let processed = 0;
+    
+    svgs.forEach((svg, index) => {{
+        // Get the chart wrapper for this SVG
+        const wrapper = svg.closest('.chart-wrapper');
+        if (!wrapper) return;
+        
+        const wrapperRect = wrapper.getBoundingClientRect();
+        
+        // Calculate position relative to container (with title offset)
+        const x = wrapperRect.left - containerRect.left;
+        const y = wrapperRect.top - containerRect.top + titleHeight;
+        
+        // Clone the SVG to avoid modifying the original
+        const svgClone = svg.cloneNode(true);
+        
+        // Ensure SVG has width and height attributes
+        svgClone.setAttribute('width', svg.getBoundingClientRect().width);
+        svgClone.setAttribute('height', svg.getBoundingClientRect().height);
+        
+        // Add xmlns if not present
+        if (!svgClone.hasAttribute('xmlns')) {{
+            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        }}
+        
+        // Serialize SVG to string
+        const svgString = new XMLSerializer().serializeToString(svgClone);
+        
+        // Create blob from SVG string
+        const svgBlob = new Blob([svgString], {{ type: 'image/svg+xml;charset=utf-8' }});
+        const url = URL.createObjectURL(svgBlob);
+        
+        // Create image from blob
+        const img = new Image();
+        img.onload = function() {{
+            // Draw wrapper background
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(x, y, wrapperRect.width, wrapperRect.height);
+            
+            // Draw wrapper border
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, wrapperRect.width, wrapperRect.height);
+            
+            // Draw the SVG image
+            const svgRect = svg.getBoundingClientRect();
+            ctx.drawImage(
+                img,
+                svgRect.left - containerRect.left,
+                svgRect.top - containerRect.top + titleHeight,
+                svgRect.width,
+                svgRect.height
+            );
+            
+            // Clean up
+            URL.revokeObjectURL(url);
+            
+            processed++;
+            
+            // When all SVGs are processed, trigger download
+            if (processed === svgs.length) {{
+                // Convert canvas to blob and download
+                canvas.toBlob(function(blob) {{
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = `phase-viz-${{new Date().toISOString().slice(0, 10)}}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(downloadUrl);
+                }}, 'image/png');
+            }}
+        }};
+        
+        img.onerror = function() {{
+            console.error('Failed to load SVG as image');
+            processed++;
+            
+            // Still trigger download if this was the last one
+            if (processed === svgs.length) {{
+                canvas.toBlob(function(blob) {{
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = `phase-viz-${{new Date().toISOString().slice(0, 10)}}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(downloadUrl);
+                }}, 'image/png');
+            }}
+        }};
+        
+        img.src = url;
+    }});
+}};
             
             // Determine grid class based on number of metrics
             const getGridClass = () => {{

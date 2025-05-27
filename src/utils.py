@@ -20,7 +20,6 @@ _temp_html_files: Set[Path] = set()
 _cleanup_lock = threading.Lock()
 
 BUILTIN_METRICS = {
-    "l2":             ("L2 Norm",                 l2_norm_of_model),
     "entropy":        ("Weight Entropy",          weight_entropy_of_model),
     "connectivity":   ("Layer Connectivity",      layer_connectivity_of_model),
     "variance":       ("Parameter Variance",      parameter_variance_of_model),

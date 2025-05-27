@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional, Tuple, Type, List
 from utils import logger
 from collections.abc import Mapping
 import logging
+import re
 
 _model_class: Optional[Type] = None
 _model_class_cache: Dict[Tuple[str, str], Type] = {}
@@ -582,9 +583,24 @@ def clear_model_cache():
     logger.info(f"Cleared model cache ({cache_size} models)")
 
 
+
+
+def natural_sort_key(text):
+    """
+    Generate a key for natural sorting that handles numbers properly.
+    E.g., checkpoint_2.pt comes before checkpoint_10.pt
+    """
+    def convert(s):
+        return int(s) if s.isdigit() else s
+    
+    # Split the string into alternating text and number chunks
+    parts = re.split(r'(\d+)', text)
+    # Convert number strings to actual integers for proper sorting
+    return [convert(part) for part in parts]
+    
 def contains_checkpoints(directory: str) -> list[str]:
     """
-    Return a list of *.pt / *.ckpt* files in *directory*.
+    Return a list of *.pt / *.ckpt* files in *directory*, sorted naturally.
 
     Raises
     ------
@@ -610,7 +626,10 @@ def contains_checkpoints(directory: str) -> list[str]:
         logger.error(msg)
         raise Exception(msg)
 
-    logger.info("Found %d checkpoint files", len(checkpoint_files))
+    # Sort checkpoints naturally to handle numeric sequences properly
+    checkpoint_files.sort(key=lambda x: natural_sort_key(os.path.basename(x)))
+    
+    logger.info("Found %d checkpoint files (sorted)", len(checkpoint_files))
     return checkpoint_files
 
 

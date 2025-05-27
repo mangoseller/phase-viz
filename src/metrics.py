@@ -19,7 +19,6 @@ from compatible_wrapper import *
 
 # Import all built-in metrics
 from inbuilt_metrics import (
-    l2_norm_of_model as _l2_norm,
     weight_entropy_of_model as _weight_entropy,
     layer_connectivity_of_model as _layer_connectivity,
     parameter_variance_of_model as _parameter_variance,
@@ -84,8 +83,6 @@ def with_memory_optimization(func):
 
     return wrapper
 
-# Apply decorator to all imported metrics
-l2_norm_of_model = with_memory_optimization(_l2_norm)
 weight_entropy_of_model = with_memory_optimization(_weight_entropy)
 layer_connectivity_of_model = with_memory_optimization(_layer_connectivity)
 parameter_variance_of_model = with_memory_optimization(_parameter_variance)
@@ -108,11 +105,6 @@ sparsity_of_model = with_memory_optimization(_sparsity)
 max_activation_of_model = with_memory_optimization(_max_activation)
 
 # Add cache key functions for metrics that use caching
-def _l2_cache_key(model):
-    trainable_params = [p for p in model.parameters() if p.requires_grad]
-    if not trainable_params:
-        return "l2_norm_empty"
-    return "l2_norm_" + str(hash(tuple(p.sum().item() for p in trainable_params)))
 
 def _entropy_cache_key(model):
     trainable_params = [p for p in model.parameters() if p.requires_grad]
@@ -120,14 +112,12 @@ def _entropy_cache_key(model):
         return "weight_entropy_empty"
     return "weight_entropy_" + str(hash(tuple(p.sum().item() for p in trainable_params)))
 
-l2_norm_of_model._cache_key_func = _l2_cache_key
 weight_entropy_of_model._cache_key_func = _entropy_cache_key
 
 # Import built-in metrics at module level for ProcessPoolExecutor
 def _get_builtin_metrics():
     """Get built-in metrics that are always available."""
     return {
-        "L2 Norm": l2_norm_of_model,
         "Weight Entropy": weight_entropy_of_model,
         "Layer Connectivity": layer_connectivity_of_model,
         "Parameter Variance": parameter_variance_of_model,

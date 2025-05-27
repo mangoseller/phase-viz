@@ -4,24 +4,6 @@ import numpy as np
 import scipy
 from scipy.stats import skew, kurtosis
 
-
-def l2_norm_of_model(model: torch.nn.Module) -> float:
-    """Compute the L2 norm of all trainable parameters in a model."""
-    trainable_params = [p for p in model.parameters() if p.requires_grad]
-    
-    if not trainable_params:
-        return 0.0
-    
-    device = trainable_params[0].device
-    with torch.no_grad():
-        squared_sum = torch.tensor(0.0, device=device)
-        for p in trainable_params:
-            squared_sum += p.norm(2).pow(2)
-        result = torch.sqrt(squared_sum).item()
-    
-    return result
-
-
 def weight_entropy_of_model(model: torch.nn.Module) -> float:
     """
     Compute the Shannon entropy of weight distribution.

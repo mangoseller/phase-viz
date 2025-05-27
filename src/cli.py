@@ -1,5 +1,4 @@
 # TODO:
-# Fix order of checkpoint loading - ie. x axis, remove l2 norm metric
 # clean up codebase and repo in general
 # update readme with screenshots, fix math rendering
 # update requirements.txt
@@ -166,7 +165,6 @@ def plot_metric(
             match raw.lower(): 
                 case "metrics":
                     t.secho("\nAvailable built-in metrics:", fg=t.colors.CYAN, bold=True)
-                    t.secho("• L2 Norm (l2) - L2 norm of all trainable parameters", fg=t.colors.CYAN)
                     t.secho("• Weight Entropy (entropy) - Shannon entropy of weight distribution", fg=t.colors.CYAN)
                     t.secho("• Layer Connectivity (connectivity) - Average absolute weight per layer", fg=t.colors.CYAN)
                     t.secho("• Parameter Variance (variance) - Variance of all trainable parameters", fg=t.colors.CYAN)
