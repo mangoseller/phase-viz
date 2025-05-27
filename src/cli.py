@@ -1,10 +1,11 @@
 # TODO:
-# get good models to test with (+ test with actual models)
+# double check loading, test and add a transformer to demos
 # clean up in general
 # readme - still to be improved but draft is ok, screenshots, fix math rendering
 # update requirements.txt
-# package it together nicely
 # test end to end and do slides
+# package it together nicely
+# weight norm and l2 norm are the same, remove activation capacity
 
 import os
 import typer as t 

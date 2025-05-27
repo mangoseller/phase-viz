@@ -3,7 +3,7 @@ import os
 import inspect
 import torch
 import re
-from typing import Dict, Any, Optional, Tuple, Type
+from typing import Dict, Any, Optional, Tuple, Type, List
 from utils import logger
 from collections.abc import Mapping
 import logging
@@ -102,7 +102,15 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
     # This is done by analyzing the state dict keys and dimensions
     
     for param_name in required_params:
-        if param_name == 'input_dim' or param_name == 'input_size':
+        # Special handling for 'dims' parameter (list of layer dimensions)
+        if param_name == 'dims':
+            dims = infer_dims_from_state_dict(state_dict)
+            if dims:
+                config[param_name] = dims
+                logger.debug(f"Inferred {param_name} = {dims} from layer shapes")
+                continue
+                
+        elif param_name == 'input_dim' or param_name == 'input_size':
             # Look for the first layer's input dimension
             for key, tensor in state_dict.items():
                 if 'weight' in key and tensor.dim() == 2:
@@ -188,6 +196,83 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
     return config
 
 
+def infer_dims_from_state_dict(state_dict: Dict[str, Any]) -> Optional[List[int]]:
+    """
+    Infer the 'dims' parameter (list of layer dimensions) from state dict.
+    This handles models like DLN that use a list of dimensions to define architecture.
+    """
+    # Look for sequential linear layers patterns
+    linear_patterns = [
+        (r'linears\.(\d+)\.weight', 'linears'),  # DLN pattern
+        (r'layers\.(\d+)\.weight', 'layers'),    # Common pattern
+        (r'fc(\d+)\.weight', 'fc'),              # fc1, fc2, etc.
+        (r'linear(\d+)\.weight', 'linear'),      # linear1, linear2, etc.
+    ]
+    
+    for pattern, prefix in linear_patterns:
+        layers = {}
+        for key, tensor in state_dict.items():
+            match = re.match(pattern, key)
+            if match and tensor.dim() == 2:
+                idx = int(match.group(1))
+                layers[idx] = tensor
+        
+        if layers:
+            # Sort by index
+            sorted_indices = sorted(layers.keys())
+            
+            # Check if indices are contiguous
+            if sorted_indices == list(range(len(sorted_indices))):
+                dims = []
+                
+                # Get input dimension from first layer
+                if 0 in layers:
+                    dims.append(layers[0].size(1))  # Input size
+                
+                # Get output dimension of each layer
+                for idx in sorted_indices:
+                    dims.append(layers[idx].size(0))  # Output size
+                
+                if len(dims) >= 2:  # Need at least input and output
+                    logger.debug(f"Inferred dims from {prefix} pattern: {dims}")
+                    return dims
+    
+    # Fallback: try to find any sequential weight matrices
+    # Look for keys that might represent a sequence of layers
+    weight_keys = [(k, v) for k, v in state_dict.items() 
+                   if 'weight' in k and isinstance(v, torch.Tensor) and v.dim() == 2]
+    
+    if weight_keys:
+        # Sort by key name to maintain order
+        weight_keys.sort(key=lambda x: x[0])
+        
+        # Try to extract dimensions if they form a valid chain
+        dims = []
+        prev_out = None
+        
+        for key, tensor in weight_keys:
+            in_dim, out_dim = tensor.size(1), tensor.size(0)
+            
+            if not dims:
+                # First layer
+                dims.extend([in_dim, out_dim])
+                prev_out = out_dim
+            elif in_dim == prev_out:
+                # This layer connects to the previous one
+                dims.append(out_dim)
+                prev_out = out_dim
+            else:
+                # Chain broken, this approach won't work
+                dims = []
+                break
+        
+        if len(dims) >= 2:
+            logger.debug(f"Inferred dims from weight chain: {dims}")
+            return dims
+    
+    return None
+
+
 def initialize_model_with_config(model_class: Type, config: Dict[str, Any]) -> torch.nn.Module:
     """
     Initialize a model using the configuration parameters.
@@ -232,7 +317,7 @@ def initialize_model_with_config(model_class: Type, config: Dict[str, Any]) -> t
         logger.debug(f"Default initialization failed: {e}")
     
     # Pattern 3: Try with only the most common parameters
-    common_params = ['hidden_size', 'input_dim', 'output_dim', 'd_model', 'num_layers']
+    common_params = ['hidden_size', 'input_dim', 'output_dim', 'd_model', 'num_layers', 'dims']
     minimal_config = {k: v for k, v in config.items() if k in common_params and k in signature.parameters}
     
     if minimal_config:
@@ -243,6 +328,23 @@ def initialize_model_with_config(model_class: Type, config: Dict[str, Any]) -> t
         except Exception as e:
             logger.debug(f"Minimal config initialization failed: {e}")
     
+    # Pattern 4: For models that use factory methods (like DLN.make_rectangular)
+    if hasattr(model_class, 'make_rectangular') and all(k in config for k in ['gamma', 'w', 'L']):
+        try:
+            # Try to infer input/output dims from the inferred dims list
+            if 'dims' in config and len(config['dims']) >= 2:
+                input_dim = config['dims'][0]
+                output_dim = config['dims'][-1]
+                L = len(config['dims']) - 1
+                w = config.get('w', config['dims'][1] if len(config['dims']) > 2 else 100)
+                gamma = config.get('gamma', 1.0)
+                
+                model = model_class.make_rectangular(input_dim, output_dim, L, w, gamma)
+                logger.debug(f"Successfully initialized model using make_rectangular factory method")
+                return model
+        except Exception as e:
+            logger.debug(f"Factory method initialization failed: {e}")
+    
     # If all else fails, raise an informative error
     raise RuntimeError(
         f"Failed to initialize {model_class.__name__}. "
@@ -252,7 +354,7 @@ def initialize_model_with_config(model_class: Type, config: Dict[str, Any]) -> t
 
 
 def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Module:
-    """Load a model from a checkpoint file."""
+    """Load a model from a checkpoint file with enhanced configuration inference."""
     global _model_cache, _model_class
 
     if device == "auto":
@@ -266,7 +368,7 @@ def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Modu
         raise RuntimeError("Model class not loaded. Call load_model_class first.")
 
     try:
-        checkpoint = torch.load(path, map_location=device)
+        checkpoint = torch.load(path, map_location=device, weights_only=False)
     except Exception as e:
         raise RuntimeError(f"Failed to load checkpoint from {path}: {e}")
 
@@ -274,7 +376,7 @@ def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Modu
     if isinstance(checkpoint, dict):
         # Try different keys where state dict might be stored
         state_dict = None
-        for key in ['model_state', 'state_dict', 'model_state_dict']:
+        for key in ['model_state', 'state_dict', 'model_state_dict', 'model']:
             if key in checkpoint:
                 state_dict = checkpoint[key]
                 break
@@ -294,15 +396,53 @@ def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Modu
     config = extract_model_config_from_class(_model_class)
     
     # If there's a config in the checkpoint, use it to override/update our extracted config
-    if isinstance(checkpoint, dict) and 'config' in checkpoint:
-        logger.debug("Found config in checkpoint, merging with extracted config")
-        config.update(checkpoint['config'])
+    if isinstance(checkpoint, dict):
+        # Look for config in various possible locations
+        for config_key in ['config', 'model_config', 'hparams', 'hyper_parameters']:
+            if config_key in checkpoint:
+                logger.debug(f"Found config in checkpoint under '{config_key}', merging with extracted config")
+                checkpoint_config = checkpoint[config_key]
+                # Handle cases where config might be a namespace or other object
+                if hasattr(checkpoint_config, '__dict__'):
+                    checkpoint_config = checkpoint_config.__dict__
+                if isinstance(checkpoint_config, dict):
+                    config.update(checkpoint_config)
+                break
     
     # Try to infer any missing required parameters from the state dict
     config = infer_missing_config_from_state_dict(state_dict, _model_class, config)
     
+    # Special handling for DLN models
+    if _model_class.__name__ == 'DLN' and 'dims' not in config:
+        # Try to infer dims from the model's stored attributes if they exist
+        dims_from_attributes = try_infer_dims_from_attributes(state_dict)
+        if dims_from_attributes:
+            config['dims'] = dims_from_attributes
+            logger.debug(f"Inferred dims from model attributes: {dims_from_attributes}")
+    
     # Initialize the model
-    model = initialize_model_with_config(_model_class, config)
+    try:
+        model = initialize_model_with_config(_model_class, config)
+    except Exception as e:
+        # If initialization fails, try to provide more helpful error information
+        logger.error(f"Model initialization failed: {e}")
+        
+        # Try to provide suggestions based on the error
+        error_msg = str(e)
+        if "dims" in error_msg and _model_class.__name__ == "DLN":
+            # For DLN, try to show what we found in the state dict
+            layer_info = analyze_layer_structure(state_dict)
+            logger.error(f"Layer structure found in state dict: {layer_info}")
+            
+            suggestion = (
+                f"\nFor DLN models, ensure the checkpoint includes the 'dims' configuration. "
+                f"Found layers: {layer_info}. "
+                f"You may need to save the model with its configuration using: "
+                f"torch.save({{'state_dict': model.state_dict(), 'config': model.get_config()}}, path)"
+            )
+            raise RuntimeError(f"{error_msg}{suggestion}")
+        else:
+            raise
 
     # Load the state dict
     if not isinstance(state_dict, Mapping):
@@ -339,6 +479,99 @@ def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Modu
     _model_cache[cache_key] = model
     
     return model
+
+
+def try_infer_dims_from_attributes(state_dict: Dict[str, Any]) -> Optional[List[int]]:
+    """
+    Try to infer dims from model attributes that might be stored in the state dict.
+    Some models store configuration as buffer or attributes.
+    """
+    # Look for dims stored as a buffer or attribute
+    for key in ['dims', '_dims', 'layer_dims', '_layer_dims']:
+        if key in state_dict:
+            value = state_dict[key]
+            if isinstance(value, torch.Tensor):
+                dims = value.tolist()
+                if isinstance(dims, list) and all(isinstance(d, (int, float)) for d in dims):
+                    return [int(d) for d in dims]
+            elif isinstance(value, list):
+                return value
+    
+    # Look for individual dim attributes (input_dim, hidden_dims, output_dim)
+    if 'input_dim' in state_dict and 'output_dim' in state_dict:
+        input_dim = state_dict['input_dim']
+        output_dim = state_dict['output_dim']
+        
+        if isinstance(input_dim, torch.Tensor):
+            input_dim = input_dim.item()
+        if isinstance(output_dim, torch.Tensor):
+            output_dim = output_dim.item()
+        
+        # Check for hidden_dims
+        hidden_dims = []
+        if 'hidden_dims' in state_dict:
+            hd = state_dict['hidden_dims']
+            if isinstance(hd, torch.Tensor):
+                hidden_dims = hd.tolist()
+            elif isinstance(hd, list):
+                hidden_dims = hd
+        
+        # Reconstruct dims
+        dims = [int(input_dim)] + [int(d) for d in hidden_dims] + [int(output_dim)]
+        if len(dims) >= 2:
+            return dims
+    
+    return None
+
+
+def analyze_layer_structure(state_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Analyze the layer structure in a state dict to provide helpful debugging info.
+    """
+    info = {
+        'linear_layers': [],
+        'other_layers': [],
+        'buffers': [],
+        'possible_dims': None
+    }
+    
+    # Categorize keys
+    for key, value in state_dict.items():
+        if isinstance(value, torch.Tensor):
+            if 'weight' in key and value.dim() == 2:
+                info['linear_layers'].append({
+                    'name': key,
+                    'shape': list(value.shape),
+                    'in_features': value.shape[1],
+                    'out_features': value.shape[0]
+                })
+            elif 'weight' in key or 'bias' in key:
+                info['other_layers'].append({
+                    'name': key,
+                    'shape': list(value.shape) if hasattr(value, 'shape') else 'scalar'
+                })
+        else:
+            info['buffers'].append({
+                'name': key,
+                'type': type(value).__name__,
+                'value': str(value)[:100]  # Truncate long values
+            })
+    
+    # Try to infer possible dims from linear layers
+    if info['linear_layers']:
+        # Sort by name to get correct order
+        info['linear_layers'].sort(key=lambda x: x['name'])
+        
+        # Try to extract a dims sequence
+        dims_sequence = []
+        for i, layer in enumerate(info['linear_layers']):
+            if i == 0:
+                dims_sequence.append(layer['in_features'])
+            dims_sequence.append(layer['out_features'])
+        
+        info['possible_dims'] = dims_sequence
+    
+    return info
 
 
 def clear_model_cache():

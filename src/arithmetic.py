@@ -18,18 +18,3 @@ class ArithmeticNet(nn.Module):
 
         # Single output - no separate abstention head
         self.output = nn.Linear(hidden_size//2, 1)
-
-    def forward(self, numbers, operator):
-        # Embed inputs
-        num_features = self.num_embedder(numbers)
-        op_features = self.op_embedding(operator)
-
-        # Combine features
-        x = torch.cat([num_features, op_features], dim=1)
-
-        # Process with residual connections for better gradient flow
-        x1 = F.relu(self.layer1(x))
-        x2 = F.relu(self.layer2(x1)) + x1
-        x3 = self.layer3(x2)
-
-        return self.output(x3)
