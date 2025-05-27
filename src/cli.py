@@ -1,11 +1,10 @@
 # TODO:
-# double check loading, test and add a transformer to demos
-# clean up in general
-# readme - still to be improved but draft is ok, screenshots, fix math rendering
+# Fix order of checkpoint loading - ie. x axis, remove l2 norm metric
+# clean up codebase and repo in general
+# update readme with screenshots, fix math rendering
 # update requirements.txt
 # test end to end and do slides
 # package it together nicely
-# weight norm and l2 norm are the same, remove activation capacity
 
 import os
 import typer as t 

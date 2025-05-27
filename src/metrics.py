@@ -15,6 +15,7 @@ import typer as t
 import functools
 import numpy as np
 from state import load_state
+from compatible_wrapper import *
 
 # Import all built-in metrics
 from inbuilt_metrics import (
@@ -169,6 +170,10 @@ def compute_metric_batch(
     """
     # Load the model only once
     model = load_model_from_checkpoint(checkpoint_path, device)
+    
+    # Wrap model for metrics compatibility if needed
+    from compatible_wrapper import wrap_model_for_metrics
+    model = wrap_model_for_metrics(model)
     
     # Calculate all metrics
     results = {}

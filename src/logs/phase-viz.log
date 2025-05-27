@@ -1345,3 +1345,973 @@ RuntimeError: Failed to initialize GrokkingMLP. Available config: {}, Model para
 2025-05-27 13:22:25,185 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_132126_13dnwnzn.html
 2025-05-27 13:22:25,185 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_132126_13dnwnzn.html
 2025-05-27 13:22:25,185 - phase-viz - INFO - plot_metric:282 - Plot generation completed
+2025-05-27 13:51:12,859 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-27 13:51:12,860 - phase-viz - INFO - load_dir:52 - Loading directory: examples/transformer_checkpoints
+2025-05-27 13:51:12,860 - phase-viz - INFO - load_dir:53 - Model file: examples/transformer_grokking.py
+2025-05-27 13:51:12,860 - phase-viz - INFO - load_dir:54 - Class name: GrokkingMLP
+2025-05-27 13:51:12,860 - phase-viz - INFO - load_dir:67 - Found 5 checkpoints
+2025-05-27 13:51:12,860 - phase-viz - INFO - load_dir:80 - State saved successfully
+2025-05-27 13:51:18,731 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-27 13:51:18,732 - phase-viz - INFO - plot_metric:92 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 13:51:18,732 - phase-viz - INFO - plot_metric:95 - State loaded successfully
+2025-05-27 13:51:18,872 - phase-viz - WARNING - plot_metric:103 - CUDA requested but not available, falling back to CPU
+2025-05-27 13:51:18,872 - phase-viz - INFO - plot_metric:113 - Running on CPU
+2025-05-27 13:51:19,538 - phase-viz - INFO - plot_metric:128 - User input: l2
+2025-05-27 13:51:19,538 - phase-viz - INFO - plot_metric:211 - Added metric: L2 Norm
+2025-05-27 13:51:20,186 - phase-viz - INFO - plot_metric:128 - User input: done
+2025-05-27 13:51:20,186 - phase-viz - INFO - plot_metric:220 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 13:51:20,187 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 5 processes on CPU
+2025-05-27 13:51:20,282 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/final.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 13:51:20,289 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/30000.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 13:51:20,298 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/40000.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 13:51:20,297 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/20000.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 13:51:20,304 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/0.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 13:51:20,317 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-27 13:51:20,390 - phase-viz - INFO - plot_metric:262 - Cleared model and metric caches
+2025-05-27 13:51:20,391 - phase-viz - INFO - plot_metric:265 - Saved metrics data to state
+2025-05-27 13:51:20,391 - phase-viz - INFO - plot_metric:275 - Generating interactive plot
+2025-05-27 13:51:20,391 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_135120_0bjmddjn.html
+2025-05-27 13:51:20,391 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_135120_0bjmddjn.html
+2025-05-27 13:51:20,391 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_135120_0bjmddjn.html
+2025-05-27 13:51:20,391 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_135120_0bjmddjn.html
+2025-05-27 13:51:23,171 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_135120_0bjmddjn.html
+2025-05-27 13:51:23,171 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_135120_0bjmddjn.html
+2025-05-27 13:51:23,171 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_135120_0bjmddjn.html
+2025-05-27 13:51:23,171 - phase-viz - INFO - plot_metric:282 - Plot generation completed
+2025-05-27 17:05:21,578 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-27 17:05:21,579 - phase-viz - INFO - plot_metric:92 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:05:21,579 - phase-viz - INFO - plot_metric:95 - State loaded successfully
+2025-05-27 17:05:21,719 - phase-viz - WARNING - plot_metric:103 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:05:21,719 - phase-viz - INFO - plot_metric:113 - Running on CPU
+2025-05-27 17:05:23,418 - phase-viz - INFO - plot_metric:128 - User input: l2
+2025-05-27 17:05:23,419 - phase-viz - INFO - plot_metric:211 - Added metric: L2 Norm
+2025-05-27 17:05:25,138 - phase-viz - INFO - plot_metric:128 - User input: done
+2025-05-27 17:05:25,139 - phase-viz - INFO - plot_metric:220 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 17:05:25,139 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 5 processes on CPU
+2025-05-27 17:05:25,244 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/0.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 17:05:25,245 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/20000.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 17:05:25,252 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/final.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 17:05:25,252 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/30000.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 17:05:25,253 - phase-viz - ERROR - _process_checkpoint_cpu:233 - Worker error on examples/transformer_checkpoints/40000.pt: name 'logger' is not defined
+Traceback (most recent call last):
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 223, in _process_checkpoint_cpu
+    checkpoint_results = compute_metric_batch(metric_funcs, path, device)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/metrics.py", line 175, in compute_metric_batch
+    model = wrap_model_for_metrics(model)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sam/Documents/phase-viz/phase-viz/src/compatible_wrapper.py", line 136, in wrap_model_for_metrics
+    logger.info("Model has non-standard parameters, wrapping for metrics compatibility")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-05-27 17:05:25,268 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-27 17:05:25,346 - phase-viz - INFO - plot_metric:262 - Cleared model and metric caches
+2025-05-27 17:05:25,346 - phase-viz - INFO - plot_metric:265 - Saved metrics data to state
+2025-05-27 17:05:25,346 - phase-viz - INFO - plot_metric:275 - Generating interactive plot
+2025-05-27 17:05:25,346 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170525_74yja8m0.html
+2025-05-27 17:05:25,347 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170525_74yja8m0.html
+2025-05-27 17:05:25,347 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170525_74yja8m0.html
+2025-05-27 17:05:25,347 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170525_74yja8m0.html
+2025-05-27 17:05:46,121 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
+2025-05-27 17:05:46,122 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170525_74yja8m0.html
+2025-05-27 17:06:16,156 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-27 17:06:21,893 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-27 17:06:21,894 - phase-viz - INFO - load_dir:52 - Loading directory: examples/trgrokking_checkpoints
+2025-05-27 17:06:21,894 - phase-viz - INFO - load_dir:53 - Model file: examples/transformer_grokkingy
+2025-05-27 17:06:21,894 - phase-viz - INFO - load_dir:54 - Class name: GrMLP
+2025-05-27 17:06:48,674 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-27 17:06:48,674 - phase-viz - INFO - load_dir:52 - Loading directory: examples/trgrokking_checkpoints
+2025-05-27 17:06:48,674 - phase-viz - INFO - load_dir:53 - Model file: examples/grokking.py
+2025-05-27 17:06:48,674 - phase-viz - INFO - load_dir:54 - Class name: MLP
+2025-05-27 17:06:48,674 - phase-viz - ERROR - load_dir:61 - The path 'examples/trgrokking_checkpoints' is not a directory.
+2025-05-27 17:06:54,885 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-27 17:06:54,886 - phase-viz - INFO - load_dir:52 - Loading directory: examples/grokking_checkpoints
+2025-05-27 17:06:54,886 - phase-viz - INFO - load_dir:53 - Model file: examples/grokking.py
+2025-05-27 17:06:54,886 - phase-viz - INFO - load_dir:54 - Class name: MLP
+2025-05-27 17:06:54,886 - phase-viz - INFO - load_dir:67 - Found 5 checkpoints
+2025-05-27 17:06:54,886 - phase-viz - INFO - load_dir:80 - State saved successfully
+2025-05-27 17:06:58,370 - phase-viz - INFO - <module>:295 - Starting phase-viz CLI
+2025-05-27 17:06:58,371 - phase-viz - INFO - plot_metric:92 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:06:58,371 - phase-viz - INFO - plot_metric:95 - State loaded successfully
+2025-05-27 17:06:58,508 - phase-viz - WARNING - plot_metric:103 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:06:58,508 - phase-viz - INFO - plot_metric:113 - Running on CPU
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:128 - User input: all
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: L2 Norm
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Entropy
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Layer Connectivity
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Parameter Variance
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Activation Capacity
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Dead Neuron Percentage
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Rank
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Gradient Flow Score
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Effective Rank
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Avg Condition Number
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Flatness Proxy
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Mean Weight
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Skew
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Kurtosis
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Isotropy
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Weight Norm
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Spectral Norm
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Participation Ratio
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Sparsity
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:199 - Added metric: Max Activation
+2025-05-27 17:07:00,055 - phase-viz - INFO - plot_metric:220 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:07:00,056 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 5 processes on CPU
+2025-05-27 17:07:00,714 - phase-viz - INFO - plot_metric:252 - Successfully computed all metrics
+2025-05-27 17:07:00,761 - phase-viz - INFO - plot_metric:262 - Cleared model and metric caches
+2025-05-27 17:07:00,762 - phase-viz - INFO - plot_metric:265 - Saved metrics data to state
+2025-05-27 17:07:00,762 - phase-viz - INFO - plot_metric:275 - Generating interactive plot
+2025-05-27 17:07:00,762 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170700_50hklx5z.html
+2025-05-27 17:07:00,762 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170700_50hklx5z.html
+2025-05-27 17:07:00,762 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170700_50hklx5z.html
+2025-05-27 17:07:00,763 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170700_50hklx5z.html
+2025-05-27 17:07:04,895 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170700_50hklx5z.html
+2025-05-27 17:07:04,895 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170700_50hklx5z.html
+2025-05-27 17:07:04,895 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170700_50hklx5z.html
+2025-05-27 17:07:04,895 - phase-viz - INFO - plot_metric:282 - Plot generation completed
+2025-05-27 17:07:12,311 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:07:12,311 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:07:12,311 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:07:12,450 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:07:12,451 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:129 - User input: all
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Entropy
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Connectivity
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Parameter Variance
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Activation Capacity
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Dead Neuron Percentage
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Rank
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Gradient Flow Score
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Effective Rank
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Avg Condition Number
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Flatness Proxy
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Mean Weight
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Skew
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Kurtosis
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Isotropy
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Norm
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Spectral Norm
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Participation Ratio
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Sparsity
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:200 - Added metric: Max Activation
+2025-05-27 17:07:14,498 - phase-viz - INFO - plot_metric:221 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:07:14,498 - phase-viz - INFO - compute_metrics_over_checkpoints:328 - Using ProcessPoolExecutor with 5 processes on CPU
+2025-05-27 17:07:15,157 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:07:15,205 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:07:15,205 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:07:15,205 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:07:15,205 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170715_29kckhje.html
+2025-05-27 17:07:15,205 - phase-viz - INFO - start:240 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170715_29kckhje.html
+2025-05-27 17:07:15,206 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170715_29kckhje.html
+2025-05-27 17:07:15,206 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170715_29kckhje.html
+2025-05-27 17:07:22,092 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170715_29kckhje.html
+2025-05-27 17:07:22,092 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170715_29kckhje.html
+2025-05-27 17:07:22,092 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_170715_29kckhje.html
+2025-05-27 17:07:22,092 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:16:59,523 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:16:59,524 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:16:59,524 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:16:59,663 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:16:59,663 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:17:02,248 - phase-viz - INFO - plot_metric:129 - User input: exit
+2025-05-27 17:17:02,248 - phase-viz - INFO - plot_metric:138 - User exited
+2025-05-27 17:17:08,318 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:17:08,319 - phase-viz - INFO - load_dir:53 - Loading directory: examples/transformer_checkpoints
+2025-05-27 17:17:08,319 - phase-viz - INFO - load_dir:54 - Model file: examples/transformer_grokking.py
+2025-05-27 17:17:08,319 - phase-viz - INFO - load_dir:55 - Class name: GrokkingMLP
+2025-05-27 17:17:08,319 - phase-viz - INFO - load_dir:68 - Found 5 checkpoints
+2025-05-27 17:17:08,320 - phase-viz - INFO - load_dir:81 - State saved successfully
+2025-05-27 17:17:11,259 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:17:11,260 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:17:11,260 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:17:11,399 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:17:11,399 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:17:11,867 - phase-viz - INFO - plot_metric:129 - User input: l2
+2025-05-27 17:17:11,867 - phase-viz - INFO - plot_metric:212 - Added metric: L2 Norm
+2025-05-27 17:17:12,497 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:17:12,498 - phase-viz - INFO - plot_metric:221 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 17:17:12,627 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:17:12,701 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:17:12,702 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:17:12,702 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:17:12,702 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171712_wk9g0zcn.html
+2025-05-27 17:17:12,702 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171712_wk9g0zcn.html
+2025-05-27 17:17:12,702 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171712_wk9g0zcn.html
+2025-05-27 17:17:12,702 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171712_wk9g0zcn.html
+2025-05-27 17:17:17,216 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171712_wk9g0zcn.html
+2025-05-27 17:17:17,216 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171712_wk9g0zcn.html
+2025-05-27 17:17:17,217 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171712_wk9g0zcn.html
+2025-05-27 17:17:17,217 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:17:29,150 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:17:29,150 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:17:29,151 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:17:29,291 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:17:29,291 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:17:30,418 - phase-viz - INFO - plot_metric:129 - User input: all
+2025-05-27 17:17:30,418 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Entropy
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Connectivity
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Parameter Variance
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Activation Capacity
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Dead Neuron Percentage
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Rank
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Gradient Flow Score
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Effective Rank
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Avg Condition Number
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Flatness Proxy
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Mean Weight
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Skew
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Kurtosis
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Isotropy
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Norm
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Spectral Norm
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Participation Ratio
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Sparsity
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:200 - Added metric: Max Activation
+2025-05-27 17:17:30,419 - phase-viz - INFO - plot_metric:221 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:17:31,007 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:17:31,022 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:17:31,023 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:17:31,023 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:17:31,023 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171731_em8blpdm.html
+2025-05-27 17:17:31,023 - phase-viz - INFO - start:240 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171731_em8blpdm.html
+2025-05-27 17:17:31,023 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171731_em8blpdm.html
+2025-05-27 17:17:31,023 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171731_em8blpdm.html
+2025-05-27 17:17:38,707 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171731_em8blpdm.html
+2025-05-27 17:17:38,707 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171731_em8blpdm.html
+2025-05-27 17:17:38,707 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_171731_em8blpdm.html
+2025-05-27 17:17:38,707 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:20:58,070 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:20:58,071 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:20:58,071 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:20:58,210 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:20:58,210 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:129 - User input: all
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Entropy
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Connectivity
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Parameter Variance
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Activation Capacity
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Dead Neuron Percentage
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Rank
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Gradient Flow Score
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Effective Rank
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Avg Condition Number
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Flatness Proxy
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Mean Weight
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Skew
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Kurtosis
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Isotropy
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Norm
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Spectral Norm
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Participation Ratio
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Sparsity
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:200 - Added metric: Max Activation
+2025-05-27 17:20:59,997 - phase-viz - INFO - plot_metric:221 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:21:00,509 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:21:00,607 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:21:00,607 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:21:00,607 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:21:00,607 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172100_mdlozwbz.html
+2025-05-27 17:21:00,608 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172100_mdlozwbz.html
+2025-05-27 17:21:00,608 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172100_mdlozwbz.html
+2025-05-27 17:21:00,608 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172100_mdlozwbz.html
+2025-05-27 17:21:12,293 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172100_mdlozwbz.html
+2025-05-27 17:21:12,293 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172100_mdlozwbz.html
+2025-05-27 17:21:12,293 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172100_mdlozwbz.html
+2025-05-27 17:21:12,294 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:23:49,479 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:23:49,479 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:23:49,479 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:23:49,616 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:23:49,617 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:129 - User input: all
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Entropy
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Connectivity
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Parameter Variance
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Activation Capacity
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Dead Neuron Percentage
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Rank
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Gradient Flow Score
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Effective Rank
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Avg Condition Number
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Flatness Proxy
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Mean Weight
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Skew
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Kurtosis
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Isotropy
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Norm
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Spectral Norm
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Participation Ratio
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Sparsity
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:200 - Added metric: Max Activation
+2025-05-27 17:23:53,367 - phase-viz - INFO - plot_metric:221 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:23:53,900 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:23:53,982 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:23:53,982 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:23:53,982 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:23:53,982 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172353_2w4aqg20.html
+2025-05-27 17:23:53,983 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172353_2w4aqg20.html
+2025-05-27 17:23:53,983 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172353_2w4aqg20.html
+2025-05-27 17:23:53,983 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172353_2w4aqg20.html
+2025-05-27 17:24:45,160 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172353_2w4aqg20.html
+2025-05-27 17:24:45,160 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172353_2w4aqg20.html
+2025-05-27 17:24:45,161 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172353_2w4aqg20.html
+2025-05-27 17:24:45,161 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:25:43,816 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:25:43,816 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:25:43,817 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:25:43,955 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:25:43,955 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:129 - User input: all
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Entropy
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Connectivity
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Parameter Variance
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Activation Capacity
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Dead Neuron Percentage
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Rank
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Gradient Flow Score
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Effective Rank
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Avg Condition Number
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Flatness Proxy
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Mean Weight
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Skew
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Kurtosis
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Isotropy
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Norm
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Spectral Norm
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Participation Ratio
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Sparsity
+2025-05-27 17:25:44,687 - phase-viz - INFO - plot_metric:200 - Added metric: Max Activation
+2025-05-27 17:25:44,688 - phase-viz - INFO - plot_metric:221 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:25:45,205 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:25:45,296 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:25:45,296 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:25:45,296 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:25:45,296 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172545_n5v90pqn.html
+2025-05-27 17:25:45,297 - phase-viz - INFO - start:240 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172545_n5v90pqn.html
+2025-05-27 17:25:45,297 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172545_n5v90pqn.html
+2025-05-27 17:25:45,297 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172545_n5v90pqn.html
+2025-05-27 17:25:56,692 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172545_n5v90pqn.html
+2025-05-27 17:25:56,692 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172545_n5v90pqn.html
+2025-05-27 17:25:56,692 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_172545_n5v90pqn.html
+2025-05-27 17:25:56,692 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:33:37,057 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:33:37,057 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:33:37,058 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:33:37,194 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:33:37,194 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:33:39,348 - phase-viz - INFO - plot_metric:129 - User input: all
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Entropy
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Connectivity
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Parameter Variance
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Activation Capacity
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Dead Neuron Percentage
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Rank
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Gradient Flow Score
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Effective Rank
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Avg Condition Number
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Flatness Proxy
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Mean Weight
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Skew
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Kurtosis
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Isotropy
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Norm
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Spectral Norm
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Participation Ratio
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Sparsity
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:200 - Added metric: Max Activation
+2025-05-27 17:33:39,349 - phase-viz - INFO - plot_metric:221 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:33:39,907 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:33:39,960 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:33:39,960 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:33:39,960 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:33:39,960 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173339_lsfw111y.html
+2025-05-27 17:33:39,961 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173339_lsfw111y.html
+2025-05-27 17:33:39,961 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173339_lsfw111y.html
+2025-05-27 17:33:39,961 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173339_lsfw111y.html
+2025-05-27 17:33:47,773 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173339_lsfw111y.html
+2025-05-27 17:33:47,773 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173339_lsfw111y.html
+2025-05-27 17:33:47,773 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173339_lsfw111y.html
+2025-05-27 17:33:47,773 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:34:29,435 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:34:29,435 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:34:29,435 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:34:29,573 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:34:29,573 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:34:32,792 - phase-viz - INFO - plot_metric:129 - User input: spectral
+2025-05-27 17:34:32,792 - phase-viz - INFO - plot_metric:212 - Added metric: Spectral Norm
+2025-05-27 17:34:33,698 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:34:33,698 - phase-viz - INFO - plot_metric:221 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 17:34:33,846 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:34:33,905 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:34:33,906 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:34:33,906 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:34:33,906 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173433_a58q59nt.html
+2025-05-27 17:34:33,906 - phase-viz - INFO - start:240 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173433_a58q59nt.html
+2025-05-27 17:34:33,906 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173433_a58q59nt.html
+2025-05-27 17:34:33,906 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173433_a58q59nt.html
+2025-05-27 17:34:54,373 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173433_a58q59nt.html
+2025-05-27 17:34:54,373 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173433_a58q59nt.html
+2025-05-27 17:34:54,373 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173433_a58q59nt.html
+2025-05-27 17:34:54,373 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:35:23,294 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:35:23,295 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:35:23,295 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:35:23,435 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:35:23,436 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:35:25,954 - phase-viz - INFO - plot_metric:129 - User input: spectral
+2025-05-27 17:35:25,954 - phase-viz - INFO - plot_metric:212 - Added metric: Spectral Norm
+2025-05-27 17:35:26,944 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:35:26,944 - phase-viz - INFO - plot_metric:221 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 17:35:31,150 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:35:31,174 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:35:31,174 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:35:31,174 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:35:31,174 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173531_0c7jzm69.html
+2025-05-27 17:35:31,175 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173531_0c7jzm69.html
+2025-05-27 17:35:31,175 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173531_0c7jzm69.html
+2025-05-27 17:35:31,175 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173531_0c7jzm69.html
+2025-05-27 17:35:35,900 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173531_0c7jzm69.html
+2025-05-27 17:35:35,900 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173531_0c7jzm69.html
+2025-05-27 17:35:35,900 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173531_0c7jzm69.html
+2025-05-27 17:35:35,900 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:35:49,402 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:35:49,403 - phase-viz - INFO - load_dir:53 - Loading directory: examples/grokking_checkpoints
+2025-05-27 17:35:49,403 - phase-viz - INFO - load_dir:54 - Model file: examples/grokking.py
+2025-05-27 17:35:49,403 - phase-viz - INFO - load_dir:55 - Class name: MLP
+2025-05-27 17:35:49,403 - phase-viz - INFO - load_dir:68 - Found 5 checkpoints
+2025-05-27 17:35:49,403 - phase-viz - INFO - load_dir:81 - State saved successfully
+2025-05-27 17:35:52,579 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:35:52,580 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:35:52,580 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:35:52,720 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:35:52,720 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:35:55,385 - phase-viz - INFO - plot_metric:129 - User input: spectral
+2025-05-27 17:35:55,385 - phase-viz - INFO - plot_metric:212 - Added metric: Spectral Norm
+2025-05-27 17:35:56,381 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:35:56,381 - phase-viz - INFO - plot_metric:221 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 17:35:56,734 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:35:56,787 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:35:56,788 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:35:56,788 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:35:56,788 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173556_1ur0zmn0.html
+2025-05-27 17:35:56,788 - phase-viz - INFO - start:240 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173556_1ur0zmn0.html
+2025-05-27 17:35:56,788 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173556_1ur0zmn0.html
+2025-05-27 17:35:56,789 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173556_1ur0zmn0.html
+2025-05-27 17:35:59,720 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173556_1ur0zmn0.html
+2025-05-27 17:35:59,720 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173556_1ur0zmn0.html
+2025-05-27 17:35:59,721 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173556_1ur0zmn0.html
+2025-05-27 17:35:59,721 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:36:06,740 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:36:06,740 - phase-viz - INFO - load_dir:53 - Loading directory: examples/transformer_checkpoints
+2025-05-27 17:36:06,740 - phase-viz - INFO - load_dir:54 - Model file: examples/transformer_grokking.py
+2025-05-27 17:36:06,740 - phase-viz - INFO - load_dir:55 - Class name: GrokkingMLP
+2025-05-27 17:36:06,741 - phase-viz - INFO - load_dir:68 - Found 5 checkpoints
+2025-05-27 17:36:06,741 - phase-viz - INFO - load_dir:81 - State saved successfully
+2025-05-27 17:37:08,205 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:37:08,206 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:37:08,206 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:37:08,347 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:37:08,348 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:37:11,901 - phase-viz - INFO - plot_metric:129 - User input: layer
+2025-05-27 17:37:11,901 - phase-viz - WARNING - plot_metric:217 - Unknown metric: layer
+2025-05-27 17:37:14,331 - phase-viz - INFO - plot_metric:129 - User input: connectivity
+2025-05-27 17:37:14,331 - phase-viz - INFO - plot_metric:212 - Added metric: Layer Connectivity
+2025-05-27 17:37:21,269 - phase-viz - INFO - plot_metric:129 - User input: weight rank
+2025-05-27 17:37:21,269 - phase-viz - WARNING - plot_metric:217 - Unknown metric: weight rank
+2025-05-27 17:37:22,552 - phase-viz - INFO - plot_metric:129 - User input: rank
+2025-05-27 17:37:22,552 - phase-viz - INFO - plot_metric:212 - Added metric: Weight Rank
+2025-05-27 17:37:28,186 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:37:28,186 - phase-viz - INFO - plot_metric:221 - Starting calculation of 2 metrics across 5 checkpoints
+2025-05-27 17:37:32,170 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:37:32,224 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:37:32,224 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:37:32,225 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:37:32,225 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173732_9dwzrfwz.html
+2025-05-27 17:37:32,225 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173732_9dwzrfwz.html
+2025-05-27 17:37:32,225 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173732_9dwzrfwz.html
+2025-05-27 17:37:32,225 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173732_9dwzrfwz.html
+2025-05-27 17:37:57,903 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173732_9dwzrfwz.html
+2025-05-27 17:37:57,903 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173732_9dwzrfwz.html
+2025-05-27 17:37:57,903 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173732_9dwzrfwz.html
+2025-05-27 17:37:57,903 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:39:13,594 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:39:13,594 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:39:13,595 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:39:13,733 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:39:13,733 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:39:17,420 - phase-viz - INFO - plot_metric:129 - User input: condition
+2025-05-27 17:39:17,420 - phase-viz - INFO - plot_metric:212 - Added metric: Avg Condition Number
+2025-05-27 17:39:23,308 - phase-viz - INFO - plot_metric:129 - User input: effective
+2025-05-27 17:39:23,309 - phase-viz - WARNING - plot_metric:217 - Unknown metric: effective
+2025-05-27 17:39:27,779 - phase-viz - INFO - plot_metric:129 - User input: metrics
+2025-05-27 17:39:46,643 - phase-viz - INFO - plot_metric:129 - User input: effective_rank
+2025-05-27 17:39:46,643 - phase-viz - INFO - plot_metric:212 - Added metric: Effective Rank
+2025-05-27 17:39:47,991 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:39:47,991 - phase-viz - INFO - plot_metric:221 - Starting calculation of 2 metrics across 5 checkpoints
+2025-05-27 17:39:51,086 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:39:51,114 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:39:51,114 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:39:51,114 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:39:51,115 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173951_jxp6t4pm.html
+2025-05-27 17:39:51,115 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173951_jxp6t4pm.html
+2025-05-27 17:39:51,115 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173951_jxp6t4pm.html
+2025-05-27 17:39:51,115 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173951_jxp6t4pm.html
+2025-05-27 17:40:11,381 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173951_jxp6t4pm.html
+2025-05-27 17:40:11,381 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173951_jxp6t4pm.html
+2025-05-27 17:40:11,381 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_173951_jxp6t4pm.html
+2025-05-27 17:40:11,381 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:41:43,910 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:41:43,911 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:41:43,911 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:41:44,051 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:41:44,051 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:41:49,754 - phase-viz - INFO - plot_metric:129 - User input: actiovation
+2025-05-27 17:41:49,754 - phase-viz - WARNING - plot_metric:217 - Unknown metric: actiovation
+2025-05-27 17:41:51,325 - phase-viz - INFO - plot_metric:129 - User input: activation
+2025-05-27 17:41:51,325 - phase-viz - WARNING - plot_metric:217 - Unknown metric: activation
+2025-05-27 17:41:54,067 - phase-viz - INFO - plot_metric:129 - User input: metrics
+2025-05-27 17:41:59,800 - phase-viz - INFO - plot_metric:129 - User input: max_activation
+2025-05-27 17:41:59,800 - phase-viz - INFO - plot_metric:212 - Added metric: Max Activation
+2025-05-27 17:42:02,944 - phase-viz - INFO - plot_metric:129 - User input: isotropy
+2025-05-27 17:42:02,944 - phase-viz - INFO - plot_metric:212 - Added metric: Isotropy
+2025-05-27 17:42:11,894 - phase-viz - INFO - plot_metric:129 - User input: condition_number
+2025-05-27 17:42:11,894 - phase-viz - WARNING - plot_metric:217 - Unknown metric: condition_number
+2025-05-27 17:42:13,652 - phase-viz - INFO - plot_metric:129 - User input: condition
+2025-05-27 17:42:13,652 - phase-viz - INFO - plot_metric:212 - Added metric: Avg Condition Number
+2025-05-27 17:42:14,773 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:42:14,773 - phase-viz - INFO - plot_metric:221 - Starting calculation of 3 metrics across 5 checkpoints
+2025-05-27 17:42:19,618 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:42:19,704 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:42:19,705 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:42:19,705 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:42:19,705 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174219_tv4y1h0n.html
+2025-05-27 17:42:19,705 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174219_tv4y1h0n.html
+2025-05-27 17:42:19,705 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174219_tv4y1h0n.html
+2025-05-27 17:42:19,705 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174219_tv4y1h0n.html
+2025-05-27 17:42:28,740 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
+2025-05-27 17:42:28,740 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174219_tv4y1h0n.html
+2025-05-27 17:42:30,675 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:42:30,676 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:42:30,676 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:42:30,813 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:42:30,813 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:42:33,929 - phase-viz - INFO - plot_metric:129 - User input: isostropy
+2025-05-27 17:42:33,929 - phase-viz - WARNING - plot_metric:217 - Unknown metric: isostropy
+2025-05-27 17:42:35,572 - phase-viz - INFO - plot_metric:129 - User input: isotropy
+2025-05-27 17:42:35,572 - phase-viz - INFO - plot_metric:212 - Added metric: Isotropy
+2025-05-27 17:42:40,391 - phase-viz - INFO - plot_metric:129 - User input: condition_number
+2025-05-27 17:42:40,391 - phase-viz - WARNING - plot_metric:217 - Unknown metric: condition_number
+2025-05-27 17:42:42,582 - phase-viz - INFO - plot_metric:129 - User input: condition
+2025-05-27 17:42:42,582 - phase-viz - INFO - plot_metric:212 - Added metric: Avg Condition Number
+2025-05-27 17:42:44,871 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:42:44,871 - phase-viz - INFO - plot_metric:221 - Starting calculation of 2 metrics across 5 checkpoints
+2025-05-27 17:42:55,540 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:42:55,564 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:42:55,564 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:42:55,564 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:42:55,564 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174255_evgin69j.html
+2025-05-27 17:42:55,565 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174255_evgin69j.html
+2025-05-27 17:42:55,565 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174255_evgin69j.html
+2025-05-27 17:42:55,565 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174255_evgin69j.html
+2025-05-27 17:42:56,177 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174255_evgin69j.html
+2025-05-27 17:42:56,177 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174255_evgin69j.html
+2025-05-27 17:42:56,177 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174255_evgin69j.html
+2025-05-27 17:42:56,177 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:45:25,091 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:45:25,092 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:45:25,092 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:45:25,234 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:45:25,234 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:45:29,346 - phase-viz - INFO - plot_metric:129 - User input: aall
+2025-05-27 17:45:29,346 - phase-viz - WARNING - plot_metric:217 - Unknown metric: aall
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:129 - User input: all
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: L2 Norm
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Entropy
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Connectivity
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Parameter Variance
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Activation Capacity
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Dead Neuron Percentage
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Rank
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Gradient Flow Score
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Effective Rank
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Avg Condition Number
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Flatness Proxy
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Mean Weight
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Skew
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Kurtosis
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Isotropy
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Weight Norm
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Spectral Norm
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Participation Ratio
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Sparsity
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:200 - Added metric: Max Activation
+2025-05-27 17:45:31,059 - phase-viz - INFO - plot_metric:221 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:45:48,092 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:45:48,163 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:45:48,163 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:45:48,163 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:45:48,163 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174548_c08sxqbw.html
+2025-05-27 17:45:48,164 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174548_c08sxqbw.html
+2025-05-27 17:45:48,164 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174548_c08sxqbw.html
+2025-05-27 17:45:48,164 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174548_c08sxqbw.html
+2025-05-27 17:47:09,565 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
+2025-05-27 17:47:09,565 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174548_c08sxqbw.html
+2025-05-27 17:49:46,423 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:49:46,423 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:49:46,424 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:49:46,563 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:49:46,563 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:49:49,032 - phase-viz - INFO - plot_metric:129 - User input: weight_rank
+2025-05-27 17:49:49,033 - phase-viz - WARNING - plot_metric:217 - Unknown metric: weight_rank
+2025-05-27 17:49:51,920 - phase-viz - INFO - plot_metric:129 - User input: weight_rank
+2025-05-27 17:49:51,920 - phase-viz - WARNING - plot_metric:217 - Unknown metric: weight_rank
+2025-05-27 17:49:53,455 - phase-viz - INFO - plot_metric:129 - User input: rank
+2025-05-27 17:49:53,455 - phase-viz - INFO - plot_metric:212 - Added metric: Weight Rank
+2025-05-27 17:49:54,405 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:49:54,405 - phase-viz - INFO - plot_metric:221 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 17:49:57,439 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:49:57,522 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:49:57,522 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:49:57,522 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:49:57,522 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174957_6p1htrfl.html
+2025-05-27 17:49:57,523 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174957_6p1htrfl.html
+2025-05-27 17:49:57,523 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174957_6p1htrfl.html
+2025-05-27 17:49:57,523 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174957_6p1htrfl.html
+2025-05-27 17:50:06,503 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174957_6p1htrfl.html
+2025-05-27 17:50:06,503 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174957_6p1htrfl.html
+2025-05-27 17:50:06,503 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_174957_6p1htrfl.html
+2025-05-27 17:50:06,503 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:50:32,911 - phase-viz - INFO - <module>:296 - Starting phase-viz CLI
+2025-05-27 17:50:32,912 - phase-viz - INFO - plot_metric:93 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:50:32,912 - phase-viz - INFO - plot_metric:96 - State loaded successfully
+2025-05-27 17:50:33,051 - phase-viz - WARNING - plot_metric:104 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:50:33,051 - phase-viz - INFO - plot_metric:114 - Running on CPU
+2025-05-27 17:50:33,680 - phase-viz - INFO - plot_metric:129 - User input: dead
+2025-05-27 17:50:33,681 - phase-viz - WARNING - plot_metric:217 - Unknown metric: dead
+2025-05-27 17:50:36,204 - phase-viz - INFO - plot_metric:129 - User input: dead_neurons
+2025-05-27 17:50:36,205 - phase-viz - INFO - plot_metric:212 - Added metric: Dead Neuron Percentage
+2025-05-27 17:50:37,806 - phase-viz - INFO - plot_metric:129 - User input: done
+2025-05-27 17:50:37,806 - phase-viz - INFO - plot_metric:221 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 17:50:37,979 - phase-viz - INFO - plot_metric:253 - Successfully computed all metrics
+2025-05-27 17:50:38,016 - phase-viz - INFO - plot_metric:263 - Cleared model and metric caches
+2025-05-27 17:50:38,017 - phase-viz - INFO - plot_metric:266 - Saved metrics data to state
+2025-05-27 17:50:38,017 - phase-viz - INFO - plot_metric:276 - Generating interactive plot
+2025-05-27 17:50:38,017 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175038_zlkalp0h.html
+2025-05-27 17:50:38,017 - phase-viz - INFO - start:240 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175038_zlkalp0h.html
+2025-05-27 17:50:38,017 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175038_zlkalp0h.html
+2025-05-27 17:50:38,018 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175038_zlkalp0h.html
+2025-05-27 17:50:40,804 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175038_zlkalp0h.html
+2025-05-27 17:50:40,804 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175038_zlkalp0h.html
+2025-05-27 17:50:40,804 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175038_zlkalp0h.html
+2025-05-27 17:50:40,804 - phase-viz - INFO - plot_metric:283 - Plot generation completed
+2025-05-27 17:51:12,832 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-27 17:51:12,833 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:51:12,833 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-27 17:51:12,972 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:51:12,972 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-27 17:51:21,744 - phase-viz - INFO - plot_metric:130 - User input: activation
+2025-05-27 17:51:21,744 - phase-viz - WARNING - plot_metric:218 - Unknown metric: activation
+2025-05-27 17:51:25,502 - phase-viz - INFO - plot_metric:130 - User input: capacity
+2025-05-27 17:51:25,503 - phase-viz - INFO - plot_metric:213 - Added metric: Activation Capacity
+2025-05-27 17:51:26,468 - phase-viz - INFO - plot_metric:130 - User input: done
+2025-05-27 17:51:26,469 - phase-viz - INFO - plot_metric:222 - Starting calculation of 1 metrics across 5 checkpoints
+2025-05-27 17:51:28,970 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-27 17:51:28,985 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-27 17:51:28,986 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-27 17:51:28,986 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-27 17:51:28,986 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175128_acyqmnsk.html
+2025-05-27 17:51:28,986 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175128_acyqmnsk.html
+2025-05-27 17:51:28,986 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175128_acyqmnsk.html
+2025-05-27 17:51:28,986 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175128_acyqmnsk.html
+2025-05-27 17:51:40,562 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175128_acyqmnsk.html
+2025-05-27 17:51:40,562 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175128_acyqmnsk.html
+2025-05-27 17:51:40,563 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175128_acyqmnsk.html
+2025-05-27 17:51:40,563 - phase-viz - INFO - plot_metric:284 - Plot generation completed
+2025-05-27 17:51:53,193 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-27 17:51:53,194 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:51:53,194 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-27 17:51:53,334 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:51:53,334 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-27 17:51:54,227 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-27 17:51:54,227 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-27 17:51:54,227 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-27 17:51:54,227 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-27 17:51:54,227 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-27 17:51:54,227 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:51:54,227 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-27 17:51:54,228 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:52:16,828 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-27 17:52:16,873 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-27 17:52:16,874 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-27 17:52:16,874 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-27 17:52:16,874 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175216_zvruga91.html
+2025-05-27 17:52:16,874 - phase-viz - INFO - start:240 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175216_zvruga91.html
+2025-05-27 17:52:16,874 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8001 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175216_zvruga91.html
+2025-05-27 17:52:16,874 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175216_zvruga91.html
+2025-05-27 17:52:43,606 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175216_zvruga91.html
+2025-05-27 17:52:43,606 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175216_zvruga91.html
+2025-05-27 17:52:43,606 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175216_zvruga91.html
+2025-05-27 17:52:43,606 - phase-viz - INFO - plot_metric:284 - Plot generation completed
+2025-05-27 17:52:50,134 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-27 17:52:50,135 - phase-viz - INFO - load_dir:54 - Loading directory: examples/grokking_checkpoints
+2025-05-27 17:52:50,135 - phase-viz - INFO - load_dir:55 - Model file: examples/grokking.py
+2025-05-27 17:52:50,135 - phase-viz - INFO - load_dir:56 - Class name: MLP
+2025-05-27 17:52:50,135 - phase-viz - INFO - load_dir:69 - Found 5 checkpoints
+2025-05-27 17:52:50,135 - phase-viz - INFO - load_dir:82 - State saved successfully
+2025-05-27 17:52:52,994 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-27 17:52:52,995 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:52:52,995 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-27 17:52:53,132 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:52:53,132 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-27 17:52:54,040 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-27 17:52:54,041 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:52:55,485 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-27 17:52:55,558 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-27 17:52:55,559 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-27 17:52:55,559 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-27 17:52:55,559 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175255_pp8ji4xp.html
+2025-05-27 17:52:55,559 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175255_pp8ji4xp.html
+2025-05-27 17:52:55,559 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175255_pp8ji4xp.html
+2025-05-27 17:52:55,559 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175255_pp8ji4xp.html
+2025-05-27 17:53:27,644 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
+2025-05-27 17:53:27,644 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175255_pp8ji4xp.html
+2025-05-27 17:54:00,909 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-27 17:54:00,910 - phase-viz - INFO - load_dir:54 - Loading directory: ../checkpoints
+2025-05-27 17:54:00,910 - phase-viz - INFO - load_dir:55 - Model file: arithmetic.py
+2025-05-27 17:54:00,910 - phase-viz - INFO - load_dir:56 - Class name: ArithmeticNet
+2025-05-27 17:54:00,910 - phase-viz - INFO - load_dir:69 - Found 4 checkpoints
+2025-05-27 17:54:00,910 - phase-viz - INFO - load_dir:82 - State saved successfully
+2025-05-27 17:54:03,844 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-27 17:54:03,845 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:54:03,845 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-27 17:54:03,983 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:54:03,983 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-27 17:54:04,942 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 4 checkpoints
+2025-05-27 17:54:08,224 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-27 17:54:08,265 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-27 17:54:08,265 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-27 17:54:08,265 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-27 17:54:08,266 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175408_yohkwxh7.html
+2025-05-27 17:54:08,266 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175408_yohkwxh7.html
+2025-05-27 17:54:08,266 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175408_yohkwxh7.html
+2025-05-27 17:54:08,266 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175408_yohkwxh7.html
+2025-05-27 17:54:09,052 - phase-viz - INFO - unregister_html_from_cleanup:145 - Unregistered HTML file from cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175408_yohkwxh7.html
+2025-05-27 17:54:09,053 - phase-viz - INFO - do_POST:197 - Browser requested cleanup of /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175408_yohkwxh7.html
+2025-05-27 17:54:09,053 - phase-viz - INFO - plot_metric_interactive:1826 - Cleanup completed for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175408_yohkwxh7.html
+2025-05-27 17:54:09,053 - phase-viz - INFO - plot_metric:284 - Plot generation completed
+2025-05-27 17:55:25,360 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-27 17:55:25,360 - phase-viz - INFO - load_dir:54 - Loading directory: examples/DLN_checkpoints
+2025-05-27 17:55:25,360 - phase-viz - INFO - load_dir:55 - Model file: examples/DLN.py
+2025-05-27 17:55:25,361 - phase-viz - INFO - load_dir:56 - Class name: DLN
+2025-05-27 17:55:25,361 - phase-viz - INFO - load_dir:69 - Found 5 checkpoints
+2025-05-27 17:55:25,361 - phase-viz - INFO - load_dir:82 - State saved successfully
+2025-05-27 17:55:28,084 - phase-viz - INFO - <module>:297 - Starting phase-viz CLI
+2025-05-27 17:55:28,085 - phase-viz - INFO - plot_metric:94 - Starting plot-metric command with device=cuda, parallel=True
+2025-05-27 17:55:28,085 - phase-viz - INFO - plot_metric:97 - State loaded successfully
+2025-05-27 17:55:28,221 - phase-viz - WARNING - plot_metric:105 - CUDA requested but not available, falling back to CPU
+2025-05-27 17:55:28,221 - phase-viz - INFO - plot_metric:115 - Running on CPU
+2025-05-27 17:55:28,888 - phase-viz - INFO - plot_metric:130 - User input: all
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: L2 Norm
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Entropy
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Connectivity
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Parameter Variance
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Layer Wise Norm Ratio
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Activation Capacity
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Dead Neuron Percentage
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Rank
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Gradient Flow Score
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Effective Rank
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Avg Condition Number
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Flatness Proxy
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Mean Weight
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Skew
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Kurtosis
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Isotropy
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Weight Norm
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Spectral Norm
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Participation Ratio
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Sparsity
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:201 - Added metric: Max Activation
+2025-05-27 17:55:28,889 - phase-viz - INFO - plot_metric:222 - Starting calculation of 21 metrics across 5 checkpoints
+2025-05-27 17:55:33,976 - phase-viz - INFO - plot_metric:254 - Successfully computed all metrics
+2025-05-27 17:55:34,019 - phase-viz - INFO - plot_metric:264 - Cleared model and metric caches
+2025-05-27 17:55:34,020 - phase-viz - INFO - plot_metric:267 - Saved metrics data to state
+2025-05-27 17:55:34,020 - phase-viz - INFO - plot_metric:277 - Generating interactive plot
+2025-05-27 17:55:34,020 - phase-viz - INFO - register_html_for_cleanup:139 - Registered HTML file for cleanup: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175534_dj5fhx06.html
+2025-05-27 17:55:34,020 - phase-viz - INFO - start:240 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175534_dj5fhx06.html
+2025-05-27 17:55:34,020 - phase-viz - INFO - plot_metric_interactive:79 - Started cleanup server on port 8000 for /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175534_dj5fhx06.html
+2025-05-27 17:55:34,021 - phase-viz - INFO - plot_metric_interactive:1817 - Created HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175534_dj5fhx06.html
+2025-05-27 17:57:50,698 - phase-viz - INFO - _signal_handler:162 - Received signal 2, cleaning up...
+2025-05-27 17:57:50,698 - phase-viz - INFO - cleanup_all_html_files:154 - Cleaned up HTML file: /home/sam/Documents/phase-viz/phase-viz/src/metrics_over_checkpoints_20250527_175534_dj5fhx06.html
