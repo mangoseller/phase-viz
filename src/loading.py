@@ -20,8 +20,7 @@ class SimpleLoadingAnimation:
         
         # Use a lock to protect the progress data during concurrent updates
         self.lock = threading.Lock()
-        self.progress = {'current': 0, 'total': 1}  # Default progress
-        
+        self.progress = {'current': 0, 'total': 1}  
         # Support for typer colors
         self._typer_available = False
         try:
@@ -72,7 +71,6 @@ class SimpleLoadingAnimation:
             else:
                 eta = 0
             
-            # Format the time strings
             elapsed_str = self._format_time(elapsed)
             eta_str = self._format_time(eta)
             
@@ -89,8 +87,7 @@ class SimpleLoadingAnimation:
                     text = self._typer.style(text, fg=self.color)
                 except:
                     pass
-            
-            # Print the text
+
             sys.stdout.write("\r" + " " * 100)  # Clear line
             sys.stdout.write("\r" + text)
             sys.stdout.flush()
@@ -111,23 +108,20 @@ class SimpleLoadingAnimation:
         # Calculate total time
         if self.start_time is not None:
             total_time = time.time() - self.start_time
-            time_str = self._format_time(total_time)
-            
+            time_str = self._format_time(total_time)   
             # Create completion message
             if final_text:
                 message = f"{final_text} (completed in {time_str})"
             else:
                 message = f"✓ {self.base_text} completed in {time_str}"
             
-            # Apply color if available
             if self._typer_available and self.color:
                 try:
                     message = self._typer.style(message, fg=self.color)
                 except:
                     pass
-            
-            # Print final message
-            sys.stdout.write("\r" + " " * 100)  # Clear line
+                
+            sys.stdout.write("\r" + " " * 100) 
             sys.stdout.write("\r" + message + "\n")
             sys.stdout.flush()
     

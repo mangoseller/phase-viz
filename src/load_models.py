@@ -18,7 +18,6 @@ def load_model_class(model_path: str, class_name: str):
     """
     Dynamically load (and cache) *class_name* from *model_path*.
     Keeps a per-file-and-name cache *and* sets `_model_class`
-    so existing code that relies on that global continues to work.
     """
     global _model_class
 
@@ -87,7 +86,7 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
     config = existing_config.copy()
     signature = inspect.signature(model_class.__init__)
     
-    # Get list of required parameters (no defaults)
+    # Get list of required parameters without defaults
     required_params = []
     for param_name, param in signature.parameters.items():
         if param_name != 'self' and param.default == inspect.Parameter.empty:
@@ -98,9 +97,6 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
         return config
     
     logger.debug(f"Attempting to infer required parameters: {required_params}")
-    
-    # Try to create a temporary model instance to see what parameters it expects
-    # This is done by analyzing the state dict keys and dimensions
     
     for param_name in required_params:
         # Special handling for 'dims' parameter (list of layer dimensions)
@@ -133,23 +129,19 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
                         output_candidates.append((key, tensor.size(0)))
             
             if output_candidates:
-                # Use the one with 'output' in the name if available
                 for key, dim in output_candidates:
                     if 'output' in key:
                         config[param_name] = dim
                         logger.debug(f"Inferred {param_name} = {dim} from {key}")
                         break
                 else:
-                    # Otherwise use the first candidate
                     config[param_name] = output_candidates[0][1]
                     logger.debug(f"Inferred {param_name} = {output_candidates[0][1]} from {output_candidates[0][0]}")
         
         elif param_name == 'hidden_size' or param_name == 'hidden_dim':
-            # Already handled by extract_model_config_from_class defaults usually
             pass
         
         elif param_name == 'vocab_size':
-            # Look for embedding layers
             for key, tensor in state_dict.items():
                 if 'embedding' in key and 'weight' in key and tensor.dim() == 2:
                     config[param_name] = tensor.size(0)
@@ -165,7 +157,6 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
                     break
         
         elif param_name == 'num_layers':
-            # Count layers by looking at keys
             layer_indices = set()
             for key in state_dict.keys():
                 # Look for patterns like layer.0, layers.1, etc.
@@ -238,16 +229,13 @@ def infer_dims_from_state_dict(state_dict: Dict[str, Any]) -> Optional[List[int]
                     logger.debug(f"Inferred dims from {prefix} pattern: {dims}")
                     return dims
     
-    # Fallback: try to find any sequential weight matrices
-    # Look for keys that might represent a sequence of layers
+
     weight_keys = [(k, v) for k, v in state_dict.items() 
                    if 'weight' in k and isinstance(v, torch.Tensor) and v.dim() == 2]
     
     if weight_keys:
-        # Sort by key name to maintain order
         weight_keys.sort(key=lambda x: x[0])
         
-        # Try to extract dimensions if they form a valid chain
         dims = []
         prev_out = None
         
@@ -255,15 +243,12 @@ def infer_dims_from_state_dict(state_dict: Dict[str, Any]) -> Optional[List[int]
             in_dim, out_dim = tensor.size(1), tensor.size(0)
             
             if not dims:
-                # First layer
                 dims.extend([in_dim, out_dim])
                 prev_out = out_dim
             elif in_dim == prev_out:
-                # This layer connects to the previous one
                 dims.append(out_dim)
                 prev_out = out_dim
             else:
-                # Chain broken, this approach won't work
                 dims = []
                 break
         
@@ -329,7 +314,6 @@ def initialize_model_with_config(model_class: Type, config: Dict[str, Any]) -> t
         except Exception as e:
             logger.debug(f"Minimal config initialization failed: {e}")
     
-    # Pattern 4: For models that use factory methods (like DLN.make_rectangular)
     if hasattr(model_class, 'make_rectangular') and all(k in config for k in ['gamma', 'w', 'L']):
         try:
             # Try to infer input/output dims from the inferred dims list
@@ -346,7 +330,6 @@ def initialize_model_with_config(model_class: Type, config: Dict[str, Any]) -> t
         except Exception as e:
             logger.debug(f"Factory method initialization failed: {e}")
     
-    # If all else fails, raise an informative error
     raise RuntimeError(
         f"Failed to initialize {model_class.__name__}. "
         f"Available config: {config}, "
@@ -373,27 +356,21 @@ def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Modu
     except Exception as e:
         raise RuntimeError(f"Failed to load checkpoint from {path}: {e}")
 
-    # Extract state dict from various checkpoint formats
     if isinstance(checkpoint, dict):
-        # Try different keys where state dict might be stored
         state_dict = None
         for key in ['model_state', 'state_dict', 'model_state_dict', 'model']:
             if key in checkpoint:
                 state_dict = checkpoint[key]
                 break
         
-        # If no specific key found, assume the checkpoint itself is the state dict
         if state_dict is None:
-            # But first check if it looks like a state dict (has tensor values)
             if any(isinstance(v, torch.Tensor) for v in checkpoint.values()):
                 state_dict = checkpoint
             else:
                 raise RuntimeError(f"Could not find state dict in checkpoint. Keys found: {list(checkpoint.keys())}")
     else:
-        # Checkpoint is directly the state dict
         state_dict = checkpoint
 
-    # Get base configuration from the model class
     config = extract_model_config_from_class(_model_class)
     
     # If there's a config in the checkpoint, use it to override/update our extracted config
@@ -487,7 +464,6 @@ def try_infer_dims_from_attributes(state_dict: Dict[str, Any]) -> Optional[List[
     Try to infer dims from model attributes that might be stored in the state dict.
     Some models store configuration as buffer or attributes.
     """
-    # Look for dims stored as a buffer or attribute
     for key in ['dims', '_dims', 'layer_dims', '_layer_dims']:
         if key in state_dict:
             value = state_dict[key]

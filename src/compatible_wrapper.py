@@ -25,8 +25,7 @@ class MetricsCompatibleModel(nn.Module):
         for name, module in self.original_model.named_modules():
             if module is self.original_model:
                 continue
-            
-            # Collect all parameters in this module
+
             module_params = list(module.named_parameters(recurse=False))
             if not module_params:
                 continue
@@ -50,39 +49,32 @@ class MetricsCompatibleModel(nn.Module):
                         weight_params.append((param_name, param))
                     elif param_name in ['embedding', 'embed'] and param.dim() == 2:
                         weight_params.append((param_name, param))
-                
-                # Identify bias-like parameters  
+                  
                 elif not has_standard_bias and param.dim() == 1:
                     if any(indicator in param_name.lower() for indicator in ['b', 'bias']):
                         bias_params.append((param_name, param))
             
-            # Handle weight parameters
             if weight_params and not has_standard_weight:
                 if len(weight_params) == 1:
-                    # Single weight parameter - use it directly
                     param_name, param = weight_params[0]
                     if param.dim() == 2:
                         setattr(module, 'weight', param)
                     else:
-                        # Flatten 3D+ tensors to 2D
+                        # Flatten tensors to 2d if required
                         flattened = param.view(-1, param.size(-1))
                         setattr(module, 'weight', flattened)
                 else:
-                    # Multiple weight parameters - create a composite view
-                    # This concatenates all weight parameters into a single 2D tensor
+                    # Concatenates all weight parameters into a single 2D tensor
                     composite_weight = self._create_composite_weight(module, weight_params)
                     if composite_weight is not None:
                         setattr(module, 'weight', composite_weight)
-                        # Store reference for proper gradient handling
                         self._composite_weights[id(module)] = composite_weight
             
-            # Handle bias parameters
             if bias_params and not has_standard_bias:
                 if len(bias_params) == 1:
                     param_name, param = bias_params[0]
                     setattr(module, 'bias', param)
                 else:
-                    # Multiple bias parameters - concatenate them
                     composite_bias = self._create_composite_bias(module, bias_params)
                     if composite_bias is not None:
                         setattr(module, 'bias', composite_bias)
@@ -113,11 +105,9 @@ class MetricsCompatibleModel(nn.Module):
                     return composite
             
             # Strategy 2: For MLP-like modules with incompatible dimensions
-            # Check if this looks like an MLP (W_in and W_out pattern)
             if len(weight_params) == 2:
                 names = [name for name, _ in weight_params]
                 if any('in' in n.lower() for n in names) and any('out' in n.lower() for n in names):
-                    # This is likely an MLP - use the input weight as representative
                     for name, param in weight_params:
                         if 'in' in name.lower():
                             logger.debug(f"MLP-like module {module.__class__.__name__}: using input weight as representative")
@@ -162,28 +152,8 @@ class MetricsCompatibleModel(nn.Module):
     
     def modules(self):
         """Return modules from the original model with weight attributes attached."""
-        # This ensures metrics can find the weight attributes we created
+        # Ensure metrics can find the weight attributes we created
         return self.original_model.modules()
-    
-    def named_modules(self, *args, **kwargs):
-        """Return named modules from the original model."""
-        return self.original_model.named_modules(*args, **kwargs)
-    
-    def children(self):
-        """Return children from the original model."""
-        return self.original_model.children()
-    
-    def named_children(self):
-        """Return named children from the original model."""
-        return self.original_model.named_children()
-    
-    def parameters(self, recurse=True):
-        """Return parameters from the original model."""
-        return self.original_model.parameters(recurse=recurse)
-    
-    def named_parameters(self, *args, **kwargs):
-        """Return named parameters from the original model."""
-        return self.original_model.named_parameters(*args, **kwargs)
     
     def __getattr__(self, name):
         """Delegate attribute access to original model."""
@@ -297,8 +267,6 @@ def get_weight_matrices_for_metrics(model):
         List of 2D tensors
     """
     matrices = []
-    
-    # Make sure we're looking at the right model
     target_model = model.original_model if isinstance(model, MetricsCompatibleModel) else model
     
     for name, module in target_model.named_modules():

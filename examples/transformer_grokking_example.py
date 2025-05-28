@@ -36,12 +36,6 @@ class Attention(nn.Module):
         self.register_buffer('mask', torch.tril(torch.ones((n_ctx, n_ctx))))
         self.d_head = d_head
 
-    def forward(self, x):
-        # Minimal forward pass - not needed for metrics but included for completeness
-        k = torch.einsum('ihd,bpd->biph', self.W_K, x)
-        q = torch.einsum('ihd,bpd->biph', self.W_Q, x)
-        v = torch.einsum('ihd,bpd->biph', self.W_V, x)
-        return x  # Placeholder return
 
 class MLP(nn.Module):
     def __init__(self, d_model, d_mlp, act_type='ReLU'):
@@ -52,9 +46,6 @@ class MLP(nn.Module):
         self.b_out = nn.Parameter(torch.zeros(d_model))
         self.act_type = act_type
         
-    def forward(self, x):
-        # Minimal forward pass
-        return x  # Placeholder return
 
 class TransformerBlock(nn.Module):
     def __init__(self, d_model, d_mlp, d_head, num_heads, n_ctx, act_type='ReLU'):
@@ -63,7 +54,7 @@ class TransformerBlock(nn.Module):
         self.mlp = MLP(d_model, d_mlp, act_type)
     
     def forward(self, x):
-        return x  # Placeholder return
+        return x  
 
 class Transformer(nn.Module):
     def __init__(self, d_vocab=114, d_model=128, n_ctx=3, d_mlp=512, 
@@ -82,10 +73,10 @@ class Transformer(nn.Module):
         """
         super().__init__()
         
-        # Calculate d_head
+
         d_head = d_model // num_heads
         
-        # Initialize modules exactly as in the original model
+
         self.embed = Embed(d_vocab=d_vocab, d_model=d_model)
         self.pos_embed = PosEmbed(n_ctx=n_ctx, d_model=d_model)
         self.blocks = nn.ModuleList([
@@ -101,8 +92,7 @@ class Transformer(nn.Module):
         self.unembed = Unembed(d_vocab=d_vocab, d_model=d_model)
         
     def forward(self, x):
-        # Minimal forward pass - not needed for weight metrics
-        return x
 
-# Alias for backward compatibility with your CLI
+        return x
+# alias for CLI calling
 GrokkingMLP = Transformer

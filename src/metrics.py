@@ -8,8 +8,8 @@ import inspect
 import sys
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 import multiprocessing as mp
-import load_models
-from load_models import *
+import load_models # Module import
+from load_models import * # Get access to the specific functions without load_models. prefix
 from utils import logger
 import typer as t
 import functools
@@ -17,7 +17,7 @@ import numpy as np
 from state import load_state
 from compatible_wrapper import *
 
-# Import all built-in metrics
+# Import aliased built-in metrics
 from inbuilt_metrics import (
     weight_entropy_of_model as _weight_entropy,
     layer_connectivity_of_model as _layer_connectivity,
@@ -80,8 +80,9 @@ def with_memory_optimization(func):
     # ensure the wrapper is reachable as module-level attr for pickle
     mod = sys.modules[func.__module__]
     setattr(mod, func.__name__, wrapper)
-
     return wrapper
+
+# Attach wrapper to inbuilt funcs
 
 weight_entropy_of_model = with_memory_optimization(_weight_entropy)
 layer_connectivity_of_model = with_memory_optimization(_layer_connectivity)
@@ -104,19 +105,17 @@ participation_ratio_of_model = with_memory_optimization(_participation_ratio)
 sparsity_of_model = with_memory_optimization(_sparsity)
 max_activation_of_model = with_memory_optimization(_max_activation)
 
-# Add cache key functions for metrics that use caching
 
-def _entropy_cache_key(model):
+def _entropy_cache_key(model): # Should depreciate this
     trainable_params = [p for p in model.parameters() if p.requires_grad]
     if not trainable_params:
         return "weight_entropy_empty"
     return "weight_entropy_" + str(hash(tuple(p.sum().item() for p in trainable_params)))
-
 weight_entropy_of_model._cache_key_func = _entropy_cache_key
 
-# Import built-in metrics at module level for ProcessPoolExecutor
+
 def _get_builtin_metrics():
-    """Get built-in metrics that are always available."""
+    """Import built-in metrics at module level for ProcessPoolExecutor"""
     return {
         "Weight Entropy": weight_entropy_of_model,
         "Layer Connectivity": layer_connectivity_of_model,
@@ -146,32 +145,25 @@ def compute_metric_batch(
     checkpoint_path: str,
     device: str = "auto",
 ) -> Dict[str, float]:
-    """Compute multiple metrics for a single model checkpoint.
-    
-    This is more efficient than loading the model multiple times.
+    """Compute multiple metrics over a single model checkpoint.
     
     Args:
         metric_functions: Dict mapping metric names to metric functions
         checkpoint_path: Path to the model checkpoint
-        device: Device to load the model on
-        
+        device: Device to load the model on      
     Returns:
         Dict mapping metric names to metric values
     """
-    # Load the model only once
-    model = load_model_from_checkpoint(checkpoint_path, device)
+
+    model = load_model_from_checkpoint(checkpoint_path, device)   
     
     # Wrap model for metrics compatibility if needed
-    from compatible_wrapper import wrap_model_for_metrics
     model = wrap_model_for_metrics(model)
-    
-    # Calculate all metrics
     results = {}
     for name, func in metric_functions.items():
         try:
             value = func(model)
-            # Ensure the result is a float
-            if value is None:
+            if value is None: # Handle errors during calculation gracefully
                 logger.warning(f"Metric {name} returned None, converting to NaN")
                 results[name] = float('nan')
             else:
@@ -183,26 +175,17 @@ def compute_metric_batch(
 
 def _process_checkpoint_cpu(args):  
     """
-    Process a checkpoint in a separate process (for CPU parallel processing).
+    Helper function to process each function in a separate process for CPU parallel processing.
     
     args: (idx, path, metric_names, device, metrics_file)
     """
-    idx, path, metric_names, device, metrics_file = args
-    
-    # In a new process, we need to reload the model class
-    if load_models._model_class is None:
-        state = load_state()
-        load_models.load_model_class(
-            state["model_path"],
-            state["class_name"],
-        )
-
+    idx, path, metric_names, device, metrics_file = args            
+        
     try:
         # Resolve metric functions inside the worker
         builtin = _get_builtin_metrics()
         metric_funcs = {n: builtin[n] for n in metric_names if n in builtin}
 
-        # Load custom metrics if provided
         if metrics_file:
             custom = import_metric_functions(metrics_file)
             metric_funcs.update({n: custom[n] for n in metric_names if n in custom})
@@ -229,7 +212,6 @@ def _process_checkpoint_cpu(args):
             "error": str(e),
         }
 
-
 def compute_metrics_over_checkpoints(
     metric_functions: Dict[str, Callable[[torch.nn.Module], float]],
     checkpoints: Sequence[str],
@@ -238,7 +220,7 @@ def compute_metrics_over_checkpoints(
     parallel: bool = True,
     metrics_file: str = None
 ) -> Dict[str, List[float]]:
-    """Compute multiple metrics over multiple checkpoints efficiently.
+    """Compute multiple metrics over multiple checkpoints.
     
     Args:
         metric_functions: Dict mapping metric names to metric functions
@@ -251,8 +233,7 @@ def compute_metrics_over_checkpoints(
     Returns:
         Dict mapping metric names to lists of values for each checkpoint
     """
-    # Auto-detect device if set to auto
-    if device == "auto":
+    if device == "auto": # If we didn't pick a device, try using CUDA
         device = "cuda" if torch.cuda.is_available() else "cpu"
     
     # Determine if we're using GPU
@@ -266,7 +247,7 @@ def compute_metrics_over_checkpoints(
     }
     
     def process_checkpoint(idx, path):
-        """Process checkpoint for ThreadPoolExecutor (GPU)."""
+        """Helper to process checkpoint for CUDA parallel proccessing."""
         try:
             checkpoint_name = os.path.basename(path)
             checkpoint_results = compute_metric_batch(metric_functions, path, device)
@@ -347,7 +328,7 @@ def compute_metrics_over_checkpoints(
                     except Exception as e:
                         logger.exception(f"Error in parallel processing: {e}")
     else:
-        # Sequential processing
+        # If we are not using parallel processing, process checkpoints sequentially 
         t.secho("Processing checkpoints sequentially", fg=t.colors.BLUE)
         logger.info("Processing checkpoints sequentially")
         
@@ -434,5 +415,6 @@ def clear_metric_cache():
     global _metric_cache
     _metric_cache = {}
 
+# Functions we expose
 __all__ = ["compute_metrics_over_checkpoints", "l2_norm_of_model", 
            "import_metric_functions", "clear_metric_cache"]

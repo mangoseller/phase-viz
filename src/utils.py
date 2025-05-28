@@ -11,8 +11,11 @@ import atexit
 import logging
 import logging.handlers
 from pathlib import Path
-from typing import Optional, Set, Tuple
+from typing import Optional, Set, Tuple, List, Type
 from inbuilt_metrics import *
+import importlib.util
+import inspect
+import torch.nn as nn
 
 
 # Track HTML files for cleanup
@@ -41,6 +44,8 @@ BUILTIN_METRICS = {
     "sparsity":       ("Sparsity",                sparsity_of_model),
     "max_activation": ("Max Activation",          max_activation_of_model),
 }
+
+
 
 # Configure file-based logging with rotation
 def setup_file_logging(log_dir: str = "logs", max_lines: int = 5000) -> logging.Logger:
@@ -314,3 +319,39 @@ def find_interesting_points(values, x_numeric):
             }          
     return interesting
 
+# For marking class-name issues
+
+class ClassNameLoadingError(Exception):
+    pass 
+
+def get_model_classes(file_path: str) -> List[str]:
+    """
+    Automatically discover all nn.Module subclasses in a Python file.
+    
+    Args:
+        file_path: Path to the Python file containing model classes
+        
+    Returns:
+        List of class names that inherit from nn.Module
+    """
+    try:
+        spec = importlib.util.spec_from_file_location("model_module", file_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Could not load module from {file_path}")
+            
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        
+        # Find all classes that inherit from nn.Module
+        model_classes = []
+        for name, obj in inspect.getmembers(module, inspect.isclass):
+            # Check if it's a subclass of nn.Module but not nn.Module itself
+            # and that it's defined in this module (not imported)
+            if (issubclass(obj, nn.Module) and 
+                obj != nn.Module and 
+                obj.__module__ == module.__name__):
+                model_classes.append(name)
+        
+        return model_classes
+    except Exception as e:
+        raise ClassNameLoadingError("Could not infer model class") from e

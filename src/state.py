@@ -1,7 +1,7 @@
 import json
 import os
 
-STATE_FILE = ".phaseviz_state.json" # Set path for file
+STATE_FILE = ".phaseviz_state.json" # Json file stores state
 
 def save_state(state: dict):
     with open(STATE_FILE, "w") as f:

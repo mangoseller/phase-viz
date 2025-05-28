@@ -1,12 +1,12 @@
 # Phase-Viz 
 
-**Phase-Viz** is a plug-and-play visualization tool for analyzing the developmental trajectory of neural networks during training. It aims to helps researchers understand how model geometry evolves across training checkpoints and detect transitions in network behavior.
+**Phase-Viz** is a generic visualization tool for analyzing the developmental trajectory of neural networks across architectures during training. It aims to assist understanding how model geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour.
 
 ## Overview
 
 Phase-Viz provides an intuitive way to:
 - Track multiple metrics across training checkpoints
-- Detect phase transitions in model development
+- Detect 'phase transitions' during training
 - Visualize training dynamics with interactive plots
 - Support custom metrics and model architectures
 
@@ -19,20 +19,23 @@ pip install -r requirements.txt
 ```
 
 Required dependencies:
-- `torch>=2.7.0`
-- `typer>=0.15.4`
-- `matplotlib>=3.10.3`
+- `numpy==2.2.6` 
+- `pytest==7.4.4`
+- `scipy==1.15.3`
+- `torch==2.7.0`
+- `typer==0.16.0`
+
 
 ## Quick Start
 
-1. **Load your model checkpoints:**
+1. **Load model checkpoints:**
 ```bash
 python src/cli.py load-dir --dir path/to/checkpoints --model model.py --class-name ModelClass
 ```
 
 2. **Visualize metrics:**
 ```bash
-python src/cli.py plot-metric
+python src/cli.py plot-metrics
 ```
 
 When prompted, enter metric names (e.g., `l2`, `entropy`) or provide a custom metrics file. Type `done` when finished selecting metrics.
@@ -45,14 +48,14 @@ Loads a directory containing model checkpoints (`.pt` or `.ckpt` files).
 **Options:**
 - `--dir`: Directory containing model checkpoints
 - `--model`: Path to Python file defining the model class
-- `--class-name`: Name of the model class inside the file
+- `--class-name`: Name of the model class inside the file (If not provided - `class-name` will attempt to be inferred from the file provided to `--model`)
 
 **Example:**
 ```bash
-python src/cli.py load-dir --dir ./checkpoints --model models/resnet.py --class-name ResNet18
+python cli.py load-dir --dir ../grok_1748461191 --model ../examples/transformer_grokking_example.py --class-name GrokkingMLP
 ```
 
-### `plot-metric`
+### `plot-metrics`
 Computes and visualizes selected metrics across all loaded checkpoints.
 
 **Options:**
@@ -61,9 +64,6 @@ Computes and visualizes selected metrics across all loaded checkpoints.
 
 **Interactive Commands:**
 - `metrics`: List all available built-in metrics
-- `l2`: Add L2 norm metric
-- `entropy`: Add weight entropy metric
-- `connectivity`: Add layer connectivity metric
 - `path/to/file.py`: Load custom metrics from a Python file
 - `done`: Finish selection and start visualization
 - `exit`: Exit without processing
@@ -73,13 +73,6 @@ Computes and visualizes selected metrics across all loaded checkpoints.
 Phase-Viz includes several pre-built metrics for analyzing neural network geometry:
 
 ### L2 Norm
-**Command:** `l2`
-
-Computes the L2 norm of all trainable parameters:
-
-$$\|w\|_2 = \sqrt{\sum_{i} w_i^2}$$
-
-This metric tracks the overall magnitude of model weights, useful for monitoring weight growth or decay during training.
 
 ### Weight Entropy
 **Command:** `entropy`
@@ -113,9 +106,12 @@ where $\bar{w}$ is the mean weight. This metric helps track how spread out the p
 
 Computes the ratio of norms between first and last layers:
 
-$$R = \frac{\|W_{\text{last}}\|_2}{\|W_{\text{first}}\|_2}$$
+![equation](https://latex.codecogs.com/svg.image?\dpi{200}\color{White}R%20=%20\frac{\|W_{\text{last}}\|_2}{\|W_{\text{first}}\|_2})
 
-This can help identify gradient vanishing/exploding issues. Values much larger or smaller than 1 may indicate problems.
+
+
+
+This can help identify gradient vanishing/exploding issues.
 
 ### Activation Capacity
 **Command:** `capacity`
@@ -221,14 +217,16 @@ Values closer to 1 indicate more isotropic (uniform) distributions.
 
 Computes the Frobenius norm of all trainable parameters:
 
-$$\|W\|_F = \sqrt{\sum_{i,j} w_{ij}^2}$$
+![Frobenius norm](https://latex.codecogs.com/svg.image?\dpi{200}\color{White}|W|_F%20=%20\sqrt{\sum_{i,j}%20w_{ij}^2})
+
 
 ### Spectral Norm
 **Command:** `spectral`
 
 Computes the maximum singular value across all weight matrices:
 
-$$\|W\|_2 = \sigma_{\max}(W)$$
+![Spectral norm](https://latex.codecogs.com/svg.image?\dpi{200}\color{White}|W|_2%20=%20\sigma_{\max}(W))
+
 
 ### Participation Ratio
 **Command:** `participation`
@@ -253,7 +251,8 @@ where $\epsilon = 10^{-3}$.
 
 Estimates the maximum potential activation:
 
-$$A_{\max} = \max_{l} \max_{i,j} |w_{ij}^{(l)}|$$
+![activation capacity](https://latex.codecogs.com/svg.image?\dpi{200}\color{White}\mathcal{C}%20=%20\frac{1}{L}%20\sum_{l=1}^{L}%20\log(m_l%20\cdot%20n_l)%20\cdot%20\frac{\exp\left(-\sum_{i=1}^{r_l}%20p_i^{(l)}%20\log(p_i^{(l)}%20+%2010^{-10})\right)}{r_l})
+
 
 This is a proxy that looks at weight magnitudes across all layers.
 
@@ -324,7 +323,7 @@ python src/cli.py plot-metric --device cuda
 
 # When prompted:
 > metrics          # See available metrics
-> l2              # Add L2 norm
+> spectral        # Add Spectral Norm
 > entropy         # Add weight entropy
 > done            # Start visualization
 > exit            # Exit the tool
@@ -338,9 +337,6 @@ Phase-Viz automatically detects model architecture from checkpoints and supports
 - Transformer architectures
 - Convolutional networks
 - Recurrent networks (LSTM, GRU)
-
-The tool intelligently extracts configuration parameters from state dictionaries, eliminating the need for manual configuration files.
-
 
 ### Metric Computation Errors
 Failed metrics return `NaN` values without stopping the entire process. Check the log file for detailed error messages.
