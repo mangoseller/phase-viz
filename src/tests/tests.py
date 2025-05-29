@@ -14,16 +14,21 @@ from unittest.mock import Mock, patch, MagicMock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 sys.path.append(os.path.dirname(__file__))
 
+# add parent Dir
+parent_dir = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(parent_dir))
+
 # Import modules to test
 from load_models import (
     load_model_class, extract_model_config_from_class,
     infer_missing_config_from_state_dict, initialize_model_with_config, 
     load_model_from_checkpoint, contains_checkpoints, clear_model_cache
 )
-from inbuilt_metrics import l2_norm_of_model
+from inbuilt_metrics import weight_norm_of_model as l2_norm_of_model
 from metrics import (
     compute_metric_batch, 
-    compute_metrics_over_checkpoints, import_metric_functions
+    compute_metrics_over_checkpoints,
+    import_metric_functions
 )
 from state import save_state, load_state
 from utils import logger
@@ -43,16 +48,8 @@ class TestModelLoading:
         """Set up test environment."""
         # Create temporary directory
         self.test_dir = tempfile.mkdtemp()
-        self.model_file = Path(self.test_dir) / "test_models.py"
+        self.model_file = "test_models.py"
         
-        # Copy test models to temp directory
-        shutil.copy("test_models.py", self.model_file)
-        
-        yield
-        
-        # Cleanup
-        shutil.rmtree(self.test_dir)
-        clear_model_cache()
     
     def test_load_model_class(self, setup_test_env):
         """Test loading model classes from file."""

@@ -1,6 +1,7 @@
 # TODO:
 
-# update readme with screenshots, fix math rendering
+# update readme with screenshots, finish updating read me and add examples, finish cleaning github repo, 
+# make sure tests work
 # test end to end and do slides
 # package it together nicely
 
