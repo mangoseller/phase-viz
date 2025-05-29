@@ -1,5 +1,8 @@
 # Phase-Viz 
 
+![image](https://github.com/user-attachments/assets/0cf14db2-8de0-481c-9996-6edccbc641db)
+
+
 **Phase-Viz** is a generic visualization tool for analyzing the developmental trajectory of neural networks across architectures during training. It aims to assist understanding how model geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour.
 
 ## Overview
@@ -341,6 +344,45 @@ Phase-Viz automatically detects model architecture from checkpoints and supports
 ### Metric Computation Errors
 Failed metrics return `NaN` values without stopping the entire process. Check the log file for detailed error messages.
 
+## Examples
+- Example models and checkpoints are stored in the `examples` directory.
+
+## Grokking Transformer
+
+- This is the transformer architecture featured in the paper [Progress measures for grokking via mechanistic interpretability](https://github.com/mechanistic-interpretability-grokking/progress-measures-paper/tree/main) 
+- Note: `transformer_checkpoints_example` contains over 50 checkpoints, and can take 6-7 minutes to compute and render multiple metrics. Consider using CUDA if you have access to it. 
+
+```bash
+# Load the checkpoints
+python src/cli.py load-dir \
+--dir ../examples/transformer_checkpoints_example/ \
+--model ../examples/transformer_grokking_example.py \
+--class-name Transformer \ 
+
+# Select metrics
+python src/cli.py plot-metric --device cuda
+```
+
+![image](https://github.com/user-attachments/assets/79324a54-9c72-4f04-be60-2e837e731d9f)
+*Weight entropy over training - checkpointed every 1000 epochs*
+## Deep Linear Network
+
+- Deep linear architecture as featured in [Timaeus's dev interp example repo](https://github.com/timaeus-research/devinterp/blob/main/examples/dlns.ipynb)
+
+```bash
+# Load the checkpoints
+python src/cli.py load-dir 
+--dir ../examples/DLN_checkpoints_example/ \
+--model ../examples/DLN_example.py \
+--class-name DLN \
+
+# Select metrics
+python src/cli.py plot-metric --device cuda
+```
+
+![image](https://github.com/user-attachments/assets/272e31e0-2444-4e4b-a3f1-74d11c04ddff)
+
+*Overlaying and normalizing two metrics - Gradient Flow and Spectral Norm*
 
 ## License
 
