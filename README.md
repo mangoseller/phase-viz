@@ -347,7 +347,7 @@ Failed metrics return `NaN` values without stopping the entire process. Check th
 ## Examples
 - Example models and checkpoints are stored in the `examples` directory.
 
-## Grokking Transformer
+### Grokking Transformer
 
 - This is the transformer architecture featured in the paper [Progress measures for grokking via mechanistic interpretability](https://github.com/mechanistic-interpretability-grokking/progress-measures-paper/tree/main) 
 - Note: `transformer_checkpoints_example` contains over 50 checkpoints, and can take 6-7 minutes to compute and render multiple metrics. Consider using CUDA if you have access to it. 
@@ -365,7 +365,7 @@ python src/cli.py plot-metric --device cuda
 
 ![image](https://github.com/user-attachments/assets/79324a54-9c72-4f04-be60-2e837e731d9f)
 *Weight entropy over training - checkpointed every 1000 epochs*
-## Deep Linear Network
+### Deep Linear Network
 
 - Deep linear architecture as featured in [Timaeus's dev interp example repo](https://github.com/timaeus-research/devinterp/blob/main/examples/dlns.ipynb)
 
