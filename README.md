@@ -355,8 +355,8 @@ Failed metrics return `NaN` values without stopping the entire process. Check th
 ```bash
 # Load the checkpoints
 python src/cli.py load-dir \
---dir ../examples/transformer_checkpoints_example/ \
---model ../examples/transformer_grokking_example.py \
+--dir examples/transformer_checkpoints_example/ \
+--model examples/transformer_grokking_example.py \
 --class-name Transformer \ 
 
 # Select metrics
@@ -372,8 +372,8 @@ python src/cli.py plot-metric --device cuda
 ```bash
 # Load the checkpoints
 python src/cli.py load-dir 
---dir ../examples/DLN_checkpoints_example/ \
---model ../examples/DLN_example.py \
+--dir examples/DLN_checkpoints_example/ \
+--model examples/DLN_example.py \
 --class-name DLN \
 
 # Select metrics
