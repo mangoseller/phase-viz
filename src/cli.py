@@ -111,7 +111,7 @@ def load_dir(
 @app.command()
 def plot_metrics(
     device: str = t.Option("cuda", help="Device to use for calculations ('cuda', 'cpu', specific 'cuda:n')"),
-    parallel: bool = t.Option(True, help="Use parallel processing for calculations (by default: True)") 
+    parallel: bool = t.Option(False, help="Use parallel processing for calculations (by default: True)") #TODO: fix multi threads on non-linux OS - don't turn on unless you are on linux
 ):   
     metrics_file = ""
     logger.info(f"Starting plot-metric command with device={device}, parallel={parallel}")   
