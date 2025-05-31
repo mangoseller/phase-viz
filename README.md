@@ -73,7 +73,7 @@ Computes and visualizes selected metrics across all loaded checkpoints.
 
 ## Built-in Metrics
 
-Phase-Viz includes several pre-built metrics for analyzing neural network geometry:
+Phase-Viz includes pre-built metrics for analyzing neural network geometry:
 
 
 ### Weight Entropy
