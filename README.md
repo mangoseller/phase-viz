@@ -75,7 +75,6 @@ Computes and visualizes selected metrics across all loaded checkpoints.
 
 Phase-Viz includes several pre-built metrics for analyzing neural network geometry:
 
-### L2 Norm
 
 ### Weight Entropy
 **Command:** `entropy`
