@@ -7,6 +7,7 @@ import json
 import threading
 import random
 import sys
+import webbrowser
 
 from utils import (
     suppress_stdout_stderr, 
@@ -61,7 +62,6 @@ def plot_metric_interactive(
             logger.error(f"Error converting metric '{name}' values to float: {e}")
             raise ValueError(f"Metric '{name}' contains non-numeric values: {e}")
     
-    # Prepare data for React component
     react_data = {
         "checkpoints": list(checkpoint_names),
         "metrics": metrics_data,
@@ -69,7 +69,7 @@ def plot_metric_interactive(
         "startSeparate": many_metrics
     }
     
-    # Create output filename
+    # Output filename
     timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
     random_suffix = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=8))
     output_html = Path(f"metrics_over_checkpoints_{timestamp}_{random_suffix}.html").absolute()
@@ -78,7 +78,6 @@ def plot_metric_interactive(
     port, cleanup_event = start_cleanup_server(output_html, timestamp, random_suffix)
     logger.info(f"Started cleanup server on port {port} for {output_html}")
     
-    # Generate the React-based HTML
     html_content = fr"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1970,10 +1969,8 @@ const downloadPNG = () => {{
             f.write(html_content)
         
         logger.info(f"Created HTML file: {output_html}")
-        
-        # Open browser
+
         with suppress_stdout_stderr():
-            import webbrowser
             webbrowser.open(output_html.as_uri())
         
         # Wait for cleanup to complete
@@ -1982,7 +1979,7 @@ const downloadPNG = () => {{
         
     except Exception as e:
         logger.error(f"Error creating/opening HTML file: {e}")
-        # Make sure to clean up if something goes wrong
+        # Clean up even if something goes wrong
         unregister_html_from_cleanup(output_html)
         if output_html.exists():
             try:

@@ -1,3 +1,5 @@
+#TODO: support mac and windows w parallel processing
+
 import os
 import typer as t 
 import typing
@@ -271,10 +273,13 @@ def plot_metrics(
             progress_callback=progress_callback,
             parallel=parallel,
             metrics_file=metrics_file,
+            model_path=state["model_path"],
+            class_name=state["class_name"]   
         )
     except Exception as e:
         loading_animation.stop(f"Error calculating metrics: {str(e)}")
         _err(f"Error calculating metrics: {str(e)}")
+
     loading_animation.stop(f"Successfully computed {len(completed_metrics.keys())} metrics.")
     
     with suppress_stdout_stderr():

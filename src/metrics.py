@@ -177,12 +177,17 @@ def _process_checkpoint_cpu(args):
     """
     Helper function to process each function in a separate process for CPU parallel processing.
     
-    args: (idx, path, metric_names, device, metrics_file)
+    args: (idx, path, metric_names, device, metrics_file, model_path, class_name)
     """
-    idx, path, metric_names, device, metrics_file = args            
+
+    idx, path, metric_names, device, metrics_file, model_path, class_name = args            
         
     try:
-        # Resolve metric functions inside the worker
+
+        from load_models import load_model_class
+        load_model_class(model_path, class_name)
+        
+
         builtin = _get_builtin_metrics()
         metric_funcs = {n: builtin[n] for n in metric_names if n in builtin}
 
@@ -218,7 +223,9 @@ def compute_metrics_over_checkpoints(
     device: str = "auto",
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
     parallel: bool = True,
-    metrics_file: str = None
+    metrics_file: str = None,
+    model_path: str = None,  # Add this parameter
+    class_name: str = None   # Add this parameter
 ) -> Dict[str, List[float]]:
     """Compute multiple metrics over multiple checkpoints.
     
@@ -229,11 +236,13 @@ def compute_metrics_over_checkpoints(
         progress_callback: Callback for progress updates
         parallel: If True, uses parallel processing for checkpoints
         metrics_file: Path to custom metrics file (for multiprocessing)
+        model_path: Path to the model definition file (for multiprocessing)
+        class_name: Name of the model class (for multiprocessing)
         
     Returns:
         Dict mapping metric names to lists of values for each checkpoint
     """
-    if device == "auto": # If we didn't pick a device, try using CUDA
+    if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
     
     # Determine if we're using GPU
@@ -247,7 +256,7 @@ def compute_metrics_over_checkpoints(
     }
     
     def process_checkpoint(idx, path):
-        """Helper to process checkpoint for CUDA parallel proccessing."""
+        """Helper to process checkpoint for CUDA parallel processing."""
         try:
             checkpoint_name = os.path.basename(path)
             checkpoint_results = compute_metric_batch(metric_functions, path, device)
@@ -273,11 +282,10 @@ def compute_metrics_over_checkpoints(
     
     if parallel and len(checkpoints) > 1:
         if using_gpu:
-            # ThreadPoolExecutor for GPU
+            # ThreadPoolExecutor for GPU (no changes needed here)
             max_workers = min(len(checkpoints), 4)  
             executor_type = "threads"
             
-            # Print info about execution
             t.secho(f"Using {max_workers} threads on GPU", fg=t.colors.BLUE)
             logger.info(f"Using ThreadPoolExecutor with {max_workers} threads on GPU")
             
@@ -299,8 +307,18 @@ def compute_metrics_over_checkpoints(
             t.secho(f"\nCreated {max_workers} processes on CPU", fg=t.colors.BLUE)
             logger.info(f"Using ProcessPoolExecutor with {max_workers} processes on CPU")
             
+            # Get model info from state if not provided
+            if model_path is None or class_name is None:
+                try:
+                    state = load_state()
+                    model_path = model_path or state.get("model_path")
+                    class_name = class_name or state.get("class_name")
+                except:
+                    logger.warning("Could not load model info from state")
+            
+            # Include model_path and class_name in args
             args_list = [
-                (i, p, list(metric_functions.keys()), device, metrics_file)  
+                (i, p, list(metric_functions.keys()), device, metrics_file, model_path, class_name)  
                 for i, p in enumerate(checkpoints)
             ]
             
@@ -328,7 +346,7 @@ def compute_metrics_over_checkpoints(
                     except Exception as e:
                         logger.exception(f"Error in parallel processing: {e}")
     else:
-        # If we are not using parallel processing, process checkpoints sequentially 
+        # Sequential processing (no changes needed)
         t.secho("Processing checkpoints sequentially", fg=t.colors.BLUE)
         logger.info("Processing checkpoints sequentially")
         
@@ -337,16 +355,13 @@ def compute_metrics_over_checkpoints(
                 if using_gpu:
                     process_checkpoint(i, path)
                 else:
-                    # For CPU, we can still use the same approach
                     checkpoint_name = os.path.basename(path)
                     checkpoint_results = compute_metric_batch(metric_functions, path, device)
                     
-                    # Store results and update progress info
                     for name, value in checkpoint_results.items():
                         results[name][i] = value
                         metrics_progress[name]["completed"] += 1
                     
-                    # Report progress
                     if progress_callback:
                         progress_info = {
                             "current": i + 1,
@@ -358,7 +373,6 @@ def compute_metrics_over_checkpoints(
                         progress_callback(progress_info)
             except Exception as e:
                 logger.exception(f"Error processing checkpoint {path}: {e}")
-                # Continue with other checkpoints even if one fails
     
     # Clean up the model cache to free memory
     clear_model_cache()  

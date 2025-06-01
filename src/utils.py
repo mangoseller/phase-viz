@@ -47,9 +47,8 @@ BUILTIN_METRICS = {
 
 
 
-# Configure file-based logging with rotation
 def setup_file_logging(log_dir: str = "logs", max_lines: int = 5000) -> logging.Logger:
-    """Set up file-based logging with rotation after max_lines."""
+    """Set up file-based logging, new log created after max_lines."""
     # Create logs directory if it doesn't exist
     log_path = Path(log_dir)
     log_path.mkdir(exist_ok=True)
@@ -66,7 +65,6 @@ def setup_file_logging(log_dir: str = "logs", max_lines: int = 5000) -> logging.
             self._count_existing_lines()
         
         def _count_existing_lines(self):
-            """Count lines in existing file."""
             try:
                 if os.path.exists(self.baseFilename):
                     with open(self.baseFilename, 'r') as f:
@@ -97,7 +95,7 @@ def setup_file_logging(log_dir: str = "logs", max_lines: int = 5000) -> logging.
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
     
-    # Add a null handler for console to suppress output
+    # Suppress output if needed
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
@@ -130,7 +128,7 @@ def suppress_stdout_stderr():
 
 
 def silent_open_browser(url):
-    """Open a browser window silently without any console output."""
+    """Open a browser window silently"""
     with suppress_stdout_stderr():
         import webbrowser
         webbrowser.open(url)
@@ -319,8 +317,8 @@ def find_interesting_points(values, x_numeric):
             }          
     return interesting
 
-# For marking class-name issues
 
+# Need specific err/logic for class name loading issues
 class ClassNameLoadingError(Exception):
     pass 
 

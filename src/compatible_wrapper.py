@@ -7,11 +7,10 @@ logger = logging.getLogger(__name__)
 
 class MetricsCompatibleModel(nn.Module):
     """
-    Wrapper that makes any model compatible with standard metrics by:
-    1. Creating composite 'weight' views for modules with multiple weight parameters
-    2. Flattening 3D+ weight tensors to 2D when appropriate
-    3. Creating 'weight' and 'bias' attributes for non-standard parameter names
-    4. Preserving the original model structure
+    Wrap weird architectures to ensure compatibility with loader.
+    Create composite weight views for modules with multiple stacked weight parameters in the same layer.
+    Flatten rank 3 + tensors
+    Standardize param names
     """
     def __init__(self, original_model):
         super().__init__()
@@ -60,11 +59,11 @@ class MetricsCompatibleModel(nn.Module):
                     if param.dim() == 2:
                         setattr(module, 'weight', param)
                     else:
-                        # Flatten tensors to 2d if required
+                        # Flatten tensors if required
                         flattened = param.view(-1, param.size(-1))
                         setattr(module, 'weight', flattened)
                 else:
-                    # Concatenates all weight parameters into a single 2D tensor
+                    # Concatenates weight parameters 
                     composite_weight = self._create_composite_weight(module, weight_params)
                     if composite_weight is not None:
                         setattr(module, 'weight', composite_weight)
@@ -85,8 +84,7 @@ class MetricsCompatibleModel(nn.Module):
             if not weight_params:
                 return None
                 
-            # Strategy 1: If all weights have compatible dimensions, concatenate them
-            # Check if all tensors have the same last dimension (common for attention)
+            # If all weights have compatible dimensions, concatenate them
             last_dims = [param.size(-1) for _, param in weight_params]
             if len(set(last_dims)) == 1:
                 # All have same last dimension - can concatenate along first dims
@@ -104,7 +102,7 @@ class MetricsCompatibleModel(nn.Module):
                     logger.debug(f"Created composite weight for {module.__class__.__name__} by concatenating {len(weight_params)} parameters")
                     return composite
             
-            # Strategy 2: For MLP-like modules with incompatible dimensions
+            # For MLP-like architectures with incompatible dimensions
             if len(weight_params) == 2:
                 names = [name for name, _ in weight_params]
                 if any('in' in n.lower() for n in names) and any('out' in n.lower() for n in names):
@@ -116,7 +114,7 @@ class MetricsCompatibleModel(nn.Module):
                             else:
                                 return param.view(-1, param.size(-1))
             
-            # Strategy 3: Use the largest weight as representative
+            # Fall back: use the largest weight as representative
             sorted_params = sorted(weight_params, key=lambda x: x[1].numel(), reverse=True)
             largest_name, largest_param = sorted_params[0]
             
@@ -172,25 +170,19 @@ class MetricsCompatibleModel(nn.Module):
 
 
 def wrap_model_for_metrics(model):
-    """
-    Wrap a model to ensure compatibility with standard metrics.
-    
-    This function checks if the model has non-standard parameter names or 3D+ tensors
-    and wraps it in MetricsCompatibleModel if needed.
-    """
+
+   # Check if a model needs wrapping
+
     needs_wrapping = False
     
-    # Check if model has non-standard parameters
     for name, module in model.named_modules():
         if module is model:
             continue
-        
-        # Get all parameters in this module
+
         module_params = list(module.named_parameters(recurse=False))
         if not module_params:
             continue
         
-        # Check for non-standard weight parameters
         has_standard_weight = hasattr(module, 'weight') and module.weight is not None
         weight_like_params = []
         
@@ -207,7 +199,6 @@ def wrap_model_for_metrics(model):
             logger.debug(f"Module {module.__class__.__name__} has non-standard weight parameters: {weight_like_params}")
             break
         
-        # Also check for 3D+ parameters
         for param_name, param in module_params:
             if param is not None and param.dim() > 2:
                 needs_wrapping = True
@@ -242,7 +233,7 @@ def get_all_weight_parameters(model, include_all=False):
         model = model.original_model
     
     for module_name, module in model.named_modules():
-        # First try standard weight attribute
+        # First try standard weight attributes
         if hasattr(module, 'weight') and module.weight is not None:
             weights.append((module_name, 'weight', module.weight))
         else:

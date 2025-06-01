@@ -51,8 +51,7 @@ def load_model_class(model_path: str, class_name: str):
 
 def extract_model_config_from_class(model_class: Type) -> Dict[str, Any]:
     """
-    Extract model configuration by inspecting the model class's __init__ method.
-    This is more reliable than trying to reverse-engineer from state dict.
+    Attempt to extract model configuration by inspecting the model class's __init__ method
     """
     logger.debug(f"Extracting model configuration from class: {model_class.__name__}")
     
@@ -69,7 +68,6 @@ def extract_model_config_from_class(model_class: Type) -> Dict[str, Any]:
         if param.default != inspect.Parameter.empty:
             config[param_name] = param.default
         else:
-            # For required parameters without defaults, we'll need to infer from state dict
             logger.debug(f"Parameter {param_name} has no default value")
     
     logger.info(f"Extracted config from class: {config}")
@@ -80,8 +78,9 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
                                         model_class: Type,
                                         existing_config: Dict[str, Any]) -> Dict[str, Any]:
     """
-    For any required parameters without defaults, try to infer them from the state dict.
-    This is only used as a fallback for parameters we couldn't get from the class definition.
+    For any required parameters without defaults, attempt to infer required params from state_dict
+    fallback for extract_model_config_from_class
+
     """
     config = existing_config.copy()
     signature = inspect.signature(model_class.__init__)
@@ -149,7 +148,7 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
                     break
         
         elif param_name == 'd_model':
-            # Look for transformer-specific patterns
+            # Handle transformers
             for key, tensor in state_dict.items():
                 if 'embedding' in key and 'weight' in key and tensor.dim() == 2:
                     config[param_name] = tensor.size(1)
@@ -169,7 +168,7 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
                 logger.debug(f"Inferred {param_name} = {config[param_name]} from layer indices")
         
         elif param_name == 'num_blocks':
-            # Similar to num_layers but specifically for blocks
+            # Handle block models, e.g. Resnets
             block_indices = set()
             for key in state_dict.keys():
                 matches = re.findall(r'blocks\.(\d+)\.', key)
@@ -180,7 +179,7 @@ def infer_missing_config_from_state_dict(state_dict: Dict[str, Any],
                 config[param_name] = max(block_indices) + 1
                 logger.debug(f"Inferred {param_name} = {config[param_name]} from block indices")
     
-    # Log any parameters we couldn't infer
+    # Log failures
     missing = [p for p in required_params if p not in config]
     if missing:
         logger.warning(f"Could not infer required parameters: {missing}. Model initialization may fail.")
@@ -195,9 +194,9 @@ def infer_dims_from_state_dict(state_dict: Dict[str, Any]) -> Optional[List[int]
     """
     # Look for sequential linear layers patterns
     linear_patterns = [
-        (r'linears\.(\d+)\.weight', 'linears'),  # DLN pattern
-        (r'layers\.(\d+)\.weight', 'layers'),    # Common pattern
-        (r'fc(\d+)\.weight', 'fc'),              # fc1, fc2, etc.
+        (r'linears\.(\d+)\.weight', 'linears'),  # DLN 
+        (r'layers\.(\d+)\.weight', 'layers'),    # Common 
+        (r'fc(\d+)\.weight', 'fc'),              # get fc layers
         (r'linear(\d+)\.weight', 'linear'),      # linear1, linear2, etc.
     ]
     
@@ -266,24 +265,27 @@ def initialize_model_with_config(model_class: Type, config: Dict[str, Any]) -> t
     """
     logger.debug(f"Initializing model {model_class.__name__} with config: {config}")
     
-    # First, try to initialize with the exact config we have
+    # attempt initialize with the exact config we have
     signature = inspect.signature(model_class.__init__)
     
-    # Filter config to only include parameters that the model accepts
+    # try removing failed params
     init_params = {}
     for param_name, param in signature.parameters.items():
         if param_name != 'self' and param_name in config:
             init_params[param_name] = config[param_name]
     
     try:
-        # Try direct initialization with filtered parameters
+
         model = model_class(**init_params)
         logger.debug(f"Successfully initialized model with parameters: {init_params}")
         return model
     except Exception as e:
         logger.debug(f"Direct initialization failed: {e}")
     
-    # If that fails, try some common patterns
+
+    # TODO: remove these, get more broad compatibility to work
+    # Fallback pattens:
+  
     
     # Pattern 1: Model expects a config dict
     if 'config' in signature.parameters:
@@ -390,7 +392,7 @@ def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Modu
     # Try to infer any missing required parameters from the state dict
     config = infer_missing_config_from_state_dict(state_dict, _model_class, config)
     
-    # Special handling for DLN models
+    # Special handling for DLN models TODO: remove this
     if _model_class.__name__ == 'DLN' and 'dims' not in config:
         # Try to infer dims from the model's stored attributes if they exist
         dims_from_attributes = try_infer_dims_from_attributes(state_dict)
@@ -402,25 +404,9 @@ def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Modu
     try:
         model = initialize_model_with_config(_model_class, config)
     except Exception as e:
-        # If initialization fails, try to provide more helpful error information
         logger.error(f"Model initialization failed: {e}")
-        
-        # Try to provide suggestions based on the error
-        error_msg = str(e)
-        if "dims" in error_msg and _model_class.__name__ == "DLN":
-            # For DLN, try to show what we found in the state dict
-            layer_info = analyze_layer_structure(state_dict)
-            logger.error(f"Layer structure found in state dict: {layer_info}")
-            
-            suggestion = (
-                f"\nFor DLN models, ensure the checkpoint includes the 'dims' configuration. "
-                f"Found layers: {layer_info}. "
-                f"You may need to save the model with its configuration using: "
-                f"torch.save({{'state_dict': model.state_dict(), 'config': model.get_config()}}, path)"
-            )
-            raise RuntimeError(f"{error_msg}{suggestion}")
-        else:
-            raise
+        RuntimeError(f"{e}{suggestion}")
+        raise 
 
     # Load the state dict
     if not isinstance(state_dict, Mapping):
@@ -503,7 +489,7 @@ def try_infer_dims_from_attributes(state_dict: Dict[str, Any]) -> Optional[List[
 
 def analyze_layer_structure(state_dict: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Analyze the layer structure in a state dict to provide helpful debugging info.
+    Analyze state dict to provide debugging info.
     """
     info = {
         'linear_layers': [],
@@ -531,7 +517,7 @@ def analyze_layer_structure(state_dict: Dict[str, Any]) -> Dict[str, Any]:
             info['buffers'].append({
                 'name': key,
                 'type': type(value).__name__,
-                'value': str(value)[:100]  # Truncate long values
+                'value': str(value)
             })
     
     # Try to infer possible dims from linear layers
@@ -575,14 +561,9 @@ def natural_sort_key(text):
     return [convert(part) for part in parts]
     
 def contains_checkpoints(directory: str) -> list[str]:
-    """
-    Return a list of *.pt / *.ckpt* files in *directory*, sorted naturally.
 
-    Raises
-    ------
-    Exception
-        If the directory cannot be read or contains no checkpoints.
-    """
+    # Return a list of *.pt / *.ckpt* files in *directory*, sorted naturally.
+
     logger.info("Searching for checkpoints in: %s", directory)
     try:
         files = os.listdir(directory)
@@ -602,14 +583,13 @@ def contains_checkpoints(directory: str) -> list[str]:
         logger.error(msg)
         raise Exception(msg)
 
-    # Sort checkpoints naturally to handle numeric sequences properly
     checkpoint_files.sort(key=lambda x: natural_sort_key(os.path.basename(x)))
     
     logger.info("Found %d checkpoint files (sorted)", len(checkpoint_files))
     return checkpoint_files
 
 
-# Export the new functions
+
 __all__ = [
     'load_model_class',
     'extract_model_config_from_class',
