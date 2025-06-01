@@ -3,11 +3,11 @@
 ![image](https://github.com/user-attachments/assets/0cf14db2-8de0-481c-9996-6edccbc641db)
 
 
-**Phase-Viz** is a generic visualization tool for analyzing the developmental trajectory of neural networks across architectures during training. It aims to assist understanding how model geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour.
+Phase-Viz is a generic visualization tool for analyzing the developmental trajectory of neural networks across architectures during training. It aims to assist understanding how model geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour. is a generic visualization tool for analyzing the developmental trajectory of neural networks across architectures during training. It aims to assist understanding how model geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour.
 
 ## Overview
 
-Phase-Viz provides an intuitive way to:
+**Phase-Viz** provides an intuitive way to:
 - Track multiple metrics across training checkpoints
 - Detect 'phase transitions' during training
 - Visualize training dynamics with interactive plots
@@ -74,8 +74,6 @@ Computes and visualizes selected metrics across all loaded checkpoints.
 ## Built-in Metrics
 
 Phase-Viz includes several pre-built metrics for analyzing neural network geometry:
-
-### L2 Norm
 
 ### Weight Entropy
 **Command:** `entropy`
