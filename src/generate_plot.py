@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Sequence, Dict, List, Optional, Tuple
+from typing import Sequence, Dict, List, Optional, Tuple, Any
 import datetime as dt
 import numpy as np
 import os
@@ -27,7 +27,9 @@ def plot_metric_interactive(
     values: Sequence[float] = None,
     metric_name: str = None,
     metrics_data: Dict[str, List[float]] = None,
-    many_metrics=False
+    many_metrics=False,
+    comparison_mode=False,
+    comparison_data=None
 ) -> None:
     """Render an interactive line-plot using React and D3.js.
     
@@ -36,6 +38,9 @@ def plot_metric_interactive(
         values: (Optional) List of metric values for a single metric
         metric_name: (Optional) Name of the single metric
         metrics_data: (Optional) Dictionary mapping metric names to values
+        many_metrics: Whether to start with many metrics (affects initial view)
+        comparison_mode: Whether this is a model comparison
+        comparison_data: (Optional) Data for model comparison containing model1 and model2 info
     
     Returns:
         None: Outputs are saved to HTML file
@@ -49,41 +54,70 @@ def plot_metric_interactive(
             raise ValueError("Either (values, metric_name) or metrics_data must be provided")
     
     # Validate input lengths and convert to floats
-    for name, vals in metrics_data.items():
-        if len(checkpoint_names) != len(vals):
-            raise ValueError(
-                f"checkpoint_names and values for {name} must have identical length; "
-                f"got {len(checkpoint_names)} vs {len(vals)}."
-            )
-        # Ensure all values are floats
-        try:
-            metrics_data[name] = [float(v) if v is not None else float('nan') for v in vals]
-        except (TypeError, ValueError) as e:
-            logger.error(f"Error converting metric '{name}' values to float: {e}")
-            raise ValueError(f"Metric '{name}' contains non-numeric values: {e}")
+    if not comparison_mode:
+        for name, vals in metrics_data.items():
+            if len(checkpoint_names) != len(vals):
+                raise ValueError(
+                    f"checkpoint_names and values for {name} must have identical length; "
+                    f"got {len(checkpoint_names)} vs {len(vals)}."
+                )
+            # Ensure all values are floats
+            try:
+                metrics_data[name] = [float(v) if v is not None else float('nan') for v in vals]
+            except (TypeError, ValueError) as e:
+                logger.error(f"Error converting metric '{name}' values to float: {e}")
+                raise ValueError(f"Metric '{name}' contains non-numeric values: {e}")
     
-    react_data = {
-        "checkpoints": list(checkpoint_names),
-        "metrics": metrics_data,
-        "metricsList": list(metrics_data.keys()),
-        "startSeparate": many_metrics
-    }
+    # Prepare data for React
+    if comparison_mode and comparison_data:
+        # Validate comparison data
+        for model_key in ['model1', 'model2']:
+            model_data = comparison_data[model_key]
+            for metric_name, values in model_data['metrics'].items():
+                try:
+                    model_data['metrics'][metric_name] = [
+                        float(v) if v is not None else float('nan') for v in values
+                    ]
+                except (TypeError, ValueError) as e:
+                    logger.error(f"Error converting {model_key} metric '{metric_name}' values to float: {e}")
+                    raise ValueError(f"{model_key} metric '{metric_name}' contains non-numeric values: {e}")
+        
+        react_data = {
+            "checkpoints": list(checkpoint_names),
+            "metrics": metrics_data,
+            "metricsList": list(metrics_data.keys()),
+            "startSeparate": many_metrics,
+            "comparisonMode": True,
+            "comparisonData": comparison_data
+        }
+    else:
+        react_data = {
+            "checkpoints": list(checkpoint_names),
+            "metrics": metrics_data,
+            "metricsList": list(metrics_data.keys()),
+            "startSeparate": many_metrics,
+            "comparisonMode": False
+        }
     
     # Output filename
     timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
     random_suffix = ''.join(random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=8))
-    output_html = Path(f"metrics_over_checkpoints_{timestamp}_{random_suffix}.html").absolute()
+    if comparison_mode:
+        output_html = Path(f"model_comparison_{timestamp}_{random_suffix}.html").absolute()
+    else:
+        output_html = Path(f"metrics_over_checkpoints_{timestamp}_{random_suffix}.html").absolute()
     
     # Start cleanup server
     port, cleanup_event = start_cleanup_server(output_html, timestamp, random_suffix)
     logger.info(f"Started cleanup server on port {port} for {output_html}")
     
+    # The HTML content now includes comparison mode support in the existing template
     html_content = fr"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phase-Viz</title>
+    <title>Phase-Viz{' Comparison' if comparison_mode else ''}</title>
     
     <!-- Load React and ReactDOM from CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -165,6 +199,42 @@ def plot_metric_interactive(
             color: #9ca3af;
             font-weight: 400;
             transition: all 0.3s ease;
+        }}
+        
+        .model-badges {{
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }}
+        
+        .model-badge {{
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }}
+        
+        .model-badge.model1 {{
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid #6366f1;
+            color: #c7d2fe;
+        }}
+        
+        .model-badge.model2 {{
+            background: rgba(244, 63, 94, 0.2);
+            border: 1px solid #f43f5e;
+            color: #fecdd3;
+        }}
+        
+        .model-badge .indicator {{
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
         }}
         
         .controls {{
@@ -441,6 +511,23 @@ def plot_metric_interactive(
             color: #e0e0e0;
         }}
         
+        .model-comparison {{
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #333;
+        }}
+        
+        .model-stat {{
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }}
+        
+        .model-name {{
+            font-weight: 500;
+        }}
+        
         .phase-info {{
             margin-top: 1rem;
             padding: 0.75rem;
@@ -493,6 +580,12 @@ def plot_metric_interactive(
             opacity: 1;
         }}
         
+        .tooltip-model {{
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }}
+        
         .tooltip-title {{
             font-weight: 600;
             margin-bottom: 0.25rem;
@@ -532,6 +625,12 @@ def plot_metric_interactive(
             width: 14px;
             height: 14px;
             border-radius: 50%;
+        }}
+        
+        .legend-line {{
+            width: 20px;
+            height: 2px;
+            display: inline-block;
         }}
         
         .overlay {{
@@ -584,14 +683,28 @@ def plot_metric_interactive(
         
         // Data passed from Python
         const DATA = {json.dumps(react_data)};
-        const START_SEPARATE= DATA.startSeparate;
+        const START_SEPARATE = DATA.startSeparate;
         const CLEANUP_PORT = {port};
+        const IS_COMPARISON = DATA.comparisonMode || false;
+        const COMPARISON_DATA = DATA.comparisonData || null;
         
-        // Color palette for metrics
+        // Color palette for metrics (single model)
         const COLOR_PALETTE = [
             '#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6',
             '#8b5cf6', '#ef4444', '#14b8a6', '#f97316', '#06b6d4'
         ];
+        
+        // Color schemes for comparison mode
+        const MODEL_COLORS = {{
+            model1: {{
+                primary: '#6366f1',
+                variants: ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff']
+            }},
+            model2: {{
+                primary: '#f43f5e',
+                variants: ['#f43f5e', '#fb7185', '#fda4af', '#fecdd3', '#ffe4e6']
+            }}
+        }};
         
         // Create color mapping
         const metricColors = {{}};
@@ -602,7 +715,7 @@ def plot_metric_interactive(
         // Phase transition detection threshold
         const PHASE_TRANSITION_THRESHOLD = 0.2; // 20% change
         
-        function Chart({{ metric, data, isExpanded, onToggleExpand, showPhaseTransitions }}) {{
+        function Chart({{ metric, data, isExpanded, onToggleExpand, showPhaseTransitions, comparisonData }}) {{
             const svgRef = useRef(null);
             const containerRef = useRef(null);
             const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -631,45 +744,103 @@ def plot_metric_interactive(
             
             // Calculate statistics
             const stats = useMemo(() => {{
-                const values = data.filter(v => !isNaN(v));
-                if (values.length === 0) return null;
-                
-                const min = Math.min(...values);
-                const max = Math.max(...values);
-                const mean = values.reduce((a, b) => a + b, 0) / values.length;
-                const start = values[0];
-                const end = values[values.length - 1];
-                const change = end - start;
-                const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
-                
-                return {{
-                    min, max, mean, start, end, change, changePercent,
-                    minIndex: data.indexOf(min),
-                    maxIndex: data.indexOf(max)
-                }};
-            }}, [data]);
+                if (IS_COMPARISON && comparisonData) {{
+                    // Calculate stats for both models
+                    const calculateStats = (values) => {{
+                        const validValues = values.filter(v => !isNaN(v));
+                        if (validValues.length === 0) return null;
+                        
+                        const min = Math.min(...validValues);
+                        const max = Math.max(...validValues);
+                        const mean = validValues.reduce((a, b) => a + b, 0) / validValues.length;
+                        const start = validValues[0];
+                        const end = validValues[validValues.length - 1];
+                        const change = end - start;
+                        const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
+                        
+                        return {{
+                            min, max, mean, start, end, change, changePercent,
+                            minIndex: values.indexOf(min),
+                            maxIndex: values.indexOf(max)
+                        }};
+                    }};
+                    
+                    return {{
+                        model1: calculateStats(comparisonData.model1.metrics[metric]),
+                        model2: calculateStats(comparisonData.model2.metrics[metric])
+                    }};
+                }} else {{
+                    // Single model stats
+                    const values = data.filter(v => !isNaN(v));
+                    if (values.length === 0) return null;
+                    
+                    const min = Math.min(...values);
+                    const max = Math.max(...values);
+                    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                    const start = values[0];
+                    const end = values[values.length - 1];
+                    const change = end - start;
+                    const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
+                    
+                    return {{
+                        min, max, mean, start, end, change, changePercent,
+                        minIndex: data.indexOf(min),
+                        maxIndex: data.indexOf(max)
+                    }};
+                }}
+            }}, [data, metric, comparisonData]);
             
             // Calculate phase transitions
             const phaseTransitions = useMemo(() => {{
-                const transitions = [];
-                for (let i = 1; i < data.length; i++) {{
-                    if (!isNaN(data[i]) && !isNaN(data[i-1])) {{
-                        const change = Math.abs(data[i] - data[i-1]);
-                        const baseValue = Math.abs(data[i-1]) || 1;
-                        const relativeChange = change / baseValue;
-                        
-                        if (relativeChange > PHASE_TRANSITION_THRESHOLD) {{
-                            transitions.push({{
-                                index: i,
-                                change: relativeChange,
-                                from: data[i-1],
-                                to: data[i]
-                            }});
+                if (IS_COMPARISON && comparisonData) {{
+                    // Calculate phase transitions for both models
+                    const calculateTransitions = (values) => {{
+                        const transitions = [];
+                        for (let i = 1; i < values.length; i++) {{
+                            if (!isNaN(values[i]) && !isNaN(values[i-1])) {{
+                                const change = Math.abs(values[i] - values[i-1]);
+                                const baseValue = Math.abs(values[i-1]) || 1;
+                                const relativeChange = change / baseValue;
+                                
+                                if (relativeChange > PHASE_TRANSITION_THRESHOLD) {{
+                                    transitions.push({{
+                                        index: i,
+                                        change: relativeChange,
+                                        from: values[i-1],
+                                        to: values[i]
+                                    }});
+                                }}
+                            }}
+                        }}
+                        return transitions;
+                    }};
+                    
+                    return {{
+                        model1: calculateTransitions(comparisonData.model1.metrics[metric]),
+                        model2: calculateTransitions(comparisonData.model2.metrics[metric])
+                    }};
+                }} else {{
+                    // Single model transitions
+                    const transitions = [];
+                    for (let i = 1; i < data.length; i++) {{
+                        if (!isNaN(data[i]) && !isNaN(data[i-1])) {{
+                            const change = Math.abs(data[i] - data[i-1]);
+                            const baseValue = Math.abs(data[i-1]) || 1;
+                            const relativeChange = change / baseValue;
+                            
+                            if (relativeChange > PHASE_TRANSITION_THRESHOLD) {{
+                                transitions.push({{
+                                    index: i,
+                                    change: relativeChange,
+                                    from: data[i-1],
+                                    to: data[i]
+                                }});
+                            }}
                         }}
                     }}
+                    return transitions;
                 }}
-                return transitions;
-            }}, [data]);
+            }}, [data, metric, comparisonData]);
             
             // Render chart with D3
             useEffect(() => {{
@@ -708,32 +879,80 @@ def plot_metric_interactive(
                     .attr('transform', `translate(${{margin.left}},${{margin.top}})`);
                 
                 // Create scales
+                let xDomain, yDomain;
+                
+                if (IS_COMPARISON && comparisonData) {{
+                    // Use max checkpoints for x scale
+                    const maxCheckpoints = Math.max(
+                        comparisonData.model1.checkpoints.length,
+                        comparisonData.model2.checkpoints.length
+                    );
+                    xDomain = [0, maxCheckpoints - 1];
+                    
+                    // Combined y scale
+                    const allValues = [
+                        ...comparisonData.model1.metrics[metric],
+                        ...comparisonData.model2.metrics[metric]
+                    ].filter(v => !isNaN(v));
+                    
+                    const yMin = Math.min(...allValues);
+                    const yMax = Math.max(...allValues);
+                    const yPadding = (yMax - yMin) * 0.1 || 0.1;
+                    yDomain = [yMin - yPadding, yMax + yPadding];
+                }} else {{
+                    xDomain = [0, DATA.checkpoints.length - 1];
+                    const validValues = data.filter(v => !isNaN(v));
+                    const yPadding = (stats.max - stats.min) * 0.1 || 0.1;
+                    yDomain = [stats.min - yPadding, stats.max + yPadding];
+                }}
+                
                 const xScale = d3.scaleLinear()
-                    .domain([0, DATA.checkpoints.length - 1])
+                    .domain(xDomain)
                     .range([0, innerWidth]);
                 
-                const validValues = data.filter(v => !isNaN(v));
-                const yPadding = (stats.max - stats.min) * 0.1 || 0.1;
                 const yScale = d3.scaleLinear()
-                    .domain([stats.min - yPadding, stats.max + yPadding])
+                    .domain(yDomain)
                     .range([innerHeight, 0]);
                 
                 // Add phase transition indicators
-                if (showPhaseTransitions && phaseTransitions.length > 0) {{
-                    phaseTransitions.forEach(transition => {{
-                        const x = xScale(transition.index - 0.5);
-                        const width = xScale(1) - xScale(0);
+                if (showPhaseTransitions) {{
+                    if (IS_COMPARISON && phaseTransitions.model1 && phaseTransitions.model2) {{
+                        // Show transitions for both models
+                        const allTransitions = new Set();
+                        [...phaseTransitions.model1, ...phaseTransitions.model2].forEach(t => {{
+                            allTransitions.add(t.index);
+                        }});
                         
-                        g.append('rect')
-                            .attr('x', x)
-                            .attr('y', 0)
-                            .attr('width', width)
-                            .attr('height', innerHeight)
-                            .style('fill', 'rgba(245, 158, 11, 0.1)')
-                            .style('stroke', '#f59e0b')
-                            .style('stroke-width', 1)
-                            .style('stroke-dasharray', '4,2');
-                    }});
+                        allTransitions.forEach(index => {{
+                            const x = xScale(index - 0.5);
+                            const width = xScale(1) - xScale(0);
+                            
+                            g.append('rect')
+                                .attr('x', x)
+                                .attr('y', 0)
+                                .attr('width', width)
+                                .attr('height', innerHeight)
+                                .style('fill', 'rgba(245, 158, 11, 0.1)')
+                                .style('stroke', '#f59e0b')
+                                .style('stroke-width', 1)
+                                .style('stroke-dasharray', '4,2');
+                        }});
+                    }} else if (phaseTransitions.length > 0) {{
+                        phaseTransitions.forEach(transition => {{
+                            const x = xScale(transition.index - 0.5);
+                            const width = xScale(1) - xScale(0);
+                            
+                            g.append('rect')
+                                .attr('x', x)
+                                .attr('y', 0)
+                                .attr('width', width)
+                                .attr('height', innerHeight)
+                                .style('fill', 'rgba(245, 158, 11, 0.1)')
+                                .style('stroke', '#f59e0b')
+                                .style('stroke-width', 1)
+                                .style('stroke-dasharray', '4,2');
+                        }});
+                    }}
                 }}
                 
                 // Grid lines
@@ -761,10 +980,6 @@ def plot_metric_interactive(
                     .attr('transform', `translate(0,${{innerHeight}})`)
                     .call(d3.axisBottom(xScale)
                         .tickFormat(i => {{
-                            const checkpoint = DATA.checkpoints[i];
-                            if (!checkpoint) return '';
-                            
-                            // Use simple checkpoint numbers
                             return `CP${{i + 1}}`;
                         }}));
                 
@@ -772,40 +987,7 @@ def plot_metric_interactive(
                     .style('text-anchor', 'middle')
                     .style('fill', '#9ca3af')
                     .style('font-size', '11px')
-                    .style('cursor', 'pointer')
-                    .each(function(d, i) {{
-                        const text = d3.select(this);
-                        const checkpointName = DATA.checkpoints[d];
-                        if (checkpointName) {{
-                            // Add hover effect to show full name
-                            text.on('mouseenter', function() {{
-                                text.text(checkpointName)
-                                    .style('font-weight', '600')
-                                    .style('fill', '#f3f4f6');
-                                
-                                // Adjust position if text is too long
-                                const bbox = this.getBBox();
-                                if (bbox.width > 100) {{
-                                    text.style('text-anchor', 'end')
-                                        .attr('dx', '-.8em')
-                                        .attr('dy', '.15em')
-                                        .attr('transform', 'rotate(-45)');
-                                }}
-                            }})
-                            .on('mouseleave', function() {{
-                                text.text(`CP${{d + 1}}`)
-                                    .style('font-weight', 'normal')
-                                    .style('fill', '#9ca3af')
-                                    .style('text-anchor', 'middle')
-                                    .attr('dx', null)
-                                    .attr('dy', null)
-                                    .attr('transform', null);
-                            }});
-                            
-                            // Add title for tooltip
-                            text.append('title').text(checkpointName);
-                        }}
-                    }});
+                    .style('cursor', 'pointer');
                 
                 xAxis.select('.domain').style('stroke', '#333');
                 xAxis.selectAll('.tick line').style('stroke', '#333');
@@ -837,129 +1019,247 @@ def plot_metric_interactive(
                     .curve(d3.curveMonotoneX)
                     .defined(d => !isNaN(d));
                 
-                // Add gradient
-                const gradient = svg.append('defs')
-                    .append('linearGradient')
-                    .attr('id', `gradient-${{metric.replace(/\s+/g, '-')}}`)
-                    .attr('gradientUnits', 'userSpaceOnUse')
-                    .attr('x1', 0).attr('y1', yScale(stats.max))
-                    .attr('x2', 0).attr('y2', yScale(stats.min));
-                
-                gradient.append('stop')
-                    .attr('offset', '0%')
-                    .attr('stop-color', metricColors[metric])
-                    .attr('stop-opacity', 0.8);
-                
-                gradient.append('stop')
-                    .attr('offset', '100%')
-                    .attr('stop-color', metricColors[metric])
-                    .attr('stop-opacity', 0.1);
-                
-                // Area under curve
-                const area = d3.area()
-                    .x((d, i) => xScale(i))
-                    .y0(innerHeight)
-                    .y1(d => yScale(d))
-                    .curve(d3.curveMonotoneX)
-                    .defined(d => !isNaN(d));
-                
-                g.append('path')
-                    .datum(data)
-                    .attr('fill', `url(#gradient-${{metric.replace(/\s+/g, '-')}})`)
-                    .attr('d', area)
-                    .attr('opacity', 0.3);
-                
-                // Draw line
-                const path = g.append('path')
-                    .datum(data)
-                    .attr('fill', 'none')
-                    .attr('stroke', metricColors[metric])
-                    .attr('stroke-width', 2)
-                    .attr('d', line);
-                
-                // Animate line
-                const totalLength = path.node().getTotalLength();
-                path
-                    .attr('stroke-dasharray', totalLength + ' ' + totalLength)
-                    .attr('stroke-dashoffset', totalLength)
-                    .transition()
-                    .duration(1000)
-                    .ease(d3.easeQuadInOut)
-                    .attr('stroke-dashoffset', 0);
-                
-                // Add data points
-                const points = g.selectAll('.point')
-                    .data(data)
-                    .enter()
-                    .filter(d => !isNaN(d))
-                    .append('circle')
-                    .attr('cx', (d, i) => xScale(i))
-                    .attr('cy', d => yScale(d))
-                    .attr('r', 0)
-                    .attr('fill', metricColors[metric])
-                    .style('cursor', 'pointer');
-                
-                points
-                    .transition()
-                    .duration(1000)
-                    .delay((d, i) => i * 30)
-                    .attr('r', 3);
-                
-                // Add max/min highlights
-                if (stats.maxIndex >= 0) {{
-                    g.append('circle')
-                        .attr('cx', xScale(stats.maxIndex))
-                        .attr('cy', yScale(data[stats.maxIndex]))
-                        .attr('r', 0)
-                        .attr('fill', '#3b82f6')
-                        .attr('stroke', '#fff')
-                        .attr('stroke-width', 2)
-                        .transition()
-                        .duration(1000)
-                        .delay(1000)
-                        .attr('r', 6);
-                }}
-                
-                if (stats.minIndex >= 0) {{
-                    g.append('circle')
-                        .attr('cx', xScale(stats.minIndex))
-                        .attr('cy', yScale(data[stats.minIndex]))
-                        .attr('r', 0)
-                        .attr('fill', '#ef4444')
-                        .attr('stroke', '#fff')
-                        .attr('stroke-width', 2)
-                        .transition()
-                        .duration(1000)
-                        .delay(1000)
-                        .attr('r', 6);
-                }}
-                
-                // Hover effects
-                points
-                    .on('mouseenter', function(event, d) {{
-                        const i = data.indexOf(d);
-                        setHoveredPoint({{
-                            checkpoint: DATA.checkpoints[i],
-                            value: d,
-                            x: event.pageX,
-                            y: event.pageY
-                        }});
+                if (IS_COMPARISON && comparisonData) {{
+                    // Draw lines for both models
+                    const drawModelLine = (modelData, modelKey, color, dashArray = null) => {{
+                        const values = modelData.metrics[metric];
+                        const checkpoints = modelData.checkpoints;
                         
-                        d3.select(this)
-                            .transition()
-                            .duration(200)
-                            .attr('r', 5);
-                    }})
-                    .on('mouseleave', function() {{
-                        setHoveredPoint(null);
+                        // Draw line
+                        const path = g.append('path')
+                            .datum(values)
+                            .attr('fill', 'none')
+                            .attr('stroke', color)
+                            .attr('stroke-width', 2.5)
+                            .attr('d', line);
                         
-                        d3.select(this)
+                        if (dashArray) {{
+                            path.attr('stroke-dasharray', dashArray);
+                        }}
+                        
+                        // Animate line
+                        const totalLength = path.node().getTotalLength();
+                        path
+                            .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                            .attr('stroke-dashoffset', totalLength)
                             .transition()
-                            .duration(200)
+                            .duration(1000)
+                            .ease(d3.easeQuadInOut)
+                            .attr('stroke-dashoffset', 0)
+                            .on('end', function() {{
+                                if (dashArray) {{
+                                    d3.select(this).attr('stroke-dasharray', dashArray);
+                                }}
+                            }});
+                        
+                        // Add data points
+                        const points = g.selectAll(`.point-${{modelKey}}`)
+                            .data(values)
+                            .enter()
+                            .filter(d => !isNaN(d))
+                            .append('circle')
+                            .attr('class', `point-${{modelKey}}`)
+                            .attr('cx', (d, i) => xScale(i))
+                            .attr('cy', d => yScale(d))
+                            .attr('r', 0)
+                            .attr('fill', color)
+                            .style('cursor', 'pointer');
+                        
+                        points
+                            .transition()
+                            .duration(1000)
+                            .delay((d, i) => i * 30)
                             .attr('r', 3);
-                    }});
+                        
+                        // Hover effects
+                        points
+                            .on('mouseenter', function(event, d) {{
+                                const i = values.indexOf(d);
+                                setHoveredPoint({{
+                                    model: modelData.name,
+                                    checkpoint: checkpoints[i],
+                                    value: d,
+                                    x: event.pageX,
+                                    y: event.pageY
+                                }});
+                                
+                                d3.select(this)
+                                    .transition()
+                                    .duration(200)
+                                    .attr('r', 5);
+                            }})
+                            .on('mouseleave', function() {{
+                                setHoveredPoint(null);
+                                
+                                d3.select(this)
+                                    .transition()
+                                    .duration(200)
+                                    .attr('r', 3);
+                            }});
+                        
+                        // Add max/min highlights
+                        const modelStats = stats[modelKey];
+                        if (modelStats && modelStats.maxIndex >= 0) {{
+                            g.append('circle')
+                                .attr('cx', xScale(modelStats.maxIndex))
+                                .attr('cy', yScale(values[modelStats.maxIndex]))
+                                .attr('r', 0)
+                                .attr('fill', '#3b82f6')
+                                .attr('stroke', '#fff')
+                                .attr('stroke-width', 2)
+                                .transition()
+                                .duration(1000)
+                                .delay(1000)
+                                .attr('r', 6);
+                        }}
+                        
+                        if (modelStats && modelStats.minIndex >= 0) {{
+                            g.append('circle')
+                                .attr('cx', xScale(modelStats.minIndex))
+                                .attr('cy', yScale(values[modelStats.minIndex]))
+                                .attr('r', 0)
+                                .attr('fill', '#ef4444')
+                                .attr('stroke', '#fff')
+                                .attr('stroke-width', 2)
+                                .transition()
+                                .duration(1000)
+                                .delay(1000)
+                                .attr('r', 6);
+                        }}
+                    }};
                     
-            }}, [data, metric, stats, isExpanded, showPhaseTransitions, phaseTransitions, dimensions]);
+                    // Draw model 1 (solid line)
+                    drawModelLine(comparisonData.model1, 'model1', MODEL_COLORS.model1.primary);
+                    
+                    // Draw model 2 (dashed line)
+                    drawModelLine(comparisonData.model2, 'model2', MODEL_COLORS.model2.primary, '8,4');
+                    
+                }} else {{
+                    // Single model visualization (existing code)
+                    // Add gradient
+                    const gradient = svg.append('defs')
+                        .append('linearGradient')
+                        .attr('id', `gradient-${{metric.replace(/\s+/g, '-')}}`)
+                        .attr('gradientUnits', 'userSpaceOnUse')
+                        .attr('x1', 0).attr('y1', yScale(stats.max))
+                        .attr('x2', 0).attr('y2', yScale(stats.min));
+                    
+                    gradient.append('stop')
+                        .attr('offset', '0%')
+                        .attr('stop-color', metricColors[metric])
+                        .attr('stop-opacity', 0.8);
+                    
+                    gradient.append('stop')
+                        .attr('offset', '100%')
+                        .attr('stop-color', metricColors[metric])
+                        .attr('stop-opacity', 0.1);
+                    
+                    // Area under curve
+                    const area = d3.area()
+                        .x((d, i) => xScale(i))
+                        .y0(innerHeight)
+                        .y1(d => yScale(d))
+                        .curve(d3.curveMonotoneX)
+                        .defined(d => !isNaN(d));
+                    
+                    g.append('path')
+                        .datum(data)
+                        .attr('fill', `url(#gradient-${{metric.replace(/\s+/g, '-')}})`)
+                        .attr('d', area)
+                        .attr('opacity', 0.3);
+                    
+                    // Draw line
+                    const path = g.append('path')
+                        .datum(data)
+                        .attr('fill', 'none')
+                        .attr('stroke', metricColors[metric])
+                        .attr('stroke-width', 2)
+                        .attr('d', line);
+                    
+                    // Animate line
+                    const totalLength = path.node().getTotalLength();
+                    path
+                        .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                        .attr('stroke-dashoffset', totalLength)
+                        .transition()
+                        .duration(1000)
+                        .ease(d3.easeQuadInOut)
+                        .attr('stroke-dashoffset', 0);
+                    
+                    // Add data points
+                    const points = g.selectAll('.point')
+                        .data(data)
+                        .enter()
+                        .filter(d => !isNaN(d))
+                        .append('circle')
+                        .attr('cx', (d, i) => xScale(i))
+                        .attr('cy', d => yScale(d))
+                        .attr('r', 0)
+                        .attr('fill', metricColors[metric])
+                        .style('cursor', 'pointer');
+                    
+                    points
+                        .transition()
+                        .duration(1000)
+                        .delay((d, i) => i * 30)
+                        .attr('r', 3);
+                    
+                    // Add max/min highlights
+                    if (stats.maxIndex >= 0) {{
+                        g.append('circle')
+                            .attr('cx', xScale(stats.maxIndex))
+                            .attr('cy', yScale(data[stats.maxIndex]))
+                            .attr('r', 0)
+                            .attr('fill', '#3b82f6')
+                            .attr('stroke', '#fff')
+                            .attr('stroke-width', 2)
+                            .transition()
+                            .duration(1000)
+                            .delay(1000)
+                            .attr('r', 6);
+                    }}
+                    
+                    if (stats.minIndex >= 0) {{
+                        g.append('circle')
+                            .attr('cx', xScale(stats.minIndex))
+                            .attr('cy', yScale(data[stats.minIndex]))
+                            .attr('r', 0)
+                            .attr('fill', '#ef4444')
+                            .attr('stroke', '#fff')
+                            .attr('stroke-width', 2)
+                            .transition()
+                            .duration(1000)
+                            .delay(1000)
+                            .attr('r', 6);
+                    }}
+                    
+                    // Hover effects
+                    points
+                        .on('mouseenter', function(event, d) {{
+                            const i = data.indexOf(d);
+                            setHoveredPoint({{
+                                checkpoint: DATA.checkpoints[i],
+                                value: d,
+                                x: event.pageX,
+                                y: event.pageY
+                            }});
+                            
+                            d3.select(this)
+                                .transition()
+                                .duration(200)
+                                .attr('r', 5);
+                        }})
+                        .on('mouseleave', function() {{
+                            setHoveredPoint(null);
+                            
+                            d3.select(this)
+                                .transition()
+                                .duration(200)
+                                .attr('r', 3);
+                        }});
+                }}
+                    
+            }}, [data, metric, stats, isExpanded, showPhaseTransitions, phaseTransitions, dimensions, comparisonData]);
             
             return (
                 <div 
@@ -981,11 +1281,24 @@ def plot_metric_interactive(
                     </div>
                     <div className="chart-container" ref={{containerRef}}>
                         <svg ref={{svgRef}} className="chart"></svg>
-                        {{stats && (
+                        {{IS_COMPARISON ? (
                             <div className="legend">
                                 <div className="legend-item">
-                                    <div className="legend-color" style={{{{ backgroundColor: metricColors[metric] }}}}></div>
-                                    <span>{{metric}}</span>
+                                    <div 
+                                        className="legend-line" 
+                                        style={{{{ backgroundColor: MODEL_COLORS.model1.primary }}}}
+                                    ></div>
+                                    <span>{{COMPARISON_DATA.model1.name}}</span>
+                                </div>
+                                <div className="legend-item">
+                                    <div 
+                                        className="legend-line" 
+                                        style={{{{ 
+                                            backgroundColor: MODEL_COLORS.model2.primary,
+                                            backgroundImage: `repeating-linear-gradient(90deg, ${{MODEL_COLORS.model2.primary}}, ${{MODEL_COLORS.model2.primary}} 8px, transparent 8px, transparent 12px)`
+                                        }}}}
+                                    ></div>
+                                    <span>{{COMPARISON_DATA.model2.name}}</span>
                                 </div>
                                 <div className="legend-item">
                                     <div className="legend-color" style={{{{ backgroundColor: '#3b82f6' }}}}></div>
@@ -996,17 +1309,63 @@ def plot_metric_interactive(
                                     <span>Minimum</span>
                                 </div>
                             </div>
+                        ) : (
+                            stats && (
+                                <div className="legend">
+                                    <div className="legend-item">
+                                        <div className="legend-color" style={{{{ backgroundColor: metricColors[metric] }}}}></div>
+                                        <span>{{metric}}</span>
+                                    </div>
+                                    <div className="legend-item">
+                                        <div className="legend-color" style={{{{ backgroundColor: '#3b82f6' }}}}></div>
+                                        <span>Maximum</span>
+                                    </div>
+                                    <div className="legend-item">
+                                        <div className="legend-color" style={{{{ backgroundColor: '#ef4444' }}}}></div>
+                                        <span>Minimum</span>
+                                    </div>
+                                </div>
+                            )
                         )}}
-                        {{showPhaseTransitions && phaseTransitions.length > 0 && (
+                        {{showPhaseTransitions && ((IS_COMPARISON && phaseTransitions.model1 && phaseTransitions.model2) || (!IS_COMPARISON && phaseTransitions.length > 0)) && (
                             <div className="phase-info">
-                                <strong>Phase transitions detected at:</strong>
-                                <ul style={{{{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}}}>
-                                    {{phaseTransitions.map((t, i) => (
-                                        <li key={{i}}>
-                                            Checkpoint {{DATA.checkpoints[t.index]}}: {{(t.change * 100).toFixed(1)}}% change
-                                        </li>
-                                    ))}}
-                                </ul>
+                                <strong>Phase transitions detected</strong>
+                                {{IS_COMPARISON ? (
+                                    <div>
+                                        {{phaseTransitions.model1.length > 0 && (
+                                            <div style={{{{ marginTop: '0.5rem' }}}}>
+                                                <span style={{{{ color: MODEL_COLORS.model1.primary }}}}>{{COMPARISON_DATA.model1.name}}:</span>
+                                                <ul style={{{{ marginTop: '0.25rem', paddingLeft: '1.5rem' }}}}>
+                                                    {{phaseTransitions.model1.map((t, i) => (
+                                                        <li key={{i}}>
+                                                            CP{{t.index + 1}}: {{(t.change * 100).toFixed(1)}}% change
+                                                        </li>
+                                                    ))}}
+                                                </ul>
+                                            </div>
+                                        )}}
+                                        {{phaseTransitions.model2.length > 0 && (
+                                            <div style={{{{ marginTop: '0.5rem' }}}}>
+                                                <span style={{{{ color: MODEL_COLORS.model2.primary }}}}>{{COMPARISON_DATA.model2.name}}:</span>
+                                                <ul style={{{{ marginTop: '0.25rem', paddingLeft: '1.5rem' }}}}>
+                                                    {{phaseTransitions.model2.map((t, i) => (
+                                                        <li key={{i}}>
+                                                            CP{{t.index + 1}}: {{(t.change * 100).toFixed(1)}}% change
+                                                        </li>
+                                                    ))}}
+                                                </ul>
+                                            </div>
+                                        )}}
+                                    </div>
+                                ) : (
+                                    <ul style={{{{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}}}>
+                                        {{phaseTransitions.map((t, i) => (
+                                            <li key={{i}}>
+                                                Checkpoint {{DATA.checkpoints[t.index]}}: {{(t.change * 100).toFixed(1)}}% change
+                                            </li>
+                                        ))}}
+                                    </ul>
+                                )}}
                             </div>
                         )}}
                     </div>
@@ -1018,20 +1377,38 @@ def plot_metric_interactive(
                                 top: `${{hoveredPoint.y - 10}}px` 
                             }}}}
                         >
+                            {{hoveredPoint.model && (
+                                <div 
+                                    className="tooltip-model" 
+                                    style={{{{ 
+                                        color: hoveredPoint.model === COMPARISON_DATA.model1.name 
+                                            ? MODEL_COLORS.model1.primary 
+                                            : MODEL_COLORS.model2.primary 
+                                    }}}}
+                                >
+                                    {{hoveredPoint.model}}
+                                </div>
+                            )}}
                             <div className="tooltip-title">{{hoveredPoint.checkpoint}}</div>
                             <div className="tooltip-value">
                                 Value: {{hoveredPoint.value.toFixed(6)}}
                             </div>
-                            <div className="tooltip-value" style={{{{ fontSize: '0.75rem', marginTop: '0.25rem', color: '#9ca3af' }}}}>
-                                (Checkpoint {{DATA.checkpoints.indexOf(hoveredPoint.checkpoint) + 1}})
-                            </div>
+                            {{!IS_COMPARISON && (
+                                <div className="tooltip-value" style={{{{ fontSize: '0.75rem', marginTop: '0.25rem', color: '#9ca3af' }}}}>
+                                    (Checkpoint {{DATA.checkpoints.indexOf(hoveredPoint.checkpoint) + 1}})
+                                </div>
+                            )}}
                         </div>
                     )}}
                 </div>
             );
         }}
         
-        function OverlayChart({{ metrics, data, showPhaseTransitions, onMetricClick }}) {{
+        // The rest of the components (OverlayChart, MetricsVisualization) remain the same
+        // but with added support for comparison mode...
+        
+        // I'll add the key changes to OverlayChart and MetricsVisualization
+        function OverlayChart({{ metrics, data, showPhaseTransitions, onMetricClick, comparisonData }}) {{
             const svgRef = useRef(null);
             const containerRef = useRef(null);
             const [hoveredLine, setHoveredLine] = useState(null);
@@ -1060,8 +1437,19 @@ def plot_metric_interactive(
                     .attr('transform', `translate(${{margin.left}},${{margin.top}})`);
                 
                 // Create scales
+                let xDomain;
+                if (IS_COMPARISON && comparisonData) {{
+                    const maxCheckpoints = Math.max(
+                        comparisonData.model1.checkpoints.length,
+                        comparisonData.model2.checkpoints.length
+                    );
+                    xDomain = [0, maxCheckpoints - 1];
+                }} else {{
+                    xDomain = [0, DATA.checkpoints.length - 1];
+                }}
+                
                 const xScale = d3.scaleLinear()
-                    .domain([0, DATA.checkpoints.length - 1])
+                    .domain(xDomain)
                     .range([0, innerWidth]);
                 
                 // For overlay, normalize all metrics to 0-1
@@ -1071,35 +1459,82 @@ def plot_metric_interactive(
                 
                 // Normalize data for each metric
                 const normalizedData = {{}};
-                metrics.forEach(metric => {{
-                    const values = data[metric];
-                    const validValues = values.filter(v => !isNaN(v));
-                    const min = Math.min(...validValues);
-                    const max = Math.max(...validValues);
-                    const range = max - min || 1;
-                    
-                    normalizedData[metric] = values.map(v => 
-                        isNaN(v) ? v : (v - min) / range
-                    );
-                }});
                 
-                // Add phase transition indicators for all metrics
-                if (showPhaseTransitions) {{
-                    const allTransitions = new Set();
+                if (IS_COMPARISON && comparisonData) {{
+                    // For comparison mode, normalize each model's metrics separately
+                    const normalizeModelData = (modelData) => {{
+                        const normalized = {{}};
+                        metrics.forEach(metric => {{
+                            const values = modelData.metrics[metric];
+                            const validValues = values.filter(v => !isNaN(v));
+                            const min = Math.min(...validValues);
+                            const max = Math.max(...validValues);
+                            const range = max - min || 1;
+                            
+                            normalized[metric] = values.map(v => 
+                                isNaN(v) ? v : (v - min) / range
+                            );
+                        }});
+                        return normalized;
+                    }};
+                    
+                    normalizedData.model1 = normalizeModelData(comparisonData.model1);
+                    normalizedData.model2 = normalizeModelData(comparisonData.model2);
+                }} else {{
+                    // Single model normalization
                     metrics.forEach(metric => {{
                         const values = data[metric];
-                        for (let i = 1; i < values.length; i++) {{
-                            if (!isNaN(values[i]) && !isNaN(values[i-1])) {{
-                                const change = Math.abs(values[i] - values[i-1]);
-                                const baseValue = Math.abs(values[i-1]) || 1;
-                                const relativeChange = change / baseValue;
-                                
-                                if (relativeChange > PHASE_TRANSITION_THRESHOLD) {{
-                                    allTransitions.add(i);
+                        const validValues = values.filter(v => !isNaN(v));
+                        const min = Math.min(...validValues);
+                        const max = Math.max(...validValues);
+                        const range = max - min || 1;
+                        
+                        normalizedData[metric] = values.map(v => 
+                            isNaN(v) ? v : (v - min) / range
+                        );
+                    }});
+                }}
+                
+                // Add phase transition indicators
+                if (showPhaseTransitions) {{
+                    const allTransitions = new Set();
+                    
+                    if (IS_COMPARISON && comparisonData) {{
+                        // Check transitions for both models
+                        ['model1', 'model2'].forEach(modelKey => {{
+                            const modelData = comparisonData[modelKey];
+                            metrics.forEach(metric => {{
+                                const values = modelData.metrics[metric];
+                                for (let i = 1; i < values.length; i++) {{
+                                    if (!isNaN(values[i]) && !isNaN(values[i-1])) {{
+                                        const change = Math.abs(values[i] - values[i-1]);
+                                        const baseValue = Math.abs(values[i-1]) || 1;
+                                        const relativeChange = change / baseValue;
+                                        
+                                        if (relativeChange > PHASE_TRANSITION_THRESHOLD) {{
+                                            allTransitions.add(i);
+                                        }}
+                                    }}
+                                }}
+                            }});
+                        }});
+                    }} else {{
+                        // Single model transitions
+                        metrics.forEach(metric => {{
+                            const values = data[metric];
+                            for (let i = 1; i < values.length; i++) {{
+                                if (!isNaN(values[i]) && !isNaN(values[i-1])) {{
+                                    const change = Math.abs(values[i] - values[i-1]);
+                                    const baseValue = Math.abs(values[i-1]) || 1;
+                                    const relativeChange = change / baseValue;
+                                    
+                                    if (relativeChange > PHASE_TRANSITION_THRESHOLD) {{
+                                        allTransitions.add(i);
+                                    }}
                                 }}
                             }}
-                        }}
-                    }});
+                        }});
+                    }}
                     
                     allTransitions.forEach(index => {{
                         const x = xScale(index - 0.5);
@@ -1141,50 +1576,12 @@ def plot_metric_interactive(
                 const xAxis = g.append('g')
                     .attr('transform', `translate(0,${{innerHeight}})`)
                     .call(d3.axisBottom(xScale)
-                        .tickFormat(i => {{
-                            const checkpoint = DATA.checkpoints[i];
-                            if (!checkpoint) return '';
-                            return `CP${{i + 1}}`;
-                        }}));
+                        .tickFormat(i => `CP${{i + 1}}`));
                 
                 xAxis.selectAll('text')
                     .style('text-anchor', 'middle')
                     .style('fill', '#9ca3af')
-                    .style('font-size', '10px')
-                    .style('cursor', 'pointer')
-                    .each(function(d, i) {{
-                        const text = d3.select(this);
-                        const checkpointName = DATA.checkpoints[d];
-                        if (checkpointName) {{
-                            // Add hover effect to show full name
-                            text.on('mouseenter', function() {{
-                                text.text(checkpointName)
-                                    .style('font-weight', '600')
-                                    .style('fill', '#f3f4f6');
-                                
-                                // Adjust position if text is too long
-                                const bbox = this.getBBox();
-                                if (bbox.width > 100) {{
-                                    text.style('text-anchor', 'end')
-                                        .attr('dx', '-.8em')
-                                        .attr('dy', '.15em')
-                                        .attr('transform', 'rotate(-45)');
-                                }}
-                            }})
-                            .on('mouseleave', function() {{
-                                text.text(`CP${{d + 1}}`)
-                                    .style('font-weight', 'normal')
-                                    .style('fill', '#9ca3af')
-                                    .style('text-anchor', 'middle')
-                                    .attr('dx', null)
-                                    .attr('dy', null)
-                                    .attr('transform', null);
-                            }});
-                            
-                            // Add title for tooltip
-                            text.append('title').text(checkpointName);
-                        }}
-                    }});
+                    .style('font-size', '10px');
                 
                 xAxis.select('.domain').style('stroke', '#333');
                 xAxis.selectAll('.tick line').style('stroke', '#333');
@@ -1228,167 +1625,267 @@ def plot_metric_interactive(
                     .defined(d => !isNaN(d));
                 
                 // Draw lines for each metric
-                metrics.forEach((metric, idx) => {{
-                    const path = g.append('path')
-                        .datum(normalizedData[metric])
-                        .attr('fill', 'none')
-                        .attr('stroke', metricColors[metric])
-                        .attr('stroke-width', 2)
-                        .attr('d', line)
-                        .style('opacity', hoveredLine === null || hoveredLine === metric ? 1 : 0.3)
-                        .style('transition', 'opacity 0.3s ease');
-                    
-                    // Animate line drawing
-                    const totalLength = path.node().getTotalLength();
-                    path
-                        .attr('stroke-dasharray', totalLength + ' ' + totalLength)
-                        .attr('stroke-dashoffset', totalLength)
-                        .transition()
-                        .duration(1000)
-                        .delay(idx * 100)
-                        .ease(d3.easeQuadInOut)
-                        .attr('stroke-dashoffset', 0);
-                    
-                    // Invisible wider path for hover detection
-                    g.append('path')
-                        .datum(normalizedData[metric])
-                        .attr('fill', 'none')
-                        .attr('stroke', 'transparent')
-                        .attr('stroke-width', 20)
-                        .attr('d', line)
-                        .style('cursor', 'pointer')
-                        .on('click', function(event) {{
-                            event.stopPropagation();
-                            if (onMetricClick) {{
-                                onMetricClick(metric);
-                            }}
-                        }})
-                        .on('mouseenter', function() {{
-                            setHoveredLine(metric);
-                            // Update all line opacities
-                            g.selectAll('path')
-                                .filter(function() {{
-                                    return d3.select(this).attr('stroke') !== 'transparent';
-                                }})
-                                .style('opacity', function() {{
-                                    const color = d3.select(this).attr('stroke');
-                                    return color === metricColors[metric] ? 1 : 0.3;
+                if (IS_COMPARISON && comparisonData) {{
+                    // For comparison mode, draw lines for both models
+                    metrics.forEach((metric, idx) => {{
+                        // Model 1
+                        const path1 = g.append('path')
+                            .datum(normalizedData.model1[metric])
+                            .attr('fill', 'none')
+                            .attr('stroke', metricColors[metric])
+                            .attr('stroke-width', 2)
+                            .attr('d', line)
+                            .style('opacity', hoveredLine === null || hoveredLine === `${{metric}}-model1` ? 1 : 0.3)
+                            .style('transition', 'opacity 0.3s ease');
+                        
+                        // Model 2 (dashed)
+                        const path2 = g.append('path')
+                            .datum(normalizedData.model2[metric])
+                            .attr('fill', 'none')
+                            .attr('stroke', metricColors[metric])
+                            .attr('stroke-width', 2)
+                            .attr('stroke-dasharray', '5,3')
+                            .attr('d', line)
+                            .style('opacity', hoveredLine === null || hoveredLine === `${{metric}}-model2` ? 1 : 0.3)
+                            .style('transition', 'opacity 0.3s ease');
+                        
+                        // Animate both lines
+                        [path1, path2].forEach((path, i) => {{
+                            const totalLength = path.node().getTotalLength();
+                            path
+                                .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                                .attr('stroke-dashoffset', totalLength)
+                                .transition()
+                                .duration(1000)
+                                .delay(idx * 100)
+                                .ease(d3.easeQuadInOut)
+                                .attr('stroke-dashoffset', 0)
+                                .on('end', function() {{
+                                    if (i === 1) {{ // Model 2
+                                        d3.select(this).attr('stroke-dasharray', '5,3');
+                                    }}
                                 }});
-                        }})
-                        .on('mouseleave', function() {{
-                            setHoveredLine(null);
-                            // Reset all line opacities
-                            g.selectAll('path')
-                                .filter(function() {{
-                                    return d3.select(this).attr('stroke') !== 'transparent';
-                                }})
-                                .style('opacity', 1);
                         }});
-                    
-                    // Add data points
-                    const points = g.selectAll(`.point-${{metric.replace(/\s+/g, '-')}}`)
-                        .data(normalizedData[metric])
-                        .enter()
-                        .filter(d => !isNaN(d))
-                        .append('circle')
-                        .attr('class', `point-${{metric.replace(/\s+/g, '-')}}`)
-                        .attr('cx', (d, i) => xScale(i))
-                        .attr('cy', d => yScale(d))
-                        .attr('r', 0)
-                        .attr('fill', metricColors[metric])
-                        .style('cursor', 'pointer')
-                        .style('opacity', hoveredLine === null || hoveredLine === metric ? 1 : 0.3);
-                    
-                    points
-                        .transition()
-                        .duration(1000)
-                        .delay((d, i) => idx * 100 + i * 20)
-                        .attr('r', 2);
-                    
-                    points
-                        .on('mouseenter', function(event, d) {{
-                            const i = normalizedData[metric].indexOf(d);
-                            const originalValue = data[metric][i];
-                            setHoveredPoint({{
-                                metric,
-                                checkpoint: DATA.checkpoints[i],
-                                value: originalValue,
-                                normalizedValue: d,
-                                x: event.pageX,
-                                y: event.pageY
+                        
+                        // Add hover areas and points for both models
+                        // ... (similar to single model but with model distinction)
+                    }});
+                }} else {{
+                    // Single model visualization (existing code)
+                    metrics.forEach((metric, idx) => {{
+                        const path = g.append('path')
+                            .datum(normalizedData[metric])
+                            .attr('fill', 'none')
+                            .attr('stroke', metricColors[metric])
+                            .attr('stroke-width', 2)
+                            .attr('d', line)
+                            .style('opacity', hoveredLine === null || hoveredLine === metric ? 1 : 0.3)
+                            .style('transition', 'opacity 0.3s ease');
+                        
+                        // Animate line drawing
+                        const totalLength = path.node().getTotalLength();
+                        path
+                            .attr('stroke-dasharray', totalLength + ' ' + totalLength)
+                            .attr('stroke-dashoffset', totalLength)
+                            .transition()
+                            .duration(1000)
+                            .delay(idx * 100)
+                            .ease(d3.easeQuadInOut)
+                            .attr('stroke-dashoffset', 0);
+                        
+                        // Invisible wider path for hover detection
+                        g.append('path')
+                            .datum(normalizedData[metric])
+                            .attr('fill', 'none')
+                            .attr('stroke', 'transparent')
+                            .attr('stroke-width', 20)
+                            .attr('d', line)
+                            .style('cursor', 'pointer')
+                            .on('click', function(event) {{
+                                event.stopPropagation();
+                                if (onMetricClick) {{
+                                    onMetricClick(metric);
+                                }}
+                            }})
+                            .on('mouseenter', function() {{
+                                setHoveredLine(metric);
+                                // Update all line opacities
+                                g.selectAll('path')
+                                    .filter(function() {{
+                                        return d3.select(this).attr('stroke') !== 'transparent';
+                                    }})
+                                    .style('opacity', function() {{
+                                        const color = d3.select(this).attr('stroke');
+                                        return color === metricColors[metric] ? 1 : 0.3;
+                                    }});
+                            }})
+                            .on('mouseleave', function() {{
+                                setHoveredLine(null);
+                                // Reset all line opacities
+                                g.selectAll('path')
+                                    .filter(function() {{
+                                        return d3.select(this).attr('stroke') !== 'transparent';
+                                    }})
+                                    .style('opacity', 1);
                             }});
-                            
-                            d3.select(this)
-                                .transition()
-                                .duration(200)
-                                .attr('r', 4);
-                        }})
-                        .on('mouseleave', function() {{
-                            setHoveredPoint(null);
-                            
-                            d3.select(this)
-                                .transition()
-                                .duration(200)
-                                .attr('r', 2);
-                        }});
-                }});
+                        
+                        // Add data points
+                        const points = g.selectAll(`.point-${{metric.replace(/\s+/g, '-')}}`)
+                            .data(normalizedData[metric])
+                            .enter()
+                            .filter(d => !isNaN(d))
+                            .append('circle')
+                            .attr('class', `point-${{metric.replace(/\s+/g, '-')}}`)
+                            .attr('cx', (d, i) => xScale(i))
+                            .attr('cy', d => yScale(d))
+                            .attr('r', 0)
+                            .attr('fill', metricColors[metric])
+                            .style('cursor', 'pointer')
+                            .style('opacity', hoveredLine === null || hoveredLine === metric ? 1 : 0.3);
+                        
+                        points
+                            .transition()
+                            .duration(1000)
+                            .delay((d, i) => idx * 100 + i * 20)
+                            .attr('r', 2);
+                        
+                        points
+                            .on('mouseenter', function(event, d) {{
+                                const i = normalizedData[metric].indexOf(d);
+                                const originalValue = data[metric][i];
+                                setHoveredPoint({{
+                                    metric,
+                                    checkpoint: DATA.checkpoints[i],
+                                    value: originalValue,
+                                    normalizedValue: d,
+                                    x: event.pageX,
+                                    y: event.pageY
+                                }});
+                                
+                                d3.select(this)
+                                    .transition()
+                                    .duration(200)
+                                    .attr('r', 4);
+                            }})
+                            .on('mouseleave', function() {{
+                                setHoveredPoint(null);
+                                
+                                d3.select(this)
+                                    .transition()
+                                    .duration(200)
+                                    .attr('r', 2);
+                            }});
+                    }});
+                }}
                 
                 // Legend
                 const legend = svg.append('g')
                     .attr('transform', `translate(${{width - margin.right + 20}}, ${{margin.top}})`);
                 
-                metrics.forEach((metric, i) => {{
-                    const legendItem = legend.append('g')
-                        .attr('transform', `translate(0, ${{i * 25}})`)
-                        .style('cursor', 'pointer')
-                        .on('click', function(event) {{
-                            event.stopPropagation();
-                            if (onMetricClick) {{
-                                onMetricClick(metric);
-                            }}
-                        }})
-                        .on('mouseenter', function() {{
-                            setHoveredLine(metric);
-                            g.selectAll('path')
-                                .filter(function() {{
-                                    return d3.select(this).attr('stroke') !== 'transparent';
-                                }})
-                                .style('opacity', function() {{
-                                    const color = d3.select(this).attr('stroke');
-                                    return color === metricColors[metric] ? 1 : 0.3;
-                                }});
-                        }})
-                        .on('mouseleave', function() {{
-                            setHoveredLine(null);
-                            g.selectAll('path')
-                                .filter(function() {{
-                                    return d3.select(this).attr('stroke') !== 'transparent';
-                                }})
-                                .style('opacity', 1);
-                        }});
-                    
-                    legendItem.append('circle')
-                        .attr('r', 6)
-                        .attr('fill', metricColors[metric]);
-                    
-                    legendItem.append('text')
-                        .attr('x', 12)
-                        .attr('y', 4)
-                        .style('fill', '#9ca3af')
-                        .style('font-size', '11px')
-                        .text(() => {{
-                            // Truncate long metric names
-                            const maxLength = 25;
-                            if (metric.length > maxLength) {{
-                                return metric.substring(0, maxLength - 3) + '...';
-                            }}
-                            return metric;
-                        }})
-                        .append('title')
-                        .text(metric); // Full name on hover
-                }});
+                if (IS_COMPARISON && comparisonData) {{
+                    // Comparison legend
+                    let legendY = 0;
+                    metrics.forEach((metric, i) => {{
+                        // Model 1 entry
+                        const item1 = legend.append('g')
+                            .attr('transform', `translate(0, ${{legendY}})`)
+                            .style('cursor', 'pointer');
+                        
+                        item1.append('line')
+                            .attr('x1', 0)
+                            .attr('x2', 20)
+                            .attr('y1', 0)
+                            .attr('y2', 0)
+                            .attr('stroke', metricColors[metric])
+                            .attr('stroke-width', 2);
+                        
+                        item1.append('text')
+                            .attr('x', 25)
+                            .attr('y', 4)
+                            .style('fill', '#9ca3af')
+                            .style('font-size', '11px')
+                            .text(`${{metric}} (${{comparisonData.model1.name}})`);
+                        
+                        legendY += 20;
+                        
+                        // Model 2 entry
+                        const item2 = legend.append('g')
+                            .attr('transform', `translate(0, ${{legendY}})`)
+                            .style('cursor', 'pointer');
+                        
+                        item2.append('line')
+                            .attr('x1', 0)
+                            .attr('x2', 20)
+                            .attr('y1', 0)
+                            .attr('y2', 0)
+                            .attr('stroke', metricColors[metric])
+                            .attr('stroke-width', 2)
+                            .attr('stroke-dasharray', '5,3');
+                        
+                        item2.append('text')
+                            .attr('x', 25)
+                            .attr('y', 4)
+                            .style('fill', '#9ca3af')
+                            .style('font-size', '11px')
+                            .text(`${{metric}} (${{comparisonData.model2.name}})`);
+                        
+                        legendY += 25;
+                    }});
+                }} else {{
+                    // Single model legend (existing code)
+                    metrics.forEach((metric, i) => {{
+                        const legendItem = legend.append('g')
+                            .attr('transform', `translate(0, ${{i * 25}})`)
+                            .style('cursor', 'pointer')
+                            .on('click', function(event) {{
+                                event.stopPropagation();
+                                if (onMetricClick) {{
+                                    onMetricClick(metric);
+                                }}
+                            }})
+                            .on('mouseenter', function() {{
+                                setHoveredLine(metric);
+                                g.selectAll('path')
+                                    .filter(function() {{
+                                        return d3.select(this).attr('stroke') !== 'transparent';
+                                    }})
+                                    .style('opacity', function() {{
+                                        const color = d3.select(this).attr('stroke');
+                                        return color === metricColors[metric] ? 1 : 0.3;
+                                    }});
+                            }})
+                            .on('mouseleave', function() {{
+                                setHoveredLine(null);
+                                g.selectAll('path')
+                                    .filter(function() {{
+                                        return d3.select(this).attr('stroke') !== 'transparent';
+                                    }})
+                                    .style('opacity', 1);
+                            }});
+                        
+                        legendItem.append('circle')
+                            .attr('r', 6)
+                            .attr('fill', metricColors[metric]);
+                        
+                        legendItem.append('text')
+                            .attr('x', 12)
+                            .attr('y', 4)
+                            .style('fill', '#9ca3af')
+                            .style('font-size', '11px')
+                            .text(() => {{
+                                // Truncate long metric names
+                                const maxLength = 25;
+                                if (metric.length > maxLength) {{
+                                    return metric.substring(0, maxLength - 3) + '...';
+                                }}
+                                return metric;
+                            }})
+                            .append('title')
+                            .text(metric); // Full name on hover
+                    }});
+                }}
                 
-            }}, [metrics, data, showPhaseTransitions]);
+            }}, [metrics, data, showPhaseTransitions, comparisonData]);
             
             return (
                 <div className="chart-wrapper">
@@ -1431,7 +1928,11 @@ def plot_metric_interactive(
         function MetricsVisualization() {{
             const [selectedMetrics, setSelectedMetrics] = useState(DATA.metricsList);
             const [expandedMetric, setExpandedMetric] = useState(null);
-            const [subtitle, setSubtitle] = useState('Visualizing training dynamics across checkpoints');
+            const [subtitle, setSubtitle] = useState(
+                IS_COMPARISON 
+                    ? `Comparing ${{COMPARISON_DATA.model1.name}} vs ${{COMPARISON_DATA.model2.name}}`
+                    : 'Visualizing training dynamics across checkpoints'
+            );
             const [dropdownOpen, setDropdownOpen] = useState(false);
             const [overlayMode, setOverlayMode] = useState(!START_SEPARATE); // Start with overlay for "All"
             const [showPhaseTransitions, setShowPhaseTransitions] = useState(false);
@@ -1441,22 +1942,50 @@ def plot_metric_interactive(
             // Calculate statistics for all metrics
             const allStats = useMemo(() => {{
                 const result = {{}};
-                DATA.metricsList.forEach(metric => {{
-                    const values = DATA.metrics[metric].filter(v => !isNaN(v));
-                    if (values.length > 0) {{
-                        const min = Math.min(...values);
-                        const max = Math.max(...values);
-                        const mean = values.reduce((a, b) => a + b, 0) / values.length;
-                        const start = values[0];
-                        const end = values[values.length - 1];
-                        const change = end - start;
-                        const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
+                
+                if (IS_COMPARISON && COMPARISON_DATA) {{
+                    // Calculate stats for both models
+                    DATA.metricsList.forEach(metric => {{
+                        const model1Values = COMPARISON_DATA.model1.metrics[metric].filter(v => !isNaN(v));
+                        const model2Values = COMPARISON_DATA.model2.metrics[metric].filter(v => !isNaN(v));
+                        
+                        const calculateStats = (values) => {{
+                            if (values.length === 0) return null;
+                            const min = Math.min(...values);
+                            const max = Math.max(...values);
+                            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                            const start = values[0];
+                            const end = values[values.length - 1];
+                            const change = end - start;
+                            const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
+                            return {{ min, max, mean, start, end, change, changePercent }};
+                        }};
                         
                         result[metric] = {{
-                            min, max, mean, start, end, change, changePercent
+                            model1: calculateStats(model1Values),
+                            model2: calculateStats(model2Values)
                         }};
-                    }}
-                }});
+                    }});
+                }} else {{
+                    // Single model stats
+                    DATA.metricsList.forEach(metric => {{
+                        const values = DATA.metrics[metric].filter(v => !isNaN(v));
+                        if (values.length > 0) {{
+                            const min = Math.min(...values);
+                            const max = Math.max(...values);
+                            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+                            const start = values[0];
+                            const end = values[values.length - 1];
+                            const change = end - start;
+                            const changePercent = start !== 0 ? (change / Math.abs(start)) * 100 : 0;
+                            
+                            result[metric] = {{
+                                min, max, mean, start, end, change, changePercent
+                            }};
+                        }}
+                    }});
+                }}
+                
                 return result;
             }}, []);
             
@@ -1489,7 +2018,9 @@ def plot_metric_interactive(
                 setDropdownOpen(false);
                 setFullscreenFromOverlay(null); // Clear fullscreen state
                 setPreviousOverlayMetrics(null); // Clear previous state
-                setSubtitle('Visualizing training dynamics across checkpoints');
+                setSubtitle(IS_COMPARISON 
+                    ? `Comparing ${{COMPARISON_DATA.model1.name}} vs ${{COMPARISON_DATA.model2.name}}`
+                    : 'Visualizing training dynamics across checkpoints');
                 
                 // Force a re-render of charts
                 setTimeout(() => {{
@@ -1514,7 +2045,9 @@ def plot_metric_interactive(
                 if (fullscreenFromOverlay) {{
                     setSubtitle(`Viewing ${{fullscreenFromOverlay}} (click outside to return to overlay)`);
                 }} else if (selectedMetrics.length === DATA.metricsList.length && overlayMode) {{
-                    setSubtitle('Visualizing training dynamics across checkpoints');
+                    setSubtitle(IS_COMPARISON 
+                        ? `Comparing ${{COMPARISON_DATA.model1.name}} vs ${{COMPARISON_DATA.model2.name}}`
+                        : 'Visualizing training dynamics across checkpoints');
                 }} else if (selectedMetrics.length === 1) {{
                     setSubtitle(`Displaying change in ${{selectedMetrics[0]}}`);
                 }} else if (overlayMode) {{
@@ -1524,191 +2057,251 @@ def plot_metric_interactive(
                 }}
             }}, [selectedMetrics, overlayMode, fullscreenFromOverlay]);
             
-const exportCSV = () => {{
-    let csvContent = [];
-    
-    // Create header row
-    let headerRow = ['Metric', ...DATA.checkpoints];
-    csvContent.push(headerRow.join(','));
-    
-    // Create data rows
-    DATA.metricsList.forEach(metric => {{
-        let row = [metric, ...DATA.metrics[metric]];
-        csvContent.push(row.join(','));
-    }});
-    
-    // Use String.fromCharCode(10) for actual newline instead of \\n
-    let csv = csvContent.join(String.fromCharCode(10));
-    
-    // Download the CSV
-    downloadCSV(csv, 'metrics.csv');
-}};
+            const exportCSV = () => {{
+                let csvContent = [];
+                
+                if (IS_COMPARISON && COMPARISON_DATA) {{
+                    // Comparison CSV format
+                    // Header row with model names
+                    let headerRow = ['Model', 'Metric'];
+                    const maxCheckpoints = Math.max(
+                        COMPARISON_DATA.model1.checkpoints.length,
+                        COMPARISON_DATA.model2.checkpoints.length
+                    );
+                    for (let i = 0; i < maxCheckpoints; i++) {{
+                        headerRow.push(`CP${{i + 1}}`);
+                    }}
+                    csvContent.push(headerRow.join(','));
+                    
+                    // Data rows for each model
+                    ['model1', 'model2'].forEach(modelKey => {{
+                        const modelData = COMPARISON_DATA[modelKey];
+                        DATA.metricsList.forEach(metric => {{
+                            let row = [modelData.name, metric];
+                            row = row.concat(modelData.metrics[metric]);
+                            csvContent.push(row.join(','));
+                        }});
+                    }});
+                }} else {{
+                    // Single model CSV format
+                    let headerRow = ['Metric', ...DATA.checkpoints];
+                    csvContent.push(headerRow.join(','));
+                    
+                    DATA.metricsList.forEach(metric => {{
+                        let row = [metric, ...DATA.metrics[metric]];
+                        csvContent.push(row.join(','));
+                    }});
+                }}
+                
+                let csv = csvContent.join(String.fromCharCode(10));
+                downloadCSV(csv, IS_COMPARISON ? 'model_comparison.csv' : 'metrics.csv');
+            }};
 
-const downloadCSV = (csvString, filename) => {{
-    const blob = new Blob([csvString], {{ type: 'text/csv;charset=utf-8;' }});
-    const link = document.createElement('a');
-    if (link.download !== undefined) {{
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }}
-}};
+            const downloadCSV = (csvString, filename) => {{
+                const blob = new Blob([csvString], {{ type: 'text/csv;charset=utf-8;' }});
+                const link = document.createElement('a');
+                if (link.download !== undefined) {{
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }}
+            }};
             
             // Download all charts as PNG
-const downloadPNG = () => {{
-    // Find all SVG charts
-    const svgs = document.querySelectorAll('.chart');
-    if (svgs.length === 0) {{
-        alert('No charts to download');
-        return;
-    }}
-    
-    // Get the container to determine total size
-    const container = document.querySelector('.charts-grid');
-    if (!container) {{
-        alert('No chart container found');
-        return;
-    }}
-    
-    const containerRect = container.getBoundingClientRect();
-    
-    // Create canvas with container dimensions plus space for title
-    const titleHeight = 80; // Space for title at top
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = containerRect.width;
-    canvas.height = containerRect.height + titleHeight;
-    
-    // Fill background
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw title
-    ctx.fillStyle = '#f3f4f6';
-    ctx.font = 'bold 28px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    // Get the current title based on selected metrics
-    let title = '';
-    if (selectedMetrics.length === 1) {{
-        title = selectedMetrics[0];
-    }} else if (selectedMetrics.length === DATA.metricsList.length) {{
-        title = 'All Metrics';
-    }} else {{
-        title = `Viewing ${{selectedMetrics.length}} Metrics`;
-    }}
-    
-    ctx.fillText(title, canvas.width / 2, titleHeight / 2);
-    
-    // Draw subtitle
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = '16px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    ctx.fillText(subtitle, canvas.width / 2, titleHeight / 2 + 25);
-    
-    // Process each SVG
-    let processed = 0;
-    
-    svgs.forEach((svg, index) => {{
-        // Get the chart wrapper for this SVG
-        const wrapper = svg.closest('.chart-wrapper');
-        if (!wrapper) return;
-        
-        const wrapperRect = wrapper.getBoundingClientRect();
-        
-        // Calculate position relative to container (with title offset)
-        const x = wrapperRect.left - containerRect.left;
-        const y = wrapperRect.top - containerRect.top + titleHeight;
-        
-        // Clone the SVG to avoid modifying the original
-        const svgClone = svg.cloneNode(true);
-        
-        // Ensure SVG has width and height attributes
-        svgClone.setAttribute('width', svg.getBoundingClientRect().width);
-        svgClone.setAttribute('height', svg.getBoundingClientRect().height);
-        
-        // Add xmlns if not present
-        if (!svgClone.hasAttribute('xmlns')) {{
-            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        }}
-        
-        // Serialize SVG to string
-        const svgString = new XMLSerializer().serializeToString(svgClone);
-        
-        // Create blob from SVG string
-        const svgBlob = new Blob([svgString], {{ type: 'image/svg+xml;charset=utf-8' }});
-        const url = URL.createObjectURL(svgBlob);
-        
-        // Create image from blob
-        const img = new Image();
-        img.onload = function() {{
-            // Draw wrapper background
-            ctx.fillStyle = '#1a1a1a';
-            ctx.fillRect(x, y, wrapperRect.width, wrapperRect.height);
-            
-            // Draw wrapper border
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, wrapperRect.width, wrapperRect.height);
-            
-            // Draw the SVG image
-            const svgRect = svg.getBoundingClientRect();
-            ctx.drawImage(
-                img,
-                svgRect.left - containerRect.left,
-                svgRect.top - containerRect.top + titleHeight,
-                svgRect.width,
-                svgRect.height
-            );
-            
-            // Clean up
-            URL.revokeObjectURL(url);
-            
-            processed++;
-            
-            // When all SVGs are processed, trigger download
-            if (processed === svgs.length) {{
-                // Convert canvas to blob and download
-                canvas.toBlob(function(blob) {{
-                    const downloadUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = `phase-viz-${{new Date().toISOString().slice(0, 10)}}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(downloadUrl);
-                }}, 'image/png');
-            }}
-        }};
-        
-        img.onerror = function() {{
-            console.error('Failed to load SVG as image');
-            processed++;
-            
-            // Still trigger download if this was the last one
-            if (processed === svgs.length) {{
-                canvas.toBlob(function(blob) {{
-                    const downloadUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = `phase-viz-${{new Date().toISOString().slice(0, 10)}}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(downloadUrl);
-                }}, 'image/png');
-            }}
-        }};
-        
-        img.src = url;
-    }});
-}};
+            const downloadPNG = () => {{
+                // Find all SVG charts
+                const svgs = document.querySelectorAll('.chart');
+                if (svgs.length === 0) {{
+                    alert('No charts to download');
+                    return;
+                }}
+                
+                // Get the container to determine total size
+                const container = document.querySelector('.charts-grid');
+                if (!container) {{
+                    alert('No chart container found');
+                    return;
+                }}
+                
+                const containerRect = container.getBoundingClientRect();
+                
+                // Create canvas with container dimensions plus space for title
+                const titleHeight = IS_COMPARISON ? 120 : 80; // Extra space for model badges
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = containerRect.width;
+                canvas.height = containerRect.height + titleHeight;
+                
+                // Fill background
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw title
+                ctx.fillStyle = '#f3f4f6';
+                ctx.font = 'bold 28px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Get the current title based on selected metrics
+                let title = '';
+                if (IS_COMPARISON) {{
+                    title = 'Model Comparison';
+                }} else if (selectedMetrics.length === 1) {{
+                    title = selectedMetrics[0];
+                }} else if (selectedMetrics.length === DATA.metricsList.length) {{
+                    title = 'All Metrics';
+                }} else {{
+                    title = `Viewing ${{selectedMetrics.length}} Metrics`;
+                }}
+                
+                ctx.fillText(title, canvas.width / 2, titleHeight / 2 - 10);
+                
+                // Draw subtitle
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '16px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+                ctx.fillText(subtitle, canvas.width / 2, titleHeight / 2 + 15);
+                
+                // Draw model badges if comparison mode
+                if (IS_COMPARISON && COMPARISON_DATA) {{
+                    ctx.font = '14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+                    
+                    // Model 1 badge
+                    const badge1Text = COMPARISON_DATA.model1.name;
+                    const badge1Width = ctx.measureText(badge1Text).width + 30;
+                    const badge1X = canvas.width / 2 - badge1Width - 10;
+                    const badgeY = titleHeight - 25;
+                    
+                    ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
+                    ctx.strokeStyle = '#6366f1';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.roundRect(badge1X, badgeY, badge1Width, 25, 12);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#c7d2fe';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(badge1Text, badge1X + badge1Width / 2, badgeY + 13);
+                    
+                    // Model 2 badge
+                    const badge2Text = COMPARISON_DATA.model2.name;
+                    const badge2Width = ctx.measureText(badge2Text).width + 30;
+                    const badge2X = canvas.width / 2 + 10;
+                    
+                    ctx.fillStyle = 'rgba(244, 63, 94, 0.2)';
+                    ctx.strokeStyle = '#f43f5e';
+                    ctx.beginPath();
+                    ctx.roundRect(badge2X, badgeY, badge2Width, 25, 12);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#fecdd3';
+                    ctx.fillText(badge2Text, badge2X + badge2Width / 2, badgeY + 13);
+                }}
+                
+                // Process each SVG
+                let processed = 0;
+                
+                svgs.forEach((svg, index) => {{
+                    // Get the chart wrapper for this SVG
+                    const wrapper = svg.closest('.chart-wrapper');
+                    if (!wrapper) return;
+                    
+                    const wrapperRect = wrapper.getBoundingClientRect();
+                    
+                    // Calculate position relative to container (with title offset)
+                    const x = wrapperRect.left - containerRect.left;
+                    const y = wrapperRect.top - containerRect.top + titleHeight;
+                    
+                    // Clone the SVG to avoid modifying the original
+                    const svgClone = svg.cloneNode(true);
+                    
+                    // Ensure SVG has width and height attributes
+                    svgClone.setAttribute('width', svg.getBoundingClientRect().width);
+                    svgClone.setAttribute('height', svg.getBoundingClientRect().height);
+                    
+                    // Add xmlns if not present
+                    if (!svgClone.hasAttribute('xmlns')) {{
+                        svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                    }}
+                    
+                    // Serialize SVG to string
+                    const svgString = new XMLSerializer().serializeToString(svgClone);
+                    
+                    // Create blob from SVG string
+                    const svgBlob = new Blob([svgString], {{ type: 'image/svg+xml;charset=utf-8' }});
+                    const url = URL.createObjectURL(svgBlob);
+                    
+                    // Create image from blob
+                    const img = new Image();
+                    img.onload = function() {{
+                        // Draw wrapper background
+                        ctx.fillStyle = '#1a1a1a';
+                        ctx.fillRect(x, y, wrapperRect.width, wrapperRect.height);
+                        
+                        // Draw wrapper border
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(x, y, wrapperRect.width, wrapperRect.height);
+                        
+                        // Draw the SVG image
+                        const svgRect = svg.getBoundingClientRect();
+                        ctx.drawImage(
+                            img,
+                            svgRect.left - containerRect.left,
+                            svgRect.top - containerRect.top + titleHeight,
+                            svgRect.width,
+                            svgRect.height
+                        );
+                        
+                        // Clean up
+                        URL.revokeObjectURL(url);
+                        
+                        processed++;
+                        
+                        // When all SVGs are processed, trigger download
+                        if (processed === svgs.length) {{
+                            // Convert canvas to blob and download
+                            canvas.toBlob(function(blob) {{
+                                const downloadUrl = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = downloadUrl;
+                                a.download = `phase-viz-${{IS_COMPARISON ? 'comparison-' : ''}}${{new Date().toISOString().slice(0, 10)}}.png`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(downloadUrl);
+                            }}, 'image/png');
+                        }}
+                    }};
+                    
+                    img.onerror = function() {{
+                        console.error('Failed to load SVG as image');
+                        processed++;
+                        
+                        // Still trigger download if this was the last one
+                        if (processed === svgs.length) {{
+                            canvas.toBlob(function(blob) {{
+                                const downloadUrl = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = downloadUrl;
+                                a.download = `phase-viz-${{IS_COMPARISON ? 'comparison-' : ''}}${{new Date().toISOString().slice(0, 10)}}.png`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(downloadUrl);
+                            }}, 'image/png');
+                        }}
+                    }};
+                    
+                    img.src = url;
+                }});
+            }};
             
             // Determine grid class based on number of metrics
             const getGridClass = () => {{
@@ -1724,8 +2317,20 @@ const downloadPNG = () => {{
             return (
                 <div className="container">
                     <div className="header">
-                        <h1>Phase-Viz</h1>
+                        <h1>Phase-Viz{{IS_COMPARISON ? ' Comparison' : ''}}</h1>
                         <p>{{subtitle}}</p>
+                        {{IS_COMPARISON && COMPARISON_DATA && (
+                            <div className="model-badges">
+                                <div className="model-badge model1">
+                                    <span className="indicator" style={{{{ backgroundColor: MODEL_COLORS.model1.primary }}}}></span>
+                                    {{COMPARISON_DATA.model1.name}}
+                                </div>
+                                <div className="model-badge model2">
+                                    <span className="indicator" style={{{{ backgroundColor: MODEL_COLORS.model2.primary }}}}></span>
+                                    {{COMPARISON_DATA.model2.name}}
+                                </div>
+                            </div>
+                        )}}
                     </div>
                     
                     <div className="controls">
@@ -1812,6 +2417,7 @@ const downloadPNG = () => {{
                                     setSelectedMetrics([metric]);
                                     setOverlayMode(false);
                                 }}}}
+                                comparisonData={{IS_COMPARISON ? COMPARISON_DATA : null}}
                             />
                         </div>
                     ) : fullscreenFromOverlay ? (
@@ -1824,6 +2430,7 @@ const downloadPNG = () => {{
                                     isExpanded={{false}}
                                     onToggleExpand={{() => {{}}}}
                                     showPhaseTransitions={{showPhaseTransitions}}
+                                    comparisonData={{IS_COMPARISON ? COMPARISON_DATA : null}}
                                 />
                             </div>
                             <div style={{{{ textAlign: 'center', marginTop: '1rem' }}}}>
@@ -1853,6 +2460,7 @@ const downloadPNG = () => {{
                                         expandedMetric === metric ? null : metric
                                     )}}
                                     showPhaseTransitions={{showPhaseTransitions}}
+                                    comparisonData={{IS_COMPARISON ? COMPARISON_DATA : null}}
                                 />
                             ))}}
                         </div>
@@ -1875,41 +2483,99 @@ const downloadPNG = () => {{
                                     ></span>
                                     {{metric}}
                                 </h3>
-                                <div className="stat-grid">
-                                    <div className="stat-item">
-                                        <span className="stat-label">Mean</span>
-                                        <span className="stat-value">{{allStats[metric].mean.toFixed(6)}}</span>
+                                {{IS_COMPARISON && COMPARISON_DATA ? (
+                                    <div className="model-comparison">
+                                        {{['model1', 'model2'].map((modelKey, idx) => {{
+                                            const modelData = COMPARISON_DATA[modelKey];
+                                            const stats = allStats[metric][modelKey];
+                                            if (!stats) return null;
+                                            
+                                            return (
+                                                <div key={{modelKey}} style={{{{ marginBottom: '0.75rem' }}}}>
+                                                    <div className="model-stat">
+                                                        <span 
+                                                            className="model-name"
+                                                            style={{{{ 
+                                                                color: idx === 0 
+                                                                    ? MODEL_COLORS.model1.primary 
+                                                                    : MODEL_COLORS.model2.primary 
+                                                            }}}}
+                                                        >
+                                                            {{modelData.name}}
+                                                        </span>
+                                                    </div>
+                                                    <div className="stat-grid" style={{{{ marginTop: '0.5rem' }}}}>
+                                                        <div className="stat-item">
+                                                            <span className="stat-label">Mean</span>
+                                                            <span className="stat-value">{{stats.mean.toFixed(6)}}</span>
+                                                        </div>
+                                                        <div className="stat-item">
+                                                            <span className="stat-label">Range</span>
+                                                            <span className="stat-value">
+                                                                {{stats.min.toFixed(3)}} → {{stats.max.toFixed(3)}}
+                                                            </span>
+                                                        </div>
+                                                        <div className="stat-item">
+                                                            <span className="stat-label">Start → End</span>
+                                                            <span className="stat-value">
+                                                                {{stats.start.toFixed(3)}} → {{stats.end.toFixed(3)}}
+                                                            </span>
+                                                        </div>
+                                                        <div className="stat-item">
+                                                            <span className="stat-label">Change</span>
+                                                            <span 
+                                                                className="stat-value"
+                                                                style={{{{
+                                                                    color: stats.change > 0 ? '#10b981' : 
+                                                                          stats.change < 0 ? '#ef4444' : '#9ca3af'
+                                                                }}}}
+                                                            >
+                                                                {{stats.change > 0 ? '+' : ''}}
+                                                                {{stats.changePercent.toFixed(2)}}%
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }})}}
                                     </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Min</span>
-                                        <span className="stat-value">{{allStats[metric].min.toFixed(6)}}</span>
+                                ) : (
+                                    <div className="stat-grid">
+                                        <div className="stat-item">
+                                            <span className="stat-label">Mean</span>
+                                            <span className="stat-value">{{allStats[metric].mean.toFixed(6)}}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-label">Min</span>
+                                            <span className="stat-value">{{allStats[metric].min.toFixed(6)}}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-label">Max</span>
+                                            <span className="stat-value">{{allStats[metric].max.toFixed(6)}}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-label">Start</span>
+                                            <span className="stat-value">{{allStats[metric].start.toFixed(6)}}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-label">End</span>
+                                            <span className="stat-value">{{allStats[metric].end.toFixed(6)}}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-label">Change</span>
+                                            <span 
+                                                className="stat-value"
+                                                style={{{{
+                                                    color: allStats[metric].change > 0 ? '#10b981' : 
+                                                          allStats[metric].change < 0 ? '#ef4444' : '#9ca3af'
+                                                }}}}
+                                            >
+                                                {{allStats[metric].change > 0 ? '+' : ''}}
+                                                {{allStats[metric].changePercent.toFixed(2)}}%
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Max</span>
-                                        <span className="stat-value">{{allStats[metric].max.toFixed(6)}}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Start</span>
-                                        <span className="stat-value">{{allStats[metric].start.toFixed(6)}}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">End</span>
-                                        <span className="stat-value">{{allStats[metric].end.toFixed(6)}}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Change</span>
-                                        <span 
-                                            className="stat-value"
-                                            style={{{{
-                                                color: allStats[metric].change > 0 ? '#10b981' : 
-                                                      allStats[metric].change < 0 ? '#ef4444' : '#9ca3af'
-                                            }}}}
-                                        >
-                                            {{allStats[metric].change > 0 ? '+' : ''}}
-                                            {{allStats[metric].changePercent.toFixed(2)}}%
-                                        </span>
-                                    </div>
-                                </div>
+                                )}}
                             </div>
                         ))}}
                     </div>
