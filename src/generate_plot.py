@@ -29,7 +29,8 @@ def plot_metric_interactive(
     metrics_data: Dict[str, List[float]] = None,
     many_metrics=False,
     comparison_mode=False,
-    comparison_data=None
+    comparison_data=None,
+    num_models=1
 ) -> None:
     """Render an interactive line-plot using React and D3.js.
     
@@ -40,7 +41,8 @@ def plot_metric_interactive(
         metrics_data: (Optional) Dictionary mapping metric names to values
         many_metrics: Whether to start with many metrics (affects initial view)
         comparison_mode: Whether this is a model comparison
-        comparison_data: (Optional) Data for model comparison containing model1 and model2 info
+        comparison_data: (Optional) Data for model comparison containing model1, model2, model3 info
+        num_models: Number of models being compared (1-3)
     
     Returns:
         None: Outputs are saved to HTML file
@@ -71,16 +73,18 @@ def plot_metric_interactive(
     # Prepare data for React
     if comparison_mode and comparison_data:
         # Validate comparison data
-        for model_key in ['model1', 'model2']:
-            model_data = comparison_data[model_key]
-            for metric_name, values in model_data['metrics'].items():
-                try:
-                    model_data['metrics'][metric_name] = [
-                        float(v) if v is not None else float('nan') for v in values
-                    ]
-                except (TypeError, ValueError) as e:
-                    logger.error(f"Error converting {model_key} metric '{metric_name}' values to float: {e}")
-                    raise ValueError(f"{model_key} metric '{metric_name}' contains non-numeric values: {e}")
+        model_keys = ["model1", "model2", "model3"][:num_models]
+        for model_key in model_keys:
+            if model_key in comparison_data:
+                model_data = comparison_data[model_key]
+                for metric_name, values in model_data['metrics'].items():
+                    try:
+                        model_data['metrics'][metric_name] = [
+                            float(v) if v is not None else float('nan') for v in values
+                        ]
+                    except (TypeError, ValueError) as e:
+                        logger.error(f"Error converting {model_key} metric '{metric_name}' values to float: {e}")
+                        raise ValueError(f"{model_key} metric '{metric_name}' contains non-numeric values: {e}")
         
         react_data = {
             "checkpoints": list(checkpoint_names),
@@ -88,7 +92,8 @@ def plot_metric_interactive(
             "metricsList": list(metrics_data.keys()),
             "startSeparate": many_metrics,
             "comparisonMode": True,
-            "comparisonData": comparison_data
+            "comparisonData": comparison_data,
+            "numModels": num_models
         }
     else:
         react_data = {
@@ -96,7 +101,8 @@ def plot_metric_interactive(
             "metrics": metrics_data,
             "metricsList": list(metrics_data.keys()),
             "startSeparate": many_metrics,
-            "comparisonMode": False
+            "comparisonMode": False,
+            "numModels": 1
         }
     
     # Output filename
@@ -206,6 +212,7 @@ def plot_metric_interactive(
             gap: 1rem;
             justify-content: center;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }}
         
         .model-badge {{
@@ -228,6 +235,12 @@ def plot_metric_interactive(
             background: rgba(244, 63, 94, 0.2);
             border: 1px solid #f43f5e;
             color: #fecdd3;
+        }}
+        
+        .model-badge.model3 {{
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #bbf7d0;
         }}
         
         .model-badge .indicator {{
@@ -687,6 +700,7 @@ def plot_metric_interactive(
         const CLEANUP_PORT = {port};
         const IS_COMPARISON = DATA.comparisonMode || false;
         const COMPARISON_DATA = DATA.comparisonData || null;
+        const NUM_MODELS = DATA.numModels || 1;
         
         // Color palette for metrics (single model)
         const COLOR_PALETTE = [
@@ -694,7 +708,7 @@ def plot_metric_interactive(
             '#8b5cf6', '#ef4444', '#14b8a6', '#f97316', '#06b6d4'
         ];
         
-        // Color schemes for comparison mode
+        // Color schemes for comparison mode (up to 3 models)
         const MODEL_COLORS = {{
             model1: {{
                 primary: '#6366f1',
@@ -703,7 +717,18 @@ def plot_metric_interactive(
             model2: {{
                 primary: '#f43f5e',
                 variants: ['#f43f5e', '#fb7185', '#fda4af', '#fecdd3', '#ffe4e6']
+            }},
+            model3: {{
+                primary: '#22c55e',
+                variants: ['#22c55e', '#4ade80', '#86efac', '#bbf7d0', '#dcfce7']
             }}
+        }};
+        
+        // Line styles for different models
+        const MODEL_LINE_STYLES = {{
+            model1: {{ dashArray: null }},      // Solid
+            model2: {{ dashArray: '8,4' }},     // Dashed
+            model3: {{ dashArray: '2,2' }}      // Dotted
         }};
         
         // Create color mapping
@@ -745,7 +770,7 @@ def plot_metric_interactive(
             // Calculate statistics
             const stats = useMemo(() => {{
                 if (IS_COMPARISON && comparisonData) {{
-                    // Calculate stats for both models
+                    // Calculate stats for all models
                     const calculateStats = (values) => {{
                         const validValues = values.filter(v => !isNaN(v));
                         if (validValues.length === 0) return null;
@@ -765,10 +790,14 @@ def plot_metric_interactive(
                         }};
                     }};
                     
-                    return {{
-                        model1: calculateStats(comparisonData.model1.metrics[metric]),
-                        model2: calculateStats(comparisonData.model2.metrics[metric])
-                    }};
+                    const result = {{}};
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    modelKeys.forEach(modelKey => {{
+                        if (comparisonData[modelKey]) {{
+                            result[modelKey] = calculateStats(comparisonData[modelKey].metrics[metric]);
+                        }}
+                    }});
+                    return result;
                 }} else {{
                     // Single model stats
                     const values = data.filter(v => !isNaN(v));
@@ -793,7 +822,7 @@ def plot_metric_interactive(
             // Calculate phase transitions
             const phaseTransitions = useMemo(() => {{
                 if (IS_COMPARISON && comparisonData) {{
-                    // Calculate phase transitions for both models
+                    // Calculate phase transitions for all models
                     const calculateTransitions = (values) => {{
                         const transitions = [];
                         for (let i = 1; i < values.length; i++) {{
@@ -815,10 +844,14 @@ def plot_metric_interactive(
                         return transitions;
                     }};
                     
-                    return {{
-                        model1: calculateTransitions(comparisonData.model1.metrics[metric]),
-                        model2: calculateTransitions(comparisonData.model2.metrics[metric])
-                    }};
+                    const result = {{}};
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    modelKeys.forEach(modelKey => {{
+                        if (comparisonData[modelKey]) {{
+                            result[modelKey] = calculateTransitions(comparisonData[modelKey].metrics[metric]);
+                        }}
+                    }});
+                    return result;
                 }} else {{
                     // Single model transitions
                     const transitions = [];
@@ -883,20 +916,26 @@ def plot_metric_interactive(
                 
                 if (IS_COMPARISON && comparisonData) {{
                     // Use max checkpoints for x scale
-                    const maxCheckpoints = Math.max(
-                        comparisonData.model1.checkpoints.length,
-                        comparisonData.model2.checkpoints.length
-                    );
+                    let maxCheckpoints = 0;
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    modelKeys.forEach(modelKey => {{
+                        if (comparisonData[modelKey]) {{
+                            maxCheckpoints = Math.max(maxCheckpoints, comparisonData[modelKey].checkpoints.length);
+                        }}
+                    }});
                     xDomain = [0, maxCheckpoints - 1];
                     
                     // Combined y scale
-                    const allValues = [
-                        ...comparisonData.model1.metrics[metric],
-                        ...comparisonData.model2.metrics[metric]
-                    ].filter(v => !isNaN(v));
+                    const allValues = [];
+                    modelKeys.forEach(modelKey => {{
+                        if (comparisonData[modelKey] && comparisonData[modelKey].metrics[metric]) {{
+                            allValues.push(...comparisonData[modelKey].metrics[metric]);
+                        }}
+                    }});
+                    const validValues = allValues.filter(v => !isNaN(v));
                     
-                    const yMin = Math.min(...allValues);
-                    const yMax = Math.max(...allValues);
+                    const yMin = Math.min(...validValues);
+                    const yMax = Math.max(...validValues);
                     const yPadding = (yMax - yMin) * 0.1 || 0.1;
                     yDomain = [yMin - yPadding, yMax + yPadding];
                 }} else {{
@@ -916,11 +955,13 @@ def plot_metric_interactive(
                 
                 // Add phase transition indicators
                 if (showPhaseTransitions) {{
-                    if (IS_COMPARISON && phaseTransitions.model1 && phaseTransitions.model2) {{
-                        // Show transitions for both models
+                    if (IS_COMPARISON && phaseTransitions) {{
+                        // Show transitions for all models
                         const allTransitions = new Set();
-                        [...phaseTransitions.model1, ...phaseTransitions.model2].forEach(t => {{
-                            allTransitions.add(t.index);
+                        Object.values(phaseTransitions).forEach(modelTransitions => {{
+                            if (Array.isArray(modelTransitions)) {{
+                                modelTransitions.forEach(t => allTransitions.add(t.index));
+                            }}
                         }});
                         
                         allTransitions.forEach(index => {{
@@ -1020,7 +1061,7 @@ def plot_metric_interactive(
                     .defined(d => !isNaN(d));
                 
                 if (IS_COMPARISON && comparisonData) {{
-                    // Draw lines for both models
+                    // Draw lines for all models
                     const drawModelLine = (modelData, modelKey, color, dashArray = null) => {{
                         const values = modelData.metrics[metric];
                         const checkpoints = modelData.checkpoints;
@@ -1128,11 +1169,18 @@ def plot_metric_interactive(
                         }}
                     }};
                     
-                    // Draw model 1 (solid line)
-                    drawModelLine(comparisonData.model1, 'model1', MODEL_COLORS.model1.primary);
-                    
-                    // Draw model 2 (dashed line)
-                    drawModelLine(comparisonData.model2, 'model2', MODEL_COLORS.model2.primary, '8,4');
+                    // Draw lines for each model
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    modelKeys.forEach(modelKey => {{
+                        if (comparisonData[modelKey]) {{
+                            drawModelLine(
+                                comparisonData[modelKey], 
+                                modelKey, 
+                                MODEL_COLORS[modelKey].primary,
+                                MODEL_LINE_STYLES[modelKey].dashArray
+                            );
+                        }}
+                    }});
                     
                 }} else {{
                     // Single model visualization (existing code)
@@ -1261,6 +1309,34 @@ def plot_metric_interactive(
                     
             }}, [data, metric, stats, isExpanded, showPhaseTransitions, phaseTransitions, dimensions, comparisonData]);
             
+            // Helper to render legend based on line style
+            const renderLineLegend = (modelKey) => {{
+                const lineStyle = MODEL_LINE_STYLES[modelKey];
+                if (lineStyle.dashArray) {{
+                    // Create SVG pattern for dashed/dotted lines
+                    const pattern = lineStyle.dashArray === '8,4' ? 
+                        `repeating-linear-gradient(90deg, ${{MODEL_COLORS[modelKey].primary}}, ${{MODEL_COLORS[modelKey].primary}} 8px, transparent 8px, transparent 12px)` :
+                        `repeating-linear-gradient(90deg, ${{MODEL_COLORS[modelKey].primary}}, ${{MODEL_COLORS[modelKey].primary}} 2px, transparent 2px, transparent 4px)`;
+                    
+                    return (
+                        <div 
+                            className="legend-line" 
+                            style={{{{ 
+                                backgroundColor: MODEL_COLORS[modelKey].primary,
+                                backgroundImage: pattern
+                            }}}}
+                        ></div>
+                    );
+                }} else {{
+                    return (
+                        <div 
+                            className="legend-line" 
+                            style={{{{ backgroundColor: MODEL_COLORS[modelKey].primary }}}}
+                        ></div>
+                    );
+                }}
+            }};
+            
             return (
                 <div 
                     className={{`chart-wrapper ${{isExpanded ? 'expanded' : ''}}`}}
@@ -1283,23 +1359,14 @@ def plot_metric_interactive(
                         <svg ref={{svgRef}} className="chart"></svg>
                         {{IS_COMPARISON ? (
                             <div className="legend">
-                                <div className="legend-item">
-                                    <div 
-                                        className="legend-line" 
-                                        style={{{{ backgroundColor: MODEL_COLORS.model1.primary }}}}
-                                    ></div>
-                                    <span>{{COMPARISON_DATA.model1.name}}</span>
-                                </div>
-                                <div className="legend-item">
-                                    <div 
-                                        className="legend-line" 
-                                        style={{{{ 
-                                            backgroundColor: MODEL_COLORS.model2.primary,
-                                            backgroundImage: `repeating-linear-gradient(90deg, ${{MODEL_COLORS.model2.primary}}, ${{MODEL_COLORS.model2.primary}} 8px, transparent 8px, transparent 12px)`
-                                        }}}}
-                                    ></div>
-                                    <span>{{COMPARISON_DATA.model2.name}}</span>
-                                </div>
+                                {{['model1', 'model2', 'model3'].slice(0, NUM_MODELS).map(modelKey => (
+                                    COMPARISON_DATA[modelKey] && (
+                                        <div key={{modelKey}} className="legend-item">
+                                            {{renderLineLegend(modelKey)}}
+                                            <span>{{COMPARISON_DATA[modelKey].name}}</span>
+                                        </div>
+                                    )
+                                ))}}
                                 <div className="legend-item">
                                     <div className="legend-color" style={{{{ backgroundColor: '#3b82f6' }}}}></div>
                                     <span>Maximum</span>
@@ -1327,46 +1394,46 @@ def plot_metric_interactive(
                                 </div>
                             )
                         )}}
-                        {{showPhaseTransitions && ((IS_COMPARISON && phaseTransitions.model1 && phaseTransitions.model2) || (!IS_COMPARISON && phaseTransitions.length > 0)) && (
-                            <div className="phase-info">
-                                <strong>Phase transitions detected</strong>
-                                {{IS_COMPARISON ? (
+                        {{showPhaseTransitions && (
+                            (IS_COMPARISON && phaseTransitions) ? (
+                                <div className="phase-info">
+                                    <strong>Phase transitions detected</strong>
                                     <div>
-                                        {{phaseTransitions.model1.length > 0 && (
-                                            <div style={{{{ marginTop: '0.5rem' }}}}>
-                                                <span style={{{{ color: MODEL_COLORS.model1.primary }}}}>{{COMPARISON_DATA.model1.name}}:</span>
-                                                <ul style={{{{ marginTop: '0.25rem', paddingLeft: '1.5rem' }}}}>
-                                                    {{phaseTransitions.model1.map((t, i) => (
-                                                        <li key={{i}}>
-                                                            CP{{t.index + 1}}: {{(t.change * 100).toFixed(1)}}% change
-                                                        </li>
-                                                    ))}}
-                                                </ul>
-                                            </div>
-                                        )}}
-                                        {{phaseTransitions.model2.length > 0 && (
-                                            <div style={{{{ marginTop: '0.5rem' }}}}>
-                                                <span style={{{{ color: MODEL_COLORS.model2.primary }}}}>{{COMPARISON_DATA.model2.name}}:</span>
-                                                <ul style={{{{ marginTop: '0.25rem', paddingLeft: '1.5rem' }}}}>
-                                                    {{phaseTransitions.model2.map((t, i) => (
-                                                        <li key={{i}}>
-                                                            CP{{t.index + 1}}: {{(t.change * 100).toFixed(1)}}% change
-                                                        </li>
-                                                    ))}}
-                                                </ul>
-                                            </div>
-                                        )}}
+                                        {{['model1', 'model2', 'model3'].slice(0, NUM_MODELS).map(modelKey => {{
+                                            const transitions = phaseTransitions[modelKey];
+                                            if (!transitions || transitions.length === 0) return null;
+                                            
+                                            return (
+                                                <div key={{modelKey}} style={{{{ marginTop: '0.5rem' }}}}>
+                                                    <span style={{{{ color: MODEL_COLORS[modelKey].primary }}}}>
+                                                        {{COMPARISON_DATA[modelKey].name}}:
+                                                    </span>
+                                                    <ul style={{{{ marginTop: '0.25rem', paddingLeft: '1.5rem' }}}}>
+                                                        {{transitions.map((t, i) => (
+                                                            <li key={{i}}>
+                                                                CP{{t.index + 1}}: {{(t.change * 100).toFixed(1)}}% change
+                                                            </li>
+                                                        ))}}
+                                                    </ul>
+                                                </div>
+                                            );
+                                        }})}}
                                     </div>
-                                ) : (
-                                    <ul style={{{{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}}}>
-                                        {{phaseTransitions.map((t, i) => (
-                                            <li key={{i}}>
-                                                Checkpoint {{DATA.checkpoints[t.index]}}: {{(t.change * 100).toFixed(1)}}% change
-                                            </li>
-                                        ))}}
-                                    </ul>
-                                )}}
-                            </div>
+                                </div>
+                            ) : (
+                                phaseTransitions.length > 0 && (
+                                    <div className="phase-info">
+                                        <strong>Phase transitions detected at:</strong>
+                                        <ul style={{{{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}}}>
+                                            {{phaseTransitions.map((t, i) => (
+                                                <li key={{i}}>
+                                                    Checkpoint {{DATA.checkpoints[t.index]}}: {{(t.change * 100).toFixed(1)}}% change
+                                                </li>
+                                            ))}}
+                                        </ul>
+                                    </div>
+                                )
+                            )
                         )}}
                     </div>
                     {{hoveredPoint && (
@@ -1381,9 +1448,13 @@ def plot_metric_interactive(
                                 <div 
                                     className="tooltip-model" 
                                     style={{{{ 
-                                        color: hoveredPoint.model === COMPARISON_DATA.model1.name 
-                                            ? MODEL_COLORS.model1.primary 
-                                            : MODEL_COLORS.model2.primary 
+                                        color: IS_COMPARISON ? (
+                                            MODEL_COLORS[
+                                                Object.keys(COMPARISON_DATA).find(key => 
+                                                    COMPARISON_DATA[key]?.name === hoveredPoint.model
+                                                )
+                                            ]?.primary || '#fff'
+                                        ) : '#fff'
                                     }}}}
                                 >
                                     {{hoveredPoint.model}}
@@ -1439,10 +1510,13 @@ def plot_metric_interactive(
                 // Create scales
                 let xDomain;
                 if (IS_COMPARISON && comparisonData) {{
-                    const maxCheckpoints = Math.max(
-                        comparisonData.model1.checkpoints.length,
-                        comparisonData.model2.checkpoints.length
-                    );
+                    let maxCheckpoints = 0;
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    modelKeys.forEach(modelKey => {{
+                        if (comparisonData[modelKey]) {{
+                            maxCheckpoints = Math.max(maxCheckpoints, comparisonData[modelKey].checkpoints.length);
+                        }}
+                    }});
                     xDomain = [0, maxCheckpoints - 1];
                 }} else {{
                     xDomain = [0, DATA.checkpoints.length - 1];
@@ -1478,8 +1552,12 @@ def plot_metric_interactive(
                         return normalized;
                     }};
                     
-                    normalizedData.model1 = normalizeModelData(comparisonData.model1);
-                    normalizedData.model2 = normalizeModelData(comparisonData.model2);
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    modelKeys.forEach(modelKey => {{
+                        if (comparisonData[modelKey]) {{
+                            normalizedData[modelKey] = normalizeModelData(comparisonData[modelKey]);
+                        }}
+                    }});
                 }} else {{
                     // Single model normalization
                     metrics.forEach(metric => {{
@@ -1500,8 +1578,10 @@ def plot_metric_interactive(
                     const allTransitions = new Set();
                     
                     if (IS_COMPARISON && comparisonData) {{
-                        // Check transitions for both models
-                        ['model1', 'model2'].forEach(modelKey => {{
+                        // Check transitions for all models
+                        const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                        modelKeys.forEach(modelKey => {{
+                            if (!comparisonData[modelKey]) return;
                             const modelData = comparisonData[modelKey];
                             metrics.forEach(metric => {{
                                 const values = modelData.metrics[metric];
@@ -1626,49 +1706,143 @@ def plot_metric_interactive(
                 
                 // Draw lines for each metric
                 if (IS_COMPARISON && comparisonData) {{
-                    // For comparison mode, draw lines for both models
+                    // For comparison mode, draw lines for all models
                     metrics.forEach((metric, idx) => {{
-                        // Model 1
-                        const path1 = g.append('path')
-                            .datum(normalizedData.model1[metric])
-                            .attr('fill', 'none')
-                            .attr('stroke', metricColors[metric])
-                            .attr('stroke-width', 2)
-                            .attr('d', line)
-                            .style('opacity', hoveredLine === null || hoveredLine === `${{metric}}-model1` ? 1 : 0.3)
-                            .style('transition', 'opacity 0.3s ease');
+                        const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
                         
-                        // Model 2 (dashed)
-                        const path2 = g.append('path')
-                            .datum(normalizedData.model2[metric])
-                            .attr('fill', 'none')
-                            .attr('stroke', metricColors[metric])
-                            .attr('stroke-width', 2)
-                            .attr('stroke-dasharray', '5,3')
-                            .attr('d', line)
-                            .style('opacity', hoveredLine === null || hoveredLine === `${{metric}}-model2` ? 1 : 0.3)
-                            .style('transition', 'opacity 0.3s ease');
-                        
-                        // Animate both lines
-                        [path1, path2].forEach((path, i) => {{
+                        modelKeys.forEach((modelKey, modelIdx) => {{
+                            if (!comparisonData[modelKey] || !normalizedData[modelKey]) return;
+                            
+                            const path = g.append('path')
+                                .datum(normalizedData[modelKey][metric])
+                                .attr('fill', 'none')
+                                .attr('stroke', metricColors[metric])
+                                .attr('stroke-width', 2)
+                                .attr('d', line)
+                                .style('opacity', hoveredLine === null || hoveredLine === `${{metric}}-${{modelKey}}` ? 1 : 0.3)
+                                .style('transition', 'opacity 0.3s ease');
+                            
+                            // Apply dash pattern based on model
+                            if (MODEL_LINE_STYLES[modelKey].dashArray) {{
+                                path.attr('stroke-dasharray', MODEL_LINE_STYLES[modelKey].dashArray);
+                            }}
+                            
+                            // Animate line
                             const totalLength = path.node().getTotalLength();
                             path
                                 .attr('stroke-dasharray', totalLength + ' ' + totalLength)
                                 .attr('stroke-dashoffset', totalLength)
                                 .transition()
                                 .duration(1000)
-                                .delay(idx * 100)
+                                .delay(idx * 100 + modelIdx * 50)
                                 .ease(d3.easeQuadInOut)
                                 .attr('stroke-dashoffset', 0)
                                 .on('end', function() {{
-                                    if (i === 1) {{ // Model 2
-                                        d3.select(this).attr('stroke-dasharray', '5,3');
+                                    if (MODEL_LINE_STYLES[modelKey].dashArray) {{
+                                        d3.select(this).attr('stroke-dasharray', MODEL_LINE_STYLES[modelKey].dashArray);
                                     }}
                                 }});
+                            
+                            // Add hover areas and points for each model
+                            const points = g.selectAll(`.point-${{metric.replace(/\s+/g, '-')}}-${{modelKey}}`)
+                                .data(normalizedData[modelKey][metric])
+                                .enter()
+                                .filter(d => !isNaN(d))
+                                .append('circle')
+                                .attr('class', `point-${{metric.replace(/\s+/g, '-')}}-${{modelKey}}`)
+                                .attr('cx', (d, i) => xScale(i))
+                                .attr('cy', d => yScale(d))
+                                .attr('r', 0)
+                                .attr('fill', metricColors[metric])
+                                .style('cursor', 'pointer')
+                                .style('opacity', hoveredLine === null || hoveredLine === `${{metric}}-${{modelKey}}` ? 1 : 0.3);
+                            
+                            points
+                                .transition()
+                                .duration(1000)
+                                .delay((d, i) => idx * 100 + modelIdx * 50 + i * 10)
+                                .attr('r', 2);
+                            
+                            points
+                                .on('mouseenter', function(event, d) {{
+                                    const i = normalizedData[modelKey][metric].indexOf(d);
+                                    const originalValue = comparisonData[modelKey].metrics[metric][i];
+                                    setHoveredPoint({{
+                                        metric,
+                                        model: comparisonData[modelKey].name,
+                                        checkpoint: comparisonData[modelKey].checkpoints[i],
+                                        value: originalValue,
+                                        normalizedValue: d,
+                                        x: event.pageX,
+                                        y: event.pageY
+                                    }});
+                                    
+                                    d3.select(this)
+                                        .transition()
+                                        .duration(200)
+                                        .attr('r', 4);
+                                }})
+                                .on('mouseleave', function() {{
+                                    setHoveredPoint(null);
+                                    
+                                    d3.select(this)
+                                        .transition()
+                                        .duration(200)
+                                        .attr('r', 2);
+                                }});
+                            
+                            // Invisible wider path for hover detection
+                            const currentModelKey = modelKey; // Capture in closure
+                            const currentMetric = metric; // Capture in closure
+                            g.append('path')
+                                .datum(normalizedData[modelKey][metric])
+                                .attr('fill', 'none')
+                                .attr('stroke', 'transparent')
+                                .attr('stroke-width', 20)
+                                .attr('d', line)
+                                .style('cursor', 'pointer')
+                                .on('click', function(event) {{
+                                    event.stopPropagation();
+                                    if (onMetricClick) {{
+                                        onMetricClick(currentMetric);
+                                    }}
+                                }})
+                                .on('mouseenter', function() {{
+                                    const hoveredData = d3.select(this).datum();
+                                    setHoveredLine(`${{currentMetric}}-${{currentModelKey}}`);
+                                    
+                                    // Update all line opacities
+                                    g.selectAll('path')
+                                        .filter(function() {{
+                                            return d3.select(this).attr('stroke') !== 'transparent';
+                                        }})
+                                        .style('opacity', function() {{
+                                            const pathData = d3.select(this).datum();
+                                            return pathData === hoveredData ? 1 : 0.3;
+                                        }});
+                                    
+                                    // Update point opacities
+                                    g.selectAll('circle')
+                                        .style('opacity', function() {{
+                                            const className = d3.select(this).attr('class');
+                                            if (className && className.includes(`point-${{currentMetric.replace(/\s+/g, '-')}}-${{currentModelKey}}`)) {{
+                                                return 1;
+                                            }}
+                                            return 0.3;
+                                        }});
+                                }})
+                                .on('mouseleave', function() {{
+                                    setHoveredLine(null);
+                                    // Reset all opacities
+                                    g.selectAll('path')
+                                        .filter(function() {{
+                                            return d3.select(this).attr('stroke') !== 'transparent';
+                                        }})
+                                        .style('opacity', 1);
+                                    g.selectAll('circle')
+                                        .style('opacity', 1);
+                                }});
                         }});
-                        
-                        // Add hover areas and points for both models
-                        // ... (similar to single model but with model distinction)
                     }});
                 }} else {{
                     // Single model visualization (existing code)
@@ -1786,50 +1960,77 @@ def plot_metric_interactive(
                     // Comparison legend
                     let legendY = 0;
                     metrics.forEach((metric, i) => {{
-                        // Model 1 entry
-                        const item1 = legend.append('g')
-                            .attr('transform', `translate(0, ${{legendY}})`)
-                            .style('cursor', 'pointer');
+                        const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
                         
-                        item1.append('line')
-                            .attr('x1', 0)
-                            .attr('x2', 20)
-                            .attr('y1', 0)
-                            .attr('y2', 0)
-                            .attr('stroke', metricColors[metric])
-                            .attr('stroke-width', 2);
+                        modelKeys.forEach((modelKey, modelIdx) => {{
+                            if (!comparisonData[modelKey]) return;
+                            
+                            const item = legend.append('g')
+                                .attr('transform', `translate(0, ${{legendY}})`)
+                                .style('cursor', 'pointer')
+                                .on('click', function(event) {{
+                                    event.stopPropagation();
+                                    if (onMetricClick) {{
+                                        onMetricClick(metric);
+                                    }}
+                                }})
+                                .on('mouseenter', function() {{
+                                    setHoveredLine(`${{metric}}-${{modelKey}}`);
+                                    // Update line opacities
+                                    g.selectAll('path')
+                                        .filter(function() {{
+                                            return d3.select(this).attr('stroke') !== 'transparent';
+                                        }})
+                                        .style('opacity', function() {{
+                                            const pathData = d3.select(this).datum();
+                                            if (pathData && normalizedData[modelKey] && pathData === normalizedData[modelKey][metric]) {{
+                                                return 1;
+                                            }}
+                                            return 0.3;
+                                        }});
+                                    
+                                    // Update point opacities
+                                    g.selectAll('circle')
+                                        .style('opacity', function() {{
+                                            const className = d3.select(this).attr('class');
+                                            if (className && className.includes(`point-${{metric.replace(/\s+/g, '-')}}-${{modelKey}}`)) {{
+                                                return 1;
+                                            }}
+                                            return 0.3;
+                                        }});
+                                }})
+                                .on('mouseleave', function() {{
+                                    setHoveredLine(null);
+                                    // Reset all opacities
+                                    g.selectAll('path')
+                                        .filter(function() {{
+                                            return d3.select(this).attr('stroke') !== 'transparent';
+                                        }})
+                                        .style('opacity', 1);
+                                    g.selectAll('circle')
+                                        .style('opacity', 1);
+                                }});
+                            
+                            item.append('line')
+                                .attr('x1', 0)
+                                .attr('x2', 20)
+                                .attr('y1', 0)
+                                .attr('y2', 0)
+                                .attr('stroke', metricColors[metric])
+                                .attr('stroke-width', 2)
+                                .attr('stroke-dasharray', MODEL_LINE_STYLES[modelKey].dashArray);
+                            
+                            item.append('text')
+                                .attr('x', 25)
+                                .attr('y', 4)
+                                .style('fill', '#9ca3af')
+                                .style('font-size', '11px')
+                                .text(`${{metric}} (${{comparisonData[modelKey].name}})`);
+                            
+                            legendY += 20;
+                        }});
                         
-                        item1.append('text')
-                            .attr('x', 25)
-                            .attr('y', 4)
-                            .style('fill', '#9ca3af')
-                            .style('font-size', '11px')
-                            .text(`${{metric}} (${{comparisonData.model1.name}})`);
-                        
-                        legendY += 20;
-                        
-                        // Model 2 entry
-                        const item2 = legend.append('g')
-                            .attr('transform', `translate(0, ${{legendY}})`)
-                            .style('cursor', 'pointer');
-                        
-                        item2.append('line')
-                            .attr('x1', 0)
-                            .attr('x2', 20)
-                            .attr('y1', 0)
-                            .attr('y2', 0)
-                            .attr('stroke', metricColors[metric])
-                            .attr('stroke-width', 2)
-                            .attr('stroke-dasharray', '5,3');
-                        
-                        item2.append('text')
-                            .attr('x', 25)
-                            .attr('y', 4)
-                            .style('fill', '#9ca3af')
-                            .style('font-size', '11px')
-                            .text(`${{metric}} (${{comparisonData.model2.name}})`);
-                        
-                        legendY += 25;
+                        legendY += 5; // Add small gap between metrics
                     }});
                 }} else {{
                     // Single model legend (existing code)
@@ -1890,9 +2091,11 @@ def plot_metric_interactive(
             return (
                 <div className="chart-wrapper">
                     <div className="chart-header">
-                        <h3 className="chart-title"> {{metrics.length === DATA.metricsList.length 
-                ? 'All Metrics (Normalized)' 
-                : `Viewing ${{metrics.length}} Normalized Metrics`}}</h3>
+                        <h3 className="chart-title">
+                            {{metrics.length === DATA.metricsList.length 
+                                ? 'All Metrics (Normalized)' 
+                                : `Viewing ${{metrics.length}} Normalized Metrics`}}
+                        </h3>
                         <span style={{{{ fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}}}>
                             Click any line to view details
                         </span>
@@ -1908,6 +2111,22 @@ def plot_metric_interactive(
                                 top: `${{hoveredPoint.y - 10}}px` 
                             }}}}
                         >
+                            {{hoveredPoint.model && (
+                                <div 
+                                    className="tooltip-model" 
+                                    style={{{{ 
+                                        color: IS_COMPARISON ? (
+                                            MODEL_COLORS[
+                                                Object.keys(COMPARISON_DATA).find(key => 
+                                                    COMPARISON_DATA[key]?.name === hoveredPoint.model
+                                                )
+                                            ]?.primary || '#fff'
+                                        ) : '#fff'
+                                    }}}}
+                                >
+                                    {{hoveredPoint.model}}
+                                </div>
+                            )}}
                             <div className="tooltip-title">{{hoveredPoint.metric}}</div>
                             <div className="tooltip-value">
                                 {{hoveredPoint.checkpoint}}: {{hoveredPoint.value.toFixed(6)}}
@@ -1916,9 +2135,11 @@ def plot_metric_interactive(
                                     Normalized: {{hoveredPoint.normalizedValue.toFixed(3)}}
                                 </span>
                             </div>
-                            <div className="tooltip-value" style={{{{ fontSize: '0.75rem', marginTop: '0.25rem', color: '#9ca3af' }}}}>
-                                (Checkpoint {{DATA.checkpoints.indexOf(hoveredPoint.checkpoint) + 1}})
-                            </div>
+                            {{!IS_COMPARISON && (
+                                <div className="tooltip-value" style={{{{ fontSize: '0.75rem', marginTop: '0.25rem', color: '#9ca3af' }}}}>
+                                    (Checkpoint {{DATA.checkpoints.indexOf(hoveredPoint.checkpoint) + 1}})
+                                </div>
+                            )}}
                         </div>
                     )}}
                 </div>
@@ -1928,11 +2149,19 @@ def plot_metric_interactive(
         function MetricsVisualization() {{
             const [selectedMetrics, setSelectedMetrics] = useState(DATA.metricsList);
             const [expandedMetric, setExpandedMetric] = useState(null);
-            const [subtitle, setSubtitle] = useState(
-                IS_COMPARISON 
-                    ? `Comparing ${{COMPARISON_DATA.model1.name}} vs ${{COMPARISON_DATA.model2.name}}`
-                    : 'Visualizing training dynamics across checkpoints'
-            );
+            const [subtitle, setSubtitle] = useState(() => {{
+                if (IS_COMPARISON && COMPARISON_DATA) {{
+                    const modelNames = [];
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    modelKeys.forEach(key => {{
+                        if (COMPARISON_DATA[key] && COMPARISON_DATA[key].name) {{
+                            modelNames.push(COMPARISON_DATA[key].name);
+                        }}
+                    }});
+                    return `Comparing ${{modelNames.join(' vs ')}}`;
+                }}
+                return 'Visualizing training dynamics across checkpoints';
+            }});
             const [dropdownOpen, setDropdownOpen] = useState(false);
             const [overlayMode, setOverlayMode] = useState(!START_SEPARATE); // Start with overlay for "All"
             const [showPhaseTransitions, setShowPhaseTransitions] = useState(false);
@@ -1944,10 +2173,9 @@ def plot_metric_interactive(
                 const result = {{}};
                 
                 if (IS_COMPARISON && COMPARISON_DATA) {{
-                    // Calculate stats for both models
+                    // Calculate stats for all models
                     DATA.metricsList.forEach(metric => {{
-                        const model1Values = COMPARISON_DATA.model1.metrics[metric].filter(v => !isNaN(v));
-                        const model2Values = COMPARISON_DATA.model2.metrics[metric].filter(v => !isNaN(v));
+                        result[metric] = {{}};
                         
                         const calculateStats = (values) => {{
                             if (values.length === 0) return null;
@@ -1961,10 +2189,13 @@ def plot_metric_interactive(
                             return {{ min, max, mean, start, end, change, changePercent }};
                         }};
                         
-                        result[metric] = {{
-                            model1: calculateStats(model1Values),
-                            model2: calculateStats(model2Values)
-                        }};
+                        const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                        modelKeys.forEach(modelKey => {{
+                            if (COMPARISON_DATA[modelKey] && COMPARISON_DATA[modelKey].metrics[metric]) {{
+                                const values = COMPARISON_DATA[modelKey].metrics[metric].filter(v => !isNaN(v));
+                                result[metric][modelKey] = calculateStats(values);
+                            }}
+                        }});
                     }});
                 }} else {{
                     // Single model stats
@@ -2018,9 +2249,18 @@ def plot_metric_interactive(
                 setDropdownOpen(false);
                 setFullscreenFromOverlay(null); // Clear fullscreen state
                 setPreviousOverlayMetrics(null); // Clear previous state
-                setSubtitle(IS_COMPARISON 
-                    ? `Comparing ${{COMPARISON_DATA.model1.name}} vs ${{COMPARISON_DATA.model2.name}}`
-                    : 'Visualizing training dynamics across checkpoints');
+                if (IS_COMPARISON && COMPARISON_DATA) {{
+                    const modelNames = [];
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    modelKeys.forEach(key => {{
+                        if (COMPARISON_DATA[key] && COMPARISON_DATA[key].name) {{
+                            modelNames.push(COMPARISON_DATA[key].name);
+                        }}
+                    }});
+                    setSubtitle(`Comparing ${{modelNames.join(' vs ')}}`);
+                }} else {{
+                    setSubtitle('Visualizing training dynamics across checkpoints');
+                }}
                 
                 // Force a re-render of charts
                 setTimeout(() => {{
@@ -2045,9 +2285,18 @@ def plot_metric_interactive(
                 if (fullscreenFromOverlay) {{
                     setSubtitle(`Viewing ${{fullscreenFromOverlay}} (click outside to return to overlay)`);
                 }} else if (selectedMetrics.length === DATA.metricsList.length && overlayMode) {{
-                    setSubtitle(IS_COMPARISON 
-                        ? `Comparing ${{COMPARISON_DATA.model1.name}} vs ${{COMPARISON_DATA.model2.name}}`
-                        : 'Visualizing training dynamics across checkpoints');
+                    if (IS_COMPARISON && COMPARISON_DATA) {{
+                        const modelNames = [];
+                        const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                        modelKeys.forEach(key => {{
+                            if (COMPARISON_DATA[key] && COMPARISON_DATA[key].name) {{
+                                modelNames.push(COMPARISON_DATA[key].name);
+                            }}
+                        }});
+                        setSubtitle(`Comparing ${{modelNames.join(' vs ')}}`);
+                    }} else {{
+                        setSubtitle('Visualizing training dynamics across checkpoints');
+                    }}
                 }} else if (selectedMetrics.length === 1) {{
                     setSubtitle(`Displaying change in ${{selectedMetrics[0]}}`);
                 }} else if (overlayMode) {{
@@ -2062,25 +2311,31 @@ def plot_metric_interactive(
                 
                 if (IS_COMPARISON && COMPARISON_DATA) {{
                     // Comparison CSV format
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    
                     // Header row with model names
                     let headerRow = ['Model', 'Metric'];
-                    const maxCheckpoints = Math.max(
-                        COMPARISON_DATA.model1.checkpoints.length,
-                        COMPARISON_DATA.model2.checkpoints.length
-                    );
+                    let maxCheckpoints = 0;
+                    modelKeys.forEach(modelKey => {{
+                        if (COMPARISON_DATA[modelKey]) {{
+                            maxCheckpoints = Math.max(maxCheckpoints, COMPARISON_DATA[modelKey].checkpoints.length);
+                        }}
+                    }});
                     for (let i = 0; i < maxCheckpoints; i++) {{
                         headerRow.push(`CP${{i + 1}}`);
                     }}
                     csvContent.push(headerRow.join(','));
                     
                     // Data rows for each model
-                    ['model1', 'model2'].forEach(modelKey => {{
-                        const modelData = COMPARISON_DATA[modelKey];
-                        DATA.metricsList.forEach(metric => {{
-                            let row = [modelData.name, metric];
-                            row = row.concat(modelData.metrics[metric]);
-                            csvContent.push(row.join(','));
-                        }});
+                    modelKeys.forEach(modelKey => {{
+                        if (COMPARISON_DATA[modelKey]) {{
+                            const modelData = COMPARISON_DATA[modelKey];
+                            DATA.metricsList.forEach(metric => {{
+                                let row = [modelData.name, metric];
+                                row = row.concat(modelData.metrics[metric]);
+                                csvContent.push(row.join(','));
+                            }});
+                        }}
                     }});
                 }} else {{
                     // Single model CSV format
@@ -2170,38 +2425,54 @@ def plot_metric_interactive(
                 if (IS_COMPARISON && COMPARISON_DATA) {{
                     ctx.font = '14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
                     
-                    // Model 1 badge
-                    const badge1Text = COMPARISON_DATA.model1.name;
-                    const badge1Width = ctx.measureText(badge1Text).width + 30;
-                    const badge1X = canvas.width / 2 - badge1Width - 10;
+                    const modelKeys = ['model1', 'model2', 'model3'].slice(0, NUM_MODELS);
+                    let totalWidth = 0;
+                    const badgeWidths = [];
+                    
+                    // Calculate total width needed
+                    modelKeys.forEach(modelKey => {{
+                        if (COMPARISON_DATA[modelKey]) {{
+                            const text = COMPARISON_DATA[modelKey].name;
+                            const width = ctx.measureText(text).width + 30;
+                            badgeWidths.push(width);
+                            totalWidth += width;
+                        }}
+                    }});
+                    totalWidth += (modelKeys.length - 1) * 10; // gaps between badges
+                    
+                    // Start position
+                    let currentX = (canvas.width - totalWidth) / 2;
                     const badgeY = titleHeight - 25;
                     
-                    ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
-                    ctx.strokeStyle = '#6366f1';
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.roundRect(badge1X, badgeY, badge1Width, 25, 12);
-                    ctx.fill();
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = '#c7d2fe';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(badge1Text, badge1X + badge1Width / 2, badgeY + 13);
-                    
-                    // Model 2 badge
-                    const badge2Text = COMPARISON_DATA.model2.name;
-                    const badge2Width = ctx.measureText(badge2Text).width + 30;
-                    const badge2X = canvas.width / 2 + 10;
-                    
-                    ctx.fillStyle = 'rgba(244, 63, 94, 0.2)';
-                    ctx.strokeStyle = '#f43f5e';
-                    ctx.beginPath();
-                    ctx.roundRect(badge2X, badgeY, badge2Width, 25, 12);
-                    ctx.fill();
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = '#fecdd3';
-                    ctx.fillText(badge2Text, badge2X + badge2Width / 2, badgeY + 13);
+                    // Draw each badge
+                    modelKeys.forEach((modelKey, idx) => {{
+                        if (COMPARISON_DATA[modelKey]) {{
+                            const badgeText = COMPARISON_DATA[modelKey].name;
+                            const badgeWidth = badgeWidths[idx];
+                            
+                            // Set colors based on model
+                            const colors = {{
+                                model1: {{ bg: 'rgba(99, 102, 241, 0.2)', border: '#6366f1', text: '#c7d2fe' }},
+                                model2: {{ bg: 'rgba(244, 63, 94, 0.2)', border: '#f43f5e', text: '#fecdd3' }},
+                                model3: {{ bg: 'rgba(34, 197, 94, 0.2)', border: '#22c55e', text: '#bbf7d0' }}
+                            }};
+                            const color = colors[modelKey];
+                            
+                            ctx.fillStyle = color.bg;
+                            ctx.strokeStyle = color.border;
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.roundRect(currentX, badgeY, badgeWidth, 25, 12);
+                            ctx.fill();
+                            ctx.stroke();
+                            
+                            ctx.fillStyle = color.text;
+                            ctx.textAlign = 'center';
+                            ctx.fillText(badgeText, currentX + badgeWidth / 2, badgeY + 13);
+                            
+                            currentX += badgeWidth + 10;
+                        }}
+                    }});
                 }}
                 
                 // Process each SVG
@@ -2329,6 +2600,12 @@ def plot_metric_interactive(
                                     <span className="indicator" style={{{{ backgroundColor: MODEL_COLORS.model2.primary }}}}></span>
                                     {{COMPARISON_DATA.model2.name}}
                                 </div>
+                                {{NUM_MODELS >= 3 && COMPARISON_DATA.model3 && (
+                                    <div className="model-badge model3">
+                                        <span className="indicator" style={{{{ backgroundColor: MODEL_COLORS.model3.primary }}}}></span>
+                                        {{COMPARISON_DATA.model3.name}}
+                                    </div>
+                                )}}
                             </div>
                         )}}
                     </div>
@@ -2485,8 +2762,9 @@ def plot_metric_interactive(
                                 </h3>
                                 {{IS_COMPARISON && COMPARISON_DATA ? (
                                     <div className="model-comparison">
-                                        {{['model1', 'model2'].map((modelKey, idx) => {{
+                                        {{['model1', 'model2', 'model3'].slice(0, NUM_MODELS).map((modelKey, idx) => {{
                                             const modelData = COMPARISON_DATA[modelKey];
+                                            if (!modelData) return null;
                                             const stats = allStats[metric][modelKey];
                                             if (!stats) return null;
                                             
@@ -2496,9 +2774,7 @@ def plot_metric_interactive(
                                                         <span 
                                                             className="model-name"
                                                             style={{{{ 
-                                                                color: idx === 0 
-                                                                    ? MODEL_COLORS.model1.primary 
-                                                                    : MODEL_COLORS.model2.primary 
+                                                                color: MODEL_COLORS[modelKey].primary
                                                             }}}}
                                                         >
                                                             {{modelData.name}}

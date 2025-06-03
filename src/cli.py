@@ -442,7 +442,7 @@ def compare_models(
     device: str = t.Option("cuda", help="Device to use for calculations ('cuda', 'cpu', specific 'cuda:n')"),
     parallel: bool = t.Option(True, help="Use parallel processing for calculations (by default: True)")
 ):
-    """Compare metrics between two models."""
+    """Compare metrics between multiple models (up to 3)."""
     logger.info(f"Starting compare-models command with device={device}, parallel={parallel}")
     
     device = _validate_device(device)
@@ -455,47 +455,51 @@ def compare_models(
         logger.info(f"Running on {device}")
     
     t.secho("\n=== Model Comparison Mode ===", fg=t.colors.CYAN, bold=True)
-    t.secho("You will need to load two models to compare their metrics.", fg=t.colors.BLUE)
     
-    # Load both models
-    t.secho("\n--- Loading First Model ---", fg=t.colors.MAGENTA, bold=True)
-    model1_data = _load_model_interactively("first")
+    # Ask how many models to compare
+    while True:
+        num_models_str = t.prompt("How many models would you like to compare? (2-3)")
+        try:
+            num_models = int(num_models_str)
+            if 2 <= num_models <= 3:
+                break
+            t.secho("Please enter a number between 2 and 3.", fg=t.colors.RED)
+        except ValueError:
+            t.secho("Please enter a valid number.", fg=t.colors.RED)
     
-    t.secho("\n--- Loading Second Model ---", fg=t.colors.MAGENTA, bold=True)
-    model2_data = _load_model_interactively("second")
+    t.secho(f"You will load {num_models} models to compare their metrics.", fg=t.colors.BLUE)
+    
+    # Load all models
+    models_data = []
+    model_labels = ["first", "second", "third"]
+    
+    for i in range(num_models):
+        t.secho(f"\n--- Loading {model_labels[i].capitalize()} Model ---", fg=t.colors.MAGENTA, bold=True)
+        model_data = _load_model_interactively(model_labels[i])
+        models_data.append(model_data)
     
     # Select metrics (limit to 5)
     t.secho("\n--- Select Metrics to Compare ---", fg=t.colors.MAGENTA, bold=True)
     t.secho("You can select up to 5 metrics for comparison.", fg=t.colors.YELLOW)
     metrics_to_calculate, metrics_file = _select_metrics(max_metrics=5)
     
-    # Calculate metrics for both models
-    t.secho(f"\n--- Calculating Metrics for Both Models ---", fg=t.colors.MAGENTA, bold=True)
+    # Calculate metrics for all models
+    t.secho(f"\n--- Calculating Metrics for All {num_models} Models ---", fg=t.colors.MAGENTA, bold=True)
     
+    all_metrics_data = []
     try:
-        # Model 1
-        metrics_data1 = _compute_metrics_with_animation(
-            metrics_to_calculate,
-            model1_data['checkpoints'],
-            device,
-            parallel,
-            metrics_file,
-            model1_data['model_path'],
-            model1_data['class_name'],
-            model1_data['class_name']
-        )
-        
-        # Model 2
-        metrics_data2 = _compute_metrics_with_animation(
-            metrics_to_calculate,
-            model2_data['checkpoints'],
-            device,
-            parallel,
-            metrics_file,
-            model2_data['model_path'],
-            model2_data['class_name'],
-            model2_data['class_name']
-        )
+        for i, model_data in enumerate(models_data):
+            metrics_data = _compute_metrics_with_animation(
+                metrics_to_calculate,
+                model_data['checkpoints'],
+                device,
+                parallel,
+                metrics_file,
+                model_data['model_path'],
+                model_data['class_name'],
+                model_data['class_name']
+            )
+            all_metrics_data.append(metrics_data)
     except Exception as e:
         _err(f"Error calculating metrics: {str(e)}")
     
@@ -504,64 +508,39 @@ def compare_models(
         clear_model_cache()
         clear_metric_cache()
     
-    # Prepare comparison data in the same format as single model
-    # but with model names prepended to distinguish them
-    checkpoint_names1 = [os.path.basename(p) for p in model1_data['checkpoints']]
-    checkpoint_names2 = [os.path.basename(p) for p in model2_data['checkpoints']]
+    # Prepare comparison data
+    comparison_data = {}
+    model_keys = ["model1", "model2", "model3"]
     
-    # Create combined metrics data with model names as prefixes
-    combined_metrics = {}
-    models_info = []
+    for i, (model_data, metrics_data) in enumerate(zip(models_data, all_metrics_data)):
+        checkpoint_names = [os.path.basename(p) for p in model_data['checkpoints']]
+        comparison_data[model_keys[i]] = {
+            "name": model_data['class_name'],
+            "checkpoints": checkpoint_names,
+            "metrics": metrics_data
+        }
     
-    # Add model 1 metrics
-    for metric_name, values in metrics_data1.items():
-        combined_metrics[metric_name] = values
-    models_info.append({
-        "name": model1_data['class_name'],
-        "checkpoints": checkpoint_names1,
-        "checkpoint_count": len(checkpoint_names1)
-    })
-    
-    # Add model 2 metrics  
-    for metric_name, values in metrics_data2.items():
-        # Store model 2 data separately but in same structure
-        if metric_name not in combined_metrics:
-            combined_metrics[metric_name] = []
-        # We'll pass both datasets to the visualization
-    
-    models_info.append({
-        "name": model2_data['class_name'],
-        "checkpoints": checkpoint_names2,
-        "checkpoint_count": len(checkpoint_names2)
-    })
+    # Use first model's data for the base metrics structure
+    combined_metrics = all_metrics_data[0]
+    checkpoint_names = [os.path.basename(p) for p in models_data[0]['checkpoints']]
     
     t.secho("\nOpening comparison visualization. In the plot, you can:", fg=t.colors.CYAN)
-    t.secho("- See metrics for both models with different line styles", fg=t.colors.CYAN)
+    t.secho(f"- See metrics for all {num_models} models with different line styles", fg=t.colors.CYAN)
     t.secho("- Use all the same features as single model visualization", fg=t.colors.CYAN)
     t.secho("- Toggle between metrics, overlay mode, and phase transitions", fg=t.colors.CYAN)
     t.secho("- Export comparison data as CSV", fg=t.colors.CYAN)
     
     try:
-        logger.info("Creating comparison plot...")
+        logger.info(f"Creating comparison plot for {num_models} models...")
         with suppress_stdout_stderr():
             # Use the same plot_metric_interactive but with comparison data
             plot_metric_interactive(
-                checkpoint_names=checkpoint_names1,  # Primary model checkpoints
+                checkpoint_names=checkpoint_names,  # Primary model checkpoints
                 metrics_data=combined_metrics,
                 many_metrics=len(metrics_to_calculate) > 3,
                 comparison_mode=True,
-                comparison_data={
-                    "model1": {
-                        "name": model1_data['class_name'],
-                        "checkpoints": checkpoint_names1,
-                        "metrics": metrics_data1
-                    },
-                    "model2": {
-                        "name": model2_data['class_name'], 
-                        "checkpoints": checkpoint_names2,
-                        "metrics": metrics_data2
-                    }
-                }
+                comparison_data=comparison_data,
+                num_models=num_models
             )
         logger.info("Successfully created comparison plot")
     except Exception as e:
