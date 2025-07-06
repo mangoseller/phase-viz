@@ -327,7 +327,7 @@ python src/cli.py plot-metric --device cuda
 
 ## Architecture Support
 
-Phase-viz attempts to automatically detect model architecture from checkpoints and supports:
+Phase-viz attempts to automatically detect model architecture from checkpoints and currently supports:
 - Standard PyTorch models
 - Models with custom initialization
 - Transformer architectures
@@ -372,7 +372,7 @@ python src/cli.py plot-metric --device cuda
 
 ![image](https://github.com/user-attachments/assets/272e31e0-2444-4e4b-a3f1-74d11c04ddff)
 
-*Overlaying and normalizing two metrics - Gradient Flow and Spectral Norm*
+*Overlaying and normalizing two metrics for comparison - Gradient Flow and Spectral Norm*
 
 ## License
 
