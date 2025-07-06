@@ -3,17 +3,16 @@
 ![image](https://github.com/user-attachments/assets/0cf14db2-8de0-481c-9996-6edccbc641db)
 
 
-Phase-Viz is a generic visualization tool for analyzing the developmental trajectory of neural networks across architectures during training. It aims to assist understanding how model geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour. is a generic visualization tool for analyzing the developmental trajectory of neural networks across architectures during training. It aims to assist understanding how model geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour.
+Phase-Viz is a visualization tool for generically analyzing the developmental trajectory of neural networks during training. It aims to assist in understanding how model weight geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour.
 
 ## Overview
 
 **Phase-Viz** provides an intuitive way to:
 - Track multiple metrics across training checkpoints
-- Detect 'phase transitions' during training
+- Detect [phase transitions](https://www.lesswrong.com/posts/aKBAYN5LpaQMrPqMj/dslt-4-phase-transitions-in-neural-networks) during training
 - Visualize training dynamics with interactive plots
-- Support custom metrics and model architectures
-
-The tool creates temporary interactive web visualizations that automatically clean up after use, with all processing logged to rotating log files.
+ 
+Phase-viz supports custom metrics and model architectures, and creates temporary interactive web visualizations that are automatically cleaned up after use, with all processing logged to rotating log files.
 
 ## Installation
 
@@ -73,7 +72,7 @@ Computes and visualizes selected metrics across all loaded checkpoints.
 
 ## Built-in Metrics
 
-Phase-Viz includes several pre-built metrics for analyzing neural network geometry:
+Phase-Viz includes several pre-built metrics:
 
 ### Weight Entropy
 **Command:** `entropy`
@@ -135,7 +134,7 @@ where $\epsilon = 10^{-6}$. This can indicate over-regularization or training is
 ### Weight Rank
 **Command:** `rank`
 
-Computes average effective rank of weight matrices using entropy:
+Computes average effective rank of weight matrices:
 
 $$\text{EffRank}(W) = \exp\left(-\sum_{i} \frac{s_i}{\sum_j s_j} \log\left(\frac{s_i}{\sum_j s_j}\right)\right)$$
 
@@ -166,8 +165,6 @@ Computes the average condition number of weight matrices:
 
 $$\kappa = \frac{\sigma_{\max}}{\sigma_{\min}}$$
 
-High condition numbers indicate potential numerical instability.
-
 ### Flatness Proxy
 **Command:** `flatness`
 
@@ -193,7 +190,7 @@ Computes the skewness of weight distribution:
 
 $$\text{Skew}(W) = \frac{\mathbb{E}\left[(W - \mu)^3\right]}{\sigma^3}$$
 
-Measures asymmetry of weight distribution.
+Measures the asymmetry of weight distribution.
 
 ### Weight Kurtosis
 **Command:** `kurtosis`
@@ -255,8 +252,6 @@ Estimates the maximum potential activation:
 ![activation capacity](https://latex.codecogs.com/svg.image?\dpi{200}\color{White}\mathcal{C}%20=%20\frac{1}{L}%20\sum_{l=1}^{L}%20\log(m_l%20\cdot%20n_l)%20\cdot%20\frac{\exp\left(-\sum_{i=1}^{r_l}%20p_i^{(l)}%20\log(p_i^{(l)}%20+%2010^{-10})\right)}{r_l})
 
 
-This is a proxy that looks at weight magnitudes across all layers.
-
 ## Custom Metrics
 
 You can define custom metrics in a Python file. Each metric function must:
@@ -293,7 +288,7 @@ Enter a metric name: custom_metrics.py
 - Export data as CSV or download plots as PNG
 
 ### Phase Transition Detection
-The tool automatically identifies significant changes in metrics (>20% relative change between checkpoints) and highlights these transitions in the visualization.
+Phase-viz automatically identifies significant changes in metrics (>20% relative change between checkpoints) and highlights these transitions in the visualization.
 
 
 ### Logging System
@@ -306,7 +301,7 @@ All operations are logged to `logs/phase-viz.log` with automatic rotation after 
 ### Temporary Web Interface
 Phase-Viz creates a temporary HTML file for visualization that:
 - Opens automatically in your default browser
-- Includes a cleanup server that removes the file when closed
+- Includes a cleanup server that removes the file when the page is closed
 
 
 ## Example Workflow
@@ -332,15 +327,12 @@ python src/cli.py plot-metric --device cuda
 
 ## Architecture Support
 
-Phase-Viz automatically detects model architecture from checkpoints and supports:
+Phase-viz attempts to automatically detect model architecture from checkpoints and supports:
 - Standard PyTorch models
 - Models with custom initialization
 - Transformer architectures
 - Convolutional networks
-- Recurrent networks (LSTM, GRU)
-
-### Metric Computation Errors
-Failed metrics return `NaN` values without stopping the entire process. Check the log file for detailed error messages.
+- Recurrent networks
 
 ## Examples
 - Example models and checkpoints are stored in the `examples` directory.
@@ -348,7 +340,7 @@ Failed metrics return `NaN` values without stopping the entire process. Check th
 ### Grokking Transformer
 
 - This is the transformer architecture featured in the paper [Progress measures for grokking via mechanistic interpretability](https://github.com/mechanistic-interpretability-grokking/progress-measures-paper/tree/main) 
-- Note: `transformer_checkpoints_example` contains over 50 checkpoints, and can take 6-7 minutes to compute and render multiple metrics. Consider using CUDA if you have access to it. 
+- Note: `transformer_checkpoints_example` contains over 50 checkpoints, and can take 6-7 minutes to compute and render multiple metrics. Consider using CUDA if you have access to a GPU. 
 
 ```bash
 # Load the checkpoints
@@ -365,7 +357,7 @@ python src/cli.py plot-metric --device cuda
 *Weight entropy over training - checkpointed every 1000 epochs*
 ### Deep Linear Network
 
-- Deep linear architecture as featured in [Timaeus's dev interp example repo](https://github.com/timaeus-research/devinterp/blob/main/examples/dlns.ipynb)
+- Deep linear architecture as featured in [Timaeus's dev interp examples repo](https://github.com/timaeus-research/devinterp/blob/main/examples/dlns.ipynb)
 
 ```bash
 # Load the checkpoints
