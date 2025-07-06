@@ -3,7 +3,7 @@
 ![image](https://github.com/user-attachments/assets/0cf14db2-8de0-481c-9996-6edccbc641db)
 
 
-Phase-Viz is a visualization tool for generically analyzing the developmental trajectory of neural networks during training. It aims to assist in understanding how model weight geometry evolves throughout training and help link quantitative changes in model statistics with qualitative changes in model behaviour.
+Phase-Viz is a visualization tool for generically analyzing the developmental trajectory of neural networks during training. It aims to assist in understanding how model weight geometry evolves throughout the learning process and help link quantitative changes in model statistics with qualitative changes in model behaviour.
 
 ## Overview
 
