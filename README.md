@@ -54,14 +54,14 @@ Loads a directory containing model checkpoints (`.pt` or `.ckpt` files).
 
 **Example:**
 ```bash
-python cli.py load-dir --dir ../grok_1748461191 --model ../examples/transformer_grokking_example.py --class-name GrokkingMLP
+python cli.py load-dir --dir ../grokking_checkpoints_example --model ../examples/transformer_grokking_example.py --class-name GrokkingMLP
 ```
 
 ### `plot-metrics`
 Computes and visualizes selected metrics across all loaded checkpoints.
 
 **Options:**
-- `--device`: Device to use for calculations (`cuda`, `cpu`, or specific `cuda:n`) [default: cuda]
+- `--device`: Device to use for calculations (`cuda`, `cpu`) [default: cuda]
 - `--parallel`: Use parallel processing for calculations [default: True]
 
 **Interactive Commands:**
