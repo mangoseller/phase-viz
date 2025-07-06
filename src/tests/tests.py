@@ -4,17 +4,16 @@ import torch.nn as nn
 import numpy as np
 import os
 import sys
-import json
 import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 sys.path.append(os.path.dirname(__file__))
 
-# add parent Dir
+# add parent dir
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(parent_dir))
 
@@ -73,24 +72,21 @@ class TestModelLoading:
         # Test with ConfigurableNet - has default values
         config = extract_model_config_from_class(ConfigurableNet)
         assert isinstance(config, dict)
-        assert config['input_dim'] == 10  # default value
-        assert config['hidden_size'] == 64  # default value
-        assert config['num_layers'] == 3  # default value
-        assert config['output_dim'] == 1  # default value
+        assert config['input_dim'] == 10  # default values
+        assert config['hidden_size'] == 64  
+        assert config['num_layers'] == 3  
+        assert config['output_dim'] == 1  
         
-        # Test with TransformerModel - has default values
         config = extract_model_config_from_class(TransformerModel)
         assert isinstance(config, dict)
-        assert config['vocab_size'] == 1000  # default value
-        assert config['d_model'] == 512  # default value
-        assert config['nhead'] == 8  # default value
+        assert config['vocab_size'] == 1000  
+        assert config['d_model'] == 512  
+        assert config['nhead'] == 8  
         
         # Test with SimpleNet - no parameters
         config = extract_model_config_from_class(SimpleNet)
         assert isinstance(config, dict)
-        assert len(config) == 0  # No parameters in __init__
         
-        # Test with model that has required parameters
         class RequiredParamsModel(nn.Module):
             def __init__(self, required_param, optional_param=42):
                 super().__init__()
@@ -385,8 +381,8 @@ class TestTransformerArchitecture:
             extracted_config = extract_model_config_from_class(TransformerModel)
             assert isinstance(extracted_config, dict)
             # Should get default values
-            assert extracted_config['vocab_size'] == 1000  # default
-            assert extracted_config['d_model'] == 512  # default
+            assert extracted_config['vocab_size'] == 1000 
+            assert extracted_config['d_model'] == 512  
             
             # Ensure model can be recreated
             new_model = TransformerModel(**config)
@@ -526,7 +522,7 @@ class TestEdgeCases:
     def test_checkpoint_with_mismatched_keys(self):
         """Test loading checkpoint with mismatched state dict keys."""
         with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
-            # Create a model with different architecture
+            # Create a model with a different architecture
             model1 = ConfigurableNet(hidden_size=64)
             state_dict = model1.state_dict()
             

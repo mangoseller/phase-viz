@@ -4,7 +4,6 @@ import numpy as np
 import threading
 import http.server
 import socketserver
-import json
 import os
 import signal
 import atexit
@@ -28,7 +27,6 @@ BUILTIN_METRICS = {
     "variance":       ("Parameter Variance",      parameter_variance_of_model),
     "norm_ratio":     ("Layer Wise Norm Ratio",   layer_wise_norm_ratio_of_model),
     "capacity":       ("Activation Capacity",     activation_capacity_of_model),
-    "dead_neurons":   ("Dead Neuron Percentage",  dead_neuron_percentage_of_model),
     "rank":           ("Weight Rank",             weight_rank_of_model),
     "gradient_flow":  ("Gradient Flow Score",     gradient_flow_score_of_model),
     "effective_rank": ("Effective Rank",          effective_rank_of_model),
@@ -95,7 +93,6 @@ def setup_file_logging(log_dir: str = "logs", max_lines: int = 5000) -> logging.
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
     
-    # Suppress output if needed
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
@@ -107,7 +104,7 @@ logger = setup_file_logging()
 @contextmanager
 def suppress_stdout_stderr():
     """
-    Context manager to suppress stdout and stderr.
+    Suppress stdout and stderr.
     """
     original_stdout = sys.stdout
     original_stderr = sys.stderr
@@ -251,13 +248,11 @@ class CleanupHTTPServer:
             logger.info(f"Stopped cleanup server on port {self.port}")
 
 
-def start_cleanup_server(output_html: Path, timestamp: str, random_suffix: str) -> Tuple[int, threading.Event]:
+def start_cleanup_server(output_html: Path) -> Tuple[int, threading.Event]:
     """Start a cleanup server for the HTML file.
     
     Args:
         output_html: Path to the HTML file
-        timestamp: Timestamp for validation
-        random_suffix: Random suffix (not used in new implementation)
         
     Returns:
         Tuple of (port, cleanup_event)

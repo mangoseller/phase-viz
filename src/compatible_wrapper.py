@@ -9,8 +9,8 @@ class MetricsCompatibleModel(nn.Module):
     """
     Wrap weird architectures to ensure compatibility with loader.
     Create composite weight views for modules with multiple stacked weight parameters in the same layer.
-    Flatten rank 3 + tensors
-    Standardize param names
+    Try to flatten tensors rank 3 or greater
+    Standardize parameter names
     """
     def __init__(self, original_model):
         super().__init__()
@@ -43,7 +43,6 @@ class MetricsCompatibleModel(nn.Module):
                 
                 # Identify weight-like parameters
                 if not has_standard_weight and param.dim() >= 2:
-                    # Check if this looks like a weight parameter
                     if any(indicator in param_name.upper() for indicator in ['W', 'WEIGHT', 'KERNEL']):
                         weight_params.append((param_name, param))
                     elif param_name in ['embedding', 'embed'] and param.dim() == 2:
@@ -87,7 +86,6 @@ class MetricsCompatibleModel(nn.Module):
             # If all weights have compatible dimensions, concatenate them
             last_dims = [param.size(-1) for _, param in weight_params]
             if len(set(last_dims)) == 1:
-                # All have same last dimension - can concatenate along first dims
                 flattened_weights = []
                 for param_name, param in weight_params:
                     if param.dim() == 2:
@@ -113,7 +111,8 @@ class MetricsCompatibleModel(nn.Module):
                                 return param
                             else:
                                 return param.view(-1, param.size(-1))
-            
+
+            # TODO: remove this and fix things properly 
             # Fall back: use the largest weight as representative
             sorted_params = sorted(weight_params, key=lambda x: x[1].numel(), reverse=True)
             largest_name, largest_param = sorted_params[0]
@@ -193,7 +192,7 @@ def wrap_model_for_metrics(model):
                 elif param_name in ['embedding', 'embed']:
                     weight_like_params.append(param_name)
         
-        # Need wrapping if we have weight-like params but no standard weight
+        # Need wrapping if we have weight-like params but we are unable to identify standard weights
         if weight_like_params and not has_standard_weight:
             needs_wrapping = True
             logger.debug(f"Module {module.__class__.__name__} has non-standard weight parameters: {weight_like_params}")
@@ -217,7 +216,7 @@ def wrap_model_for_metrics(model):
 
 def get_all_weight_parameters(model, include_all=False):
     """
-    Get all weight parameters from a model in a standardized way.
+   Try to get all weight parameters from a model
     
     Args:
         model: The model to extract weights from

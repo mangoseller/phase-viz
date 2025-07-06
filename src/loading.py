@@ -1,9 +1,7 @@
-import os
 import sys
 import time
 import datetime
 import threading
-from typing import Optional
 
 
 class SimpleLoadingAnimation:
@@ -62,7 +60,9 @@ class SimpleLoadingAnimation:
             with self.lock:
                 progress = self.progress.copy()
             
-            # Calculate elapsed time and estimated remaining time
+            # TODO: Fix time estimation - doesn't work and isn't really needed 
+            # Loading is too quick for it to be warranted, in the tests i've seen
+
             elapsed = time.time() - self.start_time
             progress_ratio = max(0.01, progress['current'] / progress['total']) if progress['total'] > 0 else 0
             # Avoid division by zero or very small numbers

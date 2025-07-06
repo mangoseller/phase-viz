@@ -14,6 +14,7 @@ _model_class_cache: Dict[Tuple[str, str], Type] = {}
 logger = logging.getLogger(__name__)
 _model_cache: Dict[Tuple[str, str], Type] = {}
 
+# Most of the logic for model loading needs some work to put it lightly, might be a good idea to redo these components from scratch
 def load_model_class(model_path: str, class_name: str):
     """
     Dynamically load (and cache) *class_name* from *model_path*.
@@ -405,7 +406,6 @@ def load_model_from_checkpoint(path: str, device: str = "auto") -> torch.nn.Modu
         model = initialize_model_with_config(_model_class, config)
     except Exception as e:
         logger.error(f"Model initialization failed: {e}")
-        RuntimeError(f"{e}{suggestion}")
         raise 
 
     # Load the state dict

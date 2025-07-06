@@ -1,18 +1,15 @@
-#TODO: support mac and windows w parallel processing
-
+# TODO: fix loading animation problems on windows, investigate double line display
+# investigate server cleanup on windows
 import os
 import typer as t 
-import typing
 import sys
-import time
-import importlib.util
-import inspect
 import threading
 from pathlib import Path
 import torch
 
 sys.path.append(os.path.dirname(__file__))
-# Module packages
+
+# Internal packages
 from load_models import load_model_class, contains_checkpoints, clear_model_cache
 from state import load_state, save_state
 from generate_plot import plot_metric_interactive
@@ -28,6 +25,7 @@ from metrics import (
     compute_metrics_over_checkpoints, 
     clear_metric_cache
     )
+
 
 app = t.Typer(no_args_is_help=False)
 
@@ -104,7 +102,7 @@ def _select_metrics(max_metrics: int = None) -> tuple:
             t.secho("Exiting, goodbye.", fg=t.colors.GREEN)
             raise t.Exit(code=0)
             
-        # Check if the user input a file name with .py truncated
+        # Check if the user input a file name with the .py prefix truncated
         if not raw.endswith(".py") and raw != "metrics":
             candidate = raw + ".py"
             if os.path.isfile(candidate):
@@ -137,7 +135,7 @@ def _select_metrics(max_metrics: int = None) -> tuple:
             if raw.lower() == "metrics":
                 _show_available_metrics()
                 if max_metrics:
-                    t.secho(f"\nRemember: You can select up to {max_metrics - len(metrics_to_calculate)} more metric(s)", 
+                    t.secho(f"\nYou can select up to {max_metrics - len(metrics_to_calculate)} more metric(s)", 
                            fg=t.colors.YELLOW)
             elif raw.lower() == "all":
                 if max_metrics:
@@ -178,7 +176,6 @@ def _show_available_metrics():
     t.secho("• Parameter Variance (variance) - Variance of all trainable parameters", fg=t.colors.CYAN)
     t.secho("• Layer Wise Norm Ratio (norm_ratio) - Ratio of norms between first and last layers", fg=t.colors.CYAN)
     t.secho("• Activation Capacity (capacity) - Model's representational capacity", fg=t.colors.CYAN)
-    t.secho("• Dead Neuron Percentage (dead_neurons) - Percentage of near-zero weights", fg=t.colors.CYAN)
     t.secho("• Weight Rank (rank) - Average effective rank of weight matrices", fg=t.colors.CYAN)
     t.secho("• Gradient Flow Score (gradient_flow) - Gradient flow quality score", fg=t.colors.CYAN)
     t.secho("• Effective Rank (effective_rank) - Effective rank using entropy of singular values", fg=t.colors.CYAN)
@@ -193,7 +190,7 @@ def _show_available_metrics():
     t.secho("• Participation Ratio (participation) - How evenly distributed weight values are", fg=t.colors.CYAN)
     t.secho("• Sparsity (sparsity) - Fraction of near-zero parameters", fg=t.colors.CYAN)
     t.secho("• Max Activation (max_activation) - Maximum potential activation", fg=t.colors.CYAN)
-    t.secho("\nYou can also provide a .py file with custom metrics ending in '_of_model'", fg=t.colors.YELLOW)
+    t.secho("\nYou can also provide a .py file with custom metric functions ending in '_of_model'", fg=t.colors.YELLOW)
 
 
 def _compute_metrics_with_animation(
@@ -442,7 +439,7 @@ def compare_models(
     device: str = t.Option("cuda", help="Device to use for calculations ('cuda', 'cpu', specific 'cuda:n')"),
     parallel: bool = t.Option(True, help="Use parallel processing for calculations (by default: True)")
 ):
-    """Compare metrics between multiple models (up to 3)."""
+    """Compare metrics between multiple models (up to 3 models supported)."""
     logger.info(f"Starting compare-models command with device={device}, parallel={parallel}")
     
     device = _validate_device(device)
@@ -478,8 +475,7 @@ def compare_models(
         model_data = _load_model_interactively(model_labels[i])
         models_data.append(model_data)
     
-    # Select metrics (limit to 5)
-    t.secho("\n--- Select Metrics to Compare ---", fg=t.colors.MAGENTA, bold=True)
+    # Select metrics o Compare ---", fg=t.colors.MAGENTA, bold=True)
     t.secho("You can select up to 5 metrics for comparison.", fg=t.colors.YELLOW)
     metrics_to_calculate, metrics_file = _select_metrics(max_metrics=5)
     
@@ -533,7 +529,6 @@ def compare_models(
     try:
         logger.info(f"Creating comparison plot for {num_models} models...")
         with suppress_stdout_stderr():
-            # Use the same plot_metric_interactive but with comparison data
             plot_metric_interactive(
                 checkpoint_names=checkpoint_names,  # Primary model checkpoints
                 metrics_data=combined_metrics,

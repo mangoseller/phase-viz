@@ -12,14 +12,11 @@ import webbrowser
 from utils import (
     suppress_stdout_stderr, 
     start_cleanup_server, 
-    find_interesting_points, 
-    calculate_trend_info,
     logger,
-    register_html_for_cleanup,
     unregister_html_from_cleanup
 )
 
-os.environ['GTK_MODULES'] = ''
+os.environ['GTK_MODULES'] = '' # Supress stderr 
 
 
 def plot_metric_interactive(
@@ -32,7 +29,7 @@ def plot_metric_interactive(
     comparison_data=None,
     num_models=1
 ) -> None:
-    """Render an interactive line-plot using React and D3.js.
+    """Render metric visualisations in D3.js.
     
     Args:
         checkpoint_names: List of checkpoint identifiers
@@ -114,10 +111,9 @@ def plot_metric_interactive(
         output_html = Path(f"metrics_over_checkpoints_{timestamp}_{random_suffix}.html").absolute()
     
     # Start cleanup server
-    port, cleanup_event = start_cleanup_server(output_html, timestamp, random_suffix)
+    port, cleanup_event = start_cleanup_server(output_html)
     logger.info(f"Started cleanup server on port {port} for {output_html}")
     
-    # The HTML content now includes comparison mode support in the existing template
     html_content = fr"""<!DOCTYPE html>
 <html lang="en">
 <head>

@@ -63,7 +63,7 @@ def parameter_variance_of_model(model: torch.nn.Module) -> float:
     Compute the variance of all trainable parameters.
     
     This metric helps track how spread out the parameter values are,
-    which can indicate model complexity or training dynamics.
+    which can indicate model complexity or inform on training dynamics.
     """
     all_params = []
     for p in model.parameters():
@@ -95,6 +95,7 @@ def layer_wise_norm_ratio_of_model(model: torch.nn.Module) -> float:
         last_norm = all_norms[-1][1]
         return first_norm / last_norm if last_norm > 1e-10 else 0.0
     
+    # TODO - fail gracefully without lying 
     return 1.0  # Default ratio if not enough layers
 
 
@@ -102,7 +103,6 @@ def activation_capacity_of_model(model: torch.nn.Module) -> float:
     """
     Estimate the model's activation capacity based on weight properties.
     
-    This is a proxy for the model's representational capacity.
     """
     from compatible_wrapper import get_weight_matrices_for_metrics
     
@@ -110,14 +110,10 @@ def activation_capacity_of_model(model: torch.nn.Module) -> float:
     if not matrices:
         return 0.0
     
-    # Instead of requiring square matrices and using determinants,
-    # use a more general measure of capacity
     capacity = 0.0
     
     for w in matrices:
         if w.shape[0] > 0 and w.shape[1] > 0:
-            # Use the log of the product of the shape dimensions
-            # as a measure of the "degrees of freedom"
             dim_capacity = torch.log(torch.tensor(w.shape[0] * w.shape[1], dtype=torch.float32))
             
             # Weight by the "spread" of the singular values
@@ -128,7 +124,6 @@ def activation_capacity_of_model(model: torch.nn.Module) -> float:
                     svd_normalized = svd_vals / svd_vals.sum()
                     entropy = -(svd_normalized * torch.log(svd_normalized + 1e-10)).sum()
                     
-                    # Higher entropy means more uniform singular values = higher capacity
                     spread_factor = torch.exp(entropy) / len(svd_vals)
                 else:
                     spread_factor = 0.1
@@ -141,41 +136,10 @@ def activation_capacity_of_model(model: torch.nn.Module) -> float:
     return capacity / len(matrices) if matrices else 0.0
 
 
-def dead_neuron_percentage_of_model(model: torch.nn.Module) -> float:
-    """
-    Estimate percentage of "dead" neurons (near-zero weights).
-    
-    This can indicate over-regularization or training issues.
-    """
-    from compatible_wrapper import get_weight_matrices_for_metrics
-    
-    # Use a more reasonable threshold for "dead" neurons
-    threshold = 1e-3  # Increased from 1e-5
-    matrices = get_weight_matrices_for_metrics(model)
-    if not matrices:
-        return 0.0
-    
-    total_neurons = 0
-    dead_neurons = 0
-    
-    for w in matrices:
-        # Only consider matrices that look like they have "neurons" (rows)
-        # Skip embedding-like matrices
-        if w.shape[0] > 0:
-            # Check each row (neuron) - use L2 norm instead of L1
-            row_norms = w.norm(p=2, dim=1)
-            total_neurons += row_norms.shape[0]
-            dead_neurons += (row_norms < threshold).sum().item()
-    
-    return (dead_neurons / total_neurons * 100) if total_neurons > 0 else 0.0
-
-
-
 def weight_rank_of_model(model: torch.nn.Module) -> float:
     """
     Compute average effective rank of weight matrices.
     
-    Lower rank might indicate redundancy in the model.
     """
     from compatible_wrapper import get_weight_matrices_for_metrics
     
@@ -187,7 +151,6 @@ def weight_rank_of_model(model: torch.nn.Module) -> float:
     for w in matrices:
         if w.shape[0] > 0 and w.shape[1] > 0:
             try:
-                # Use a more robust rank calculation with tolerance
                 # Default tolerance in matrix_rank might be too strict
                 rank = torch.linalg.matrix_rank(w, tol=1e-4).item()
                 ranks.append(rank)
@@ -263,7 +226,6 @@ def avg_condition_number_of_model(model: torch.nn.Module) -> float:
     """
     Compute the average condition number of weight matrices.
     
-    High condition numbers indicate potential numerical instability.
     """
     from compatible_wrapper import get_weight_matrices_for_metrics
     
@@ -317,7 +279,6 @@ def mean_weight_of_model(model: torch.nn.Module) -> float:
     """
     Compute the mean of all trainable weights.
     
-    Useful for detecting weight drift or bias.
     """
     weights = [p.data.flatten() for p in model.parameters() if p.requires_grad]
     if not weights:
@@ -375,7 +336,7 @@ def isotropy_of_model(model: torch.nn.Module) -> float:
                 eigenvalues = eigenvalues[eigenvalues > 1e-10]  # Filter small values
                 
                 if len(eigenvalues) > 1:
-                    # Isotropy as ratio of smallest to largest eigenvalue
+                    # Isotropy is considered the ratio of smallest to largest eigenvalues of the covariance matrix
                     isotropy = (eigenvalues.min() / eigenvalues.max()).item()
                     isotropies.append(isotropy)
             except:
@@ -426,9 +387,9 @@ def participation_ratio_of_model(model: torch.nn.Module) -> float:
     Compute the participation ratio of all trainable parameters.
     
     The participation ratio measures how evenly distributed the values are.
-    A higher value means more even distribution of weights.
+    A higher value means more even distribution across weights.
     """
-    # flatten parameters into one long vector
+    # flatten parameters
     flat = torch.cat(
         [p.data.reshape(-1).float() for p in model.parameters() if p.requires_grad]
     )
@@ -467,7 +428,6 @@ def max_activation_of_model(model: torch.nn.Module) -> float:
     """
     Estimate the maximum potential activation in the model.
     
-    This is a proxy that looks at weight magnitudes.
     """
     from compatible_wrapper import get_weight_matrices_for_metrics
     

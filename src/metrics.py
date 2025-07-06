@@ -1,19 +1,15 @@
 import os
-import time
-import tempfile
-from typing import Callable, Sequence, List, Dict, Optional, Any, Union
+from typing import Callable, Sequence, List, Dict, Optional, Any
 import torch
 import importlib.util
 import inspect
 import sys
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 import multiprocessing as mp
-import load_models # Module import
 from load_models import * # Get access to the specific functions without load_models. prefix
 from utils import logger
 import typer as t
 import functools
-import numpy as np
 from state import load_state
 from compatible_wrapper import *
 
@@ -24,7 +20,6 @@ from inbuilt_metrics import (
     parameter_variance_of_model as _parameter_variance,
     layer_wise_norm_ratio_of_model as _layer_wise_norm_ratio,
     activation_capacity_of_model as _activation_capacity,
-    dead_neuron_percentage_of_model as _dead_neuron_percentage,
     weight_rank_of_model as _weight_rank,
     gradient_flow_score_of_model as _gradient_flow_score,
     effective_rank_of_model as _effective_rank,
@@ -82,14 +77,13 @@ def with_memory_optimization(func):
     setattr(mod, func.__name__, wrapper)
     return wrapper
 
-# Attach wrapper to inbuilt funcs
+# lol
 
 weight_entropy_of_model = with_memory_optimization(_weight_entropy)
 layer_connectivity_of_model = with_memory_optimization(_layer_connectivity)
 parameter_variance_of_model = with_memory_optimization(_parameter_variance)
 layer_wise_norm_ratio_of_model = with_memory_optimization(_layer_wise_norm_ratio)
 activation_capacity_of_model = with_memory_optimization(_activation_capacity)
-dead_neuron_percentage_of_model = with_memory_optimization(_dead_neuron_percentage)
 weight_rank_of_model = with_memory_optimization(_weight_rank)
 gradient_flow_score_of_model = with_memory_optimization(_gradient_flow_score)
 effective_rank_of_model = with_memory_optimization(_effective_rank)
@@ -122,7 +116,6 @@ def _get_builtin_metrics():
         "Parameter Variance": parameter_variance_of_model,
         "Layer Wise Norm Ratio": layer_wise_norm_ratio_of_model,
         "Activation Capacity": activation_capacity_of_model,
-        "Dead Neuron Percentage": dead_neuron_percentage_of_model,
         "Weight Rank": weight_rank_of_model,
         "Gradient Flow Score": gradient_flow_score_of_model,
         "Effective Rank": effective_rank_of_model,
@@ -175,7 +168,7 @@ def compute_metric_batch(
 
 def _process_checkpoint_cpu(args):  
     """
-    Helper function to process each function in a separate process for CPU parallel processing.
+    Process each function in a separate process for CPU parallel processing.
     
     args: (idx, path, metric_names, device, metrics_file, model_path, class_name)
     """
@@ -224,8 +217,8 @@ def compute_metrics_over_checkpoints(
     progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
     parallel: bool = True,
     metrics_file: str = None,
-    model_path: str = None,  # Add this parameter
-    class_name: str = None   # Add this parameter
+    model_path: str = None,  
+    class_name: str = None   
 ) -> Dict[str, List[float]]:
     """Compute multiple metrics over multiple checkpoints.
     
@@ -245,11 +238,9 @@ def compute_metrics_over_checkpoints(
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
     
-    # Determine if we're using GPU
     using_gpu = device.startswith("cuda")
     results = {name: [None] * len(checkpoints) for name in metric_functions}
     
-    # Track progress
     metrics_progress = {
         name: {"completed": 0, "total": len(checkpoints)}
         for name in metric_functions
@@ -282,7 +273,6 @@ def compute_metrics_over_checkpoints(
     
     if parallel and len(checkpoints) > 1:
         if using_gpu:
-            # ThreadPoolExecutor for GPU (no changes needed here)
             max_workers = min(len(checkpoints), 4)  
             executor_type = "threads"
             
